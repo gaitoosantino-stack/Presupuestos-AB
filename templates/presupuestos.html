@@ -1,0 +1,746 @@
+ <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Calculadora de Presupuestos - Laboratorio Scozzina</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #003153;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        p {
+            text-align: center;
+            color: #555;
+            font-size: 1.1em;
+            margin-bottom: 40px;
+        }
+
+        #presupuesto-form {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 49, 83, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #003153;
+            font-size: 1em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+            background: white;
+        }
+
+        .form-group input::placeholder {
+            color: #999;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        #estudios-agregados {
+            margin-top: 40px;
+        }
+
+        #estudios-agregados h3 {
+            color: #003153;
+            font-size: 1.5em;
+            margin-bottom: 5px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #lista-estudios {
+            list-style: none;
+            padding: 0;
+        }
+
+        #lista-estudios li {
+            background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 49, 83, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        #lista-estudios li:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 49, 83, 0.1);
+        }
+
+        .eliminar-estudio {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        .eliminar-estudio:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        #total-container {
+            margin-top: 40px;
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 49, 83, 0.1);
+        }
+
+        #total-container h3 {
+            color: #003153;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        #total {
+            font-size: inherit;
+            font-weight: 700;
+            color: #48bb78;
+            text-shadow: 0 2px 4px rgba(72, 187, 120, 0.2);
+        }
+
+        /* Autocomplete Styles */
+        .autocomplete-container {
+            position: relative;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 20px rgba(0, 49, 83, 0.15);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .autocomplete-option {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .autocomplete-option:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-option:hover,
+        .autocomplete-option.highlighted {
+            background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
+            color: white;
+        }
+
+        .autocomplete-option.highlighted {
+            background: linear-gradient(135deg, #003153 0%, #002244 100%);
+        }
+
+        .btn-borrar-todo {
+            background: rgba(220, 53, 69, 0.05);
+            color: #b02a37;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.7em;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 400;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+            line-height: 1;
+        }
+
+        .btn-borrar-todo:hover {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            transform: translateY(-1px);
+            box-shadow: 0 1px 4px rgba(220, 53, 69, 0.15);
+        }
+
+        /* Override container width for footer to match index page */
+        footer .container {
+            max-width: 1200px;
+        }
+
+        /* Animación sutil para estudios agregados */
+        @keyframes estudioAgregado {
+            0% {
+                opacity: 0;
+                transform: translateY(-5px) scale(0.98);
+            }
+            50% {
+                border-left: 4px solid #48bb78;
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                border-left: 4px solid transparent;
+            }
+        }
+
+        #lista-estudios li.estudio-nuevo {
+            animation: estudioAgregado 0.5s ease-out;
+        }
+
+        .ultima-actualizacion {
+            text-align: center;
+            color: #999;
+            font-size: 0.85em;
+            margin-top: -30px;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header simple -->
+    <header style="background: white; padding: 15px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px;">
+        <div style="max-width: 800px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-weight: 600; color: #003153;">
+                Hola, {{ username }} 👋
+            </div>
+            <div style="display: flex; gap: 10px;">
+                {% if username == 'Gaito' %}
+                <a href="{{ url_for('admin_usuarios') }}" style="padding: 8px 15px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-size: 14px; transition: all 0.3s ease;">Gestionar Usuarios</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" style="padding: 8px 15px; background: #f56565; color: white; text-decoration: none; border-radius: 8px; font-size: 14px; transition: all 0.3s ease;">Cerrar Sesión</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <section style="padding: 40px 20px; min-height: calc(100vh - 100px); background-color: #f9f9f9;">
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div style="padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; 
+                            {% if category == 'success' %}background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;
+                            {% elif category == 'error' %}background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
+                            {% else %}background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <h1>Calculadora de Presupuestos</h1>
+            <p>Selecciona la obra social y agrega los estudios para calcular el presupuesto.</p>
+            <p class="ultima-actualizacion">Última Actualización: 04/12/25</p>
+
+            <form id="presupuesto-form" method="POST" action="{{ url_for('presupuestos') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="form-group">
+                    <label for="obra-social">Obra Social:</label>
+                    <div class="autocomplete-container">
+                        <input type="text" id="obra-social" placeholder="Escribe el nombre de la obra social" autocomplete="off">
+                        <div class="autocomplete-dropdown" id="obras-dropdown">
+                            {% for obra, precio in obras.items() %}
+                            <div class="autocomplete-option" data-value="{{ obra }}" data-precio="{{ precio }}">{{ obra }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" id="personalizado-container" style="display: none;">
+                    <label for="valor-personalizado">Valor Personalizado (multiplicador para UB):</label>
+                    <input type="number" id="valor-personalizado" placeholder="Ej: 1500" step="0.01" min="0" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label for="estudio">Estudio:</label>
+                    <div class="autocomplete-container">
+                        <input type="text" id="estudio" placeholder="Escribe el código o nombre del estudio" autocomplete="off">
+                        <div class="autocomplete-dropdown" id="estudios-dropdown">
+                            {% for codigo, info in estudios.items() %}
+                            <div class="autocomplete-option" data-codigo="{{ codigo }}" data-ub="{{ info.ub }}">{{ codigo }} - {{ info.nombre }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" id="agregar-estudio" class="btn-primary">Agregar Estudio</button>
+
+                <!-- Toggle para estudios manuales -->
+                <div class="form-group" style="margin-top: 25px;">
+                    <button type="button" id="toggle-manual" class="btn-secondary" style="width: auto; padding: 12px 20px; background: rgba(255, 255, 255, 0.9); color: #555; border: 1px solid #d1d5db; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.3s ease; backdrop-filter: blur(8px); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); margin-top: 10px;">+ Agregar Estudio Manual</button>
+                </div>
+
+                <!-- Sección para estudios manuales (oculta por defecto) -->
+                <div id="seccion-manual" style="display: none; margin-top: 20px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e0e0e0;">
+                    <div class="form-group">
+                        <label for="estudio-manual">Nombre del Estudio:</label>
+                        <input type="text" id="estudio-manual" placeholder="Ej: Consulta médica" autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="precio-manual">Precio en ARS:</label>
+                        <input type="number" id="precio-manual" placeholder="0,00" step="0.01" min="0" autocomplete="off">
+                    </div>
+
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <button type="button" id="agregar-estudio-manual" class="btn-primary" style="width: auto; flex: 1;">Agregar Estudio</button>
+                        <button type="button" id="cancelar-manual" class="btn-secondary" style="width: auto; padding: 12px 18px; background: rgba(108, 117, 125, 0.1); color: #6c757d; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s ease; backdrop-filter: blur(5px); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);">Cancelar</button>
+                    </div>
+                </div>
+
+                <div id="estudios-agregados">
+                    <h3>
+                        Estudios Agregados:
+                        <button type="button" id="borrar-todo" class="btn-borrar-todo">Borrar Todo</button>
+                    </h3>
+                    <ul id="lista-estudios"></ul>
+                </div>
+
+                <input type="hidden" name="estudios_json" id="estudios-json-hidden">
+
+                <div id="total-container">
+                    <h3>Total: ARS$<span id="total">0,00</span></h3>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <script>
+        // Esperar a que el DOM esté completamente cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            // Código de inicialización si es necesario
+        });
+
+        let estudiosAgregados = [];
+        let estudiosManuales = [];
+        let precioObraSocial = 0;
+        let contadorId = 0; // Contador para IDs únicos
+
+        // Función para formatear números al estilo argentino (puntos para miles, coma para decimales)
+        function formatearNumeroArgentino(num) {
+            return num.toLocaleString('es-AR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Función para agregar un estudio a la lista con animación
+        function agregarEstudioALista(li) {
+            const lista = document.getElementById('lista-estudios');
+            lista.appendChild(li);
+            // Agregar clase de animación
+            li.classList.add('estudio-nuevo');
+            // Remover la clase después de que termine la animación
+            setTimeout(() => {
+                li.classList.remove('estudio-nuevo');
+            }, 500);
+        }
+
+        // Función para actualizar el total
+        function actualizarTotal() {
+            let total = 0;
+            estudiosAgregados.forEach(estudio => {
+                total += parseFloat(estudio.ub) * precioObraSocial;
+            });
+            estudiosManuales.forEach(estudio => {
+                total += parseFloat(estudio.precio);
+            });
+            document.getElementById('total').textContent = formatearNumeroArgentino(total);
+        }
+
+        // Función para inicializar autocomplete
+        function initAutocomplete(inputId, dropdownId, isObraSocial = false) {
+            const input = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+            const options = Array.from(dropdown.querySelectorAll('.autocomplete-option'));
+            let currentFocus = -1;
+            let isDropdownVisible = false;
+
+            // Mostrar dropdown al hacer foco
+            input.addEventListener('focus', function() {
+                showAllOptions();
+            });
+
+            // Ocultar dropdown al perder foco (con delay para permitir clicks)
+            input.addEventListener('blur', function() {
+                setTimeout(() => {
+                    hideDropdown();
+                }, 150);
+            });
+
+            // Filtrar opciones mientras se escribe
+            input.addEventListener('input', function() {
+                const filter = this.value.toLowerCase();
+                let visibleOptions = [];
+
+                options.forEach(option => {
+                    const text = option.textContent.toLowerCase();
+                    if (text.includes(filter)) {
+                        option.style.display = 'block';
+                        visibleOptions.push(option);
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+
+                // Ordenar las opciones visibles alfabéticamente
+                visibleOptions.sort((a, b) => a.textContent.localeCompare(b.textContent));
+
+                // Reordenar en el DOM
+                visibleOptions.forEach(option => {
+                    dropdown.appendChild(option);
+                });
+
+                if (visibleOptions.length > 0 && this.value.length > 0) {
+                    showDropdown();
+                } else if (this.value.length === 0) {
+                    showAllOptions();
+                } else {
+                    hideDropdown();
+                }
+
+                currentFocus = -1;
+                removeHighlights();
+            });
+
+            // Navegación con teclado
+            input.addEventListener('keydown', function(e) {
+                const visibleOptions = options.filter(opt => opt.style.display !== 'none');
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    currentFocus = currentFocus < visibleOptions.length - 1 ? currentFocus + 1 : 0;
+                    highlightOption(currentFocus, visibleOptions);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    currentFocus = currentFocus > 0 ? currentFocus - 1 : visibleOptions.length - 1;
+                    highlightOption(currentFocus, visibleOptions);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (isObraSocial) {
+                    if (currentFocus >= 0 && currentFocus < visibleOptions.length) {
+                        selectOption(visibleOptions[currentFocus]);
+                    }
+                } else {
+                    // For estudio, automatically add the first matching option from filtered list
+                    if (visibleOptions.length > 0) {
+                        // Use highlighted option if available, otherwise use first visible option
+                        const selectedOption = (currentFocus >= 0 && currentFocus < visibleOptions.length) 
+                            ? visibleOptions[currentFocus] 
+                            : visibleOptions[0];
+                        
+                        const codigo = selectedOption.getAttribute('data-codigo');
+                        const nombre = selectedOption.textContent.split(' - ')[1];
+                        const ub = parseFloat(selectedOption.getAttribute('data-ub'));
+                        
+                        const idUnico = `estudio_${contadorId++}`;
+                        estudiosAgregados.push({ id: idUnico, codigo, nombre, ub });
+                        const precio = formatearNumeroArgentino(ub * precioObraSocial);
+                        const li = document.createElement('li');
+                        li.innerHTML = `${codigo} - ${nombre} (Precio: ARS$${precio}) (UB: ${ub}) <button class="eliminar-estudio" data-id="${idUnico}">Eliminar</button>`;
+                        agregarEstudioALista(li);
+                        input.value = '';
+                        actualizarTotal();
+                        hideDropdown(); // Hide dropdown after adding
+                    }
+                }
+            } else if (e.key === 'Escape') {
+                    hideDropdown();
+                }
+            });
+
+            // Click en opciones
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    selectOption(this);
+                });
+            });
+
+            function showDropdown() {
+                dropdown.style.display = 'block';
+                isDropdownVisible = true;
+            }
+
+            function hideDropdown() {
+                dropdown.style.display = 'none';
+                isDropdownVisible = false;
+                currentFocus = -1;
+                removeHighlights();
+            }
+
+            function showAllOptions() {
+                options.forEach(option => {
+                    option.style.display = 'block';
+                });
+                showDropdown();
+            }
+
+            function highlightOption(index, visibleOptions) {
+                removeHighlights();
+                if (index >= 0 && index < visibleOptions.length) {
+                    visibleOptions[index].classList.add('highlighted');
+                }
+            }
+
+            function removeHighlights() {
+                options.forEach(option => {
+                    option.classList.remove('highlighted');
+                });
+            }
+
+            function selectOption(option) {
+                input.value = option.textContent;
+                hideDropdown();
+
+                if (isObraSocial) {
+                    precioObraSocial = parseFloat(option.getAttribute('data-precio'));
+                    actualizarTotal();
+                    // Mostrar/ocultar campo personalizado
+                    if (option.textContent === 'Personalizado') {
+                        document.getElementById('personalizado-container').style.display = 'block';
+                    } else {
+                        document.getElementById('personalizado-container').style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        // Inicializar autocompletes
+        initAutocomplete('obra-social', 'obras-dropdown', true);
+        initAutocomplete('estudio', 'estudios-dropdown', false);
+
+        // Evento para el input de valor personalizado
+        document.getElementById('valor-personalizado').addEventListener('input', function() {
+            const valor = parseFloat(this.value);
+            if (!isNaN(valor) && valor >= 0) {
+                precioObraSocial = valor;
+                actualizarTotal();
+            } else {
+                precioObraSocial = 0;
+                actualizarTotal();
+            }
+        });
+
+        // Evento para agregar estudio
+        document.getElementById('agregar-estudio').addEventListener('click', function() {
+            const estudioInput = document.getElementById('estudio');
+            const estudioValue = estudioInput.value.trim();
+
+            if (!estudioValue) {
+                alert('Por favor selecciona un estudio.');
+                return;
+            }
+
+            // Buscar la opción correspondiente
+            const estudiosDropdown = document.getElementById('estudios-dropdown');
+            const selectedOption = Array.from(estudiosDropdown.querySelectorAll('.autocomplete-option'))
+                .find(option => option.textContent === estudioValue);
+
+            if (selectedOption) {
+                const codigo = selectedOption.getAttribute('data-codigo');
+                const nombre = selectedOption.textContent.split(' - ')[1];
+                const ub = parseFloat(selectedOption.getAttribute('data-ub'));
+
+                // Removed duplicate check to allow multiple identical estudios
+                // if (estudiosAgregados.some(e => e.codigo === codigo)) {
+                //     alert('Este estudio ya está agregado.');
+                //     return;
+                // }
+
+                const idUnico = `estudio_${contadorId++}`;
+                estudiosAgregados.push({ id: idUnico, codigo, nombre, ub });
+
+                // Agregar a la lista visual
+                const precio = formatearNumeroArgentino(ub * precioObraSocial);
+                const li = document.createElement('li');
+                li.innerHTML = `${codigo} - ${nombre} (Precio: ARS$${precio}) (UB: ${ub}) <button class="eliminar-estudio" data-id="${idUnico}">Eliminar</button>`;
+                agregarEstudioALista(li);
+
+                estudioInput.value = '';
+                actualizarTotal();
+            } else {
+                alert('Selecciona un estudio válido de la lista.');
+            }
+        });
+
+        // Evento para toggle de sección manual
+        document.getElementById('toggle-manual').addEventListener('click', function() {
+            const seccion = document.getElementById('seccion-manual');
+            if (seccion.style.display === 'none' || seccion.style.display === '') {
+                seccion.style.display = 'block';
+            } else {
+                seccion.style.display = 'none';
+            }
+        });
+
+        // Evento para cancelar sección manual
+        document.getElementById('cancelar-manual').addEventListener('click', function() {
+            document.getElementById('seccion-manual').style.display = 'none';
+            document.getElementById('estudio-manual').value = '';
+            document.getElementById('precio-manual').value = '';
+        });
+
+        // Evento para agregar estudio manual
+        document.getElementById('agregar-estudio-manual').addEventListener('click', function() {
+            const nombreEstudio = document.getElementById('estudio-manual').value.trim();
+            // Convertir formato argentino a formato numérico estándar
+            // Remover puntos (separadores de miles) y convertir coma a punto (decimal)
+            let precioTexto = document.getElementById('precio-manual').value.trim();
+            precioTexto = precioTexto.replace(/\./g, '').replace(',', '.');
+            const precioEstudio = parseFloat(precioTexto);
+
+            if (!nombreEstudio) {
+                alert('Por favor ingresa el nombre del estudio.');
+                return;
+            }
+
+            if (isNaN(precioEstudio) || precioEstudio <= 0) {
+                alert('Por favor ingresa un precio válido mayor a 0.');
+                return;
+            }
+
+            // Removed duplicate check to allow multiple identical manual estudios
+            // if (estudiosManuales.some(e => e.nombre === nombreEstudio)) {
+            //     alert('Este estudio manual ya está agregado.');
+            //     return;
+            // }
+
+            const idUnico = `manual_${contadorId++}`;
+            estudiosManuales.push({ id: idUnico, nombre: nombreEstudio, precio: precioEstudio });
+
+            // Agregar a la lista visual
+            const li = document.createElement('li');
+            li.innerHTML = `${nombreEstudio} (Precio: ARS$${formatearNumeroArgentino(precioEstudio)}) <button class="eliminar-estudio" data-id="${idUnico}">Eliminar</button>`;
+            agregarEstudioALista(li);
+
+            // Limpiar campos y ocultar sección
+            document.getElementById('estudio-manual').value = '';
+            document.getElementById('precio-manual').value = '';
+            document.getElementById('seccion-manual').style.display = 'none';
+
+            actualizarTotal();
+        });
+
+        // Evento para eliminar estudio
+        document.getElementById('lista-estudios').addEventListener('click', function(e) {
+            if (e.target.classList.contains('eliminar-estudio')) {
+                const idUnico = e.target.getAttribute('data-id');
+
+                if (idUnico) {
+                    // Buscar y eliminar por ID único
+                    if (idUnico.startsWith('estudio_')) {
+                        estudiosAgregados = estudiosAgregados.filter(est => est.id !== idUnico);
+                    } else if (idUnico.startsWith('manual_')) {
+                        estudiosManuales = estudiosManuales.filter(est => est.id !== idUnico);
+                    }
+                }
+
+                e.target.parentElement.remove();
+                actualizarTotal();
+            }
+        });
+
+        // Evento para borrar todo
+        document.getElementById('borrar-todo').addEventListener('click', function() {
+            // Limpiar arrays
+            estudiosAgregados = [];
+            estudiosManuales = [];
+
+            // Resetear precio obra social
+            precioObraSocial = 0;
+
+            // Limpiar input obra social
+            document.getElementById('obra-social').value = '';
+
+            // Ocultar input personalizado
+            document.getElementById('personalizado-container').style.display = 'none';
+            document.getElementById('valor-personalizado').value = '';
+
+            // Limpiar lista de estudios
+            document.getElementById('lista-estudios').innerHTML = '';
+
+            // Actualizar total
+            actualizarTotal();
+        });
+    </script>
+</body>
+</html>

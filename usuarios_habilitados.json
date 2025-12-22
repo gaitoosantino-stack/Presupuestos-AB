@@ -1,0 +1,12 @@
+{
+  "Gaito": {
+    "password": "scrypt:32768:8:1$eQAMKntKvKb0EIsA$602d26781a456fb0043a314d1931995acd325b348b0cd1f5baa0715697bfa15d7a9b8364ae8516cc8cc5dae2f4a4035bf9ba5cf5d3ba5fdb4bca46d44b6f2a19",
+    "email": "",
+    "habilitado": true
+  },
+  "Benja": {
+    "password": "scrypt:32768:8:1$wYRH7PozLb9iu3Aa$bdb9f1bae014b8c3fe5774c3b74c18548fd949487cd61d499558c926828b57ae4a4dfc82254c9e5878b9298ed551619b72ae60a3d12972f92b54802b028b8532",
+    "email": "",
+    "habilitado": true
+  }
+}
