@@ -108,8 +108,8 @@ init_users_file()
 def favicon():
     return send_from_directory(
         os.path.join(app.root_path, 'static', 'images'),
-        'favicon.ico',
-        mimetype='image/vnd.microsoft.icon'
+        'favicon.png',
+        mimetype='image/png'
     )
 
 # Ruta principal - Login
