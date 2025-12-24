@@ -245,3 +245,43 @@
 2025-12-24 03:44:41,724 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:41] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
 2025-12-24 03:44:51,360 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:51] "POST /descargar_pdf HTTP/1.1" 200 -
 2025-12-24 03:45:15,766 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:45:15] "POST /descargar_pdf HTTP/1.1" 200 -
+2025-12-24 03:52:06,168 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2025-12-24 03:52:06,172 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-12-24 03:52:06,509 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:52:06] "GET / HTTP/1.1" 200 -
+2025-12-24 03:52:09,628 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:52:09] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:52:11,529 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:52:11] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2025-12-24 03:52:15,974 - __main__ - INFO - Usuario 1 inició sesión
+2025-12-24 03:52:15,976 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:52:15] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:52:16,109 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:52:16] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:52:16,531 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:52:16] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:52:36,888 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2025-12-24 03:52:36,890 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-12-24 03:52:37,073 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:52:37] "[32mGET /presupuestos HTTP/1.1[0m" 302 -
+2025-12-24 03:52:37,332 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:52:37] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:52:37,706 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:52:37] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:52:38,163 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:52:38] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2025-12-24 03:52:39,691 - __main__ - INFO - Usuario 1 inició sesión
+2025-12-24 03:52:39,692 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:52:39] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:52:39,806 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:52:39] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:52:40,352 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:52:40] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:52:45,975 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:52:45] "POST /descargar_pdf HTTP/1.1" 200 -
+2025-12-24 03:53:47,661 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2025-12-24 03:53:47,662 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-12-24 03:53:50,926 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:53:50] "[32mGET /presupuestos HTTP/1.1[0m" 302 -
+2025-12-24 03:53:50,975 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:53:50] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:53:51,748 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:53:51] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:53:52,129 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:53:52] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2025-12-24 03:53:53,726 - __main__ - INFO - Usuario 1 inició sesión
+2025-12-24 03:53:53,728 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:53:53] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:53:53,826 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:53:53] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:53:54,246 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:53:54] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:54:00,282 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:54:00] "POST /descargar_pdf HTTP/1.1" 200 -

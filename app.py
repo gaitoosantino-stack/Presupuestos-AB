@@ -632,7 +632,7 @@ def descargar_pdf():
         pdf.cell(0, 8, f"SRES: {nombre_cliente}", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
         pdf.ln(5)
         
-        # Título del presupuesto - CENTRADO y sin "#"
+        # Título del presupuesto - CENTRADO
         pdf.set_font('Helvetica', 'B', 16)
         pdf.cell(0, 10, "PRESUPUESTO", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
         pdf.ln(5)
@@ -645,19 +645,15 @@ def descargar_pdf():
         w_valor = 40
         w_total_tabla = w_codigo + w_analisis + w_nbu + w_valor  # Ancho total de la tabla
         
-        # Texto descriptivo - alineado con el ancho de la tabla
+        # Texto descriptivo - ALINEADO A LA IZQUIERDA
         pdf.set_font('Helvetica', '', 10)
         texto_descriptivo = "Me dirijo a Ud./s. en respuesta a lo solicitado, detallando a continuacion los valores finales de las practicas de laboratorio requeridas"
-        # Calcular posición X para centrar la tabla (y el texto) en la página
-        ancho_pagina = 210  # Ancho estándar A4 en mm
-        margen_izq = (ancho_pagina - w_total_tabla) / 2
-        pdf.set_x(margen_izq)
-        # Usar multi_cell para texto largo que puede necesitar varias líneas
-        pdf.multi_cell(w_total_tabla, 6, texto_descriptivo, align='C')
+        # Usar multi_cell para texto largo que puede necesitar varias líneas, alineado a la izquierda
+        pdf.multi_cell(0, 6, texto_descriptivo, align='L')
         pdf.ln(5)
         
-        # Encabezados de tabla - con fondo gris (alineados con el texto descriptivo)
-        pdf.set_x(margen_izq)  # Alinear con el texto descriptivo
+        # Encabezados de tabla - con fondo gris (alineados a la izquierda)
+        pdf.set_x(pdf.l_margin)  # Alinear a la izquierda desde el margen
         pdf.set_font('Helvetica', 'B', 11)
         pdf.set_fill_color(240, 240, 240)  # Gris claro para encabezados
         pdf.cell(w_codigo, 9, 'CODIGOS', border=1, align='C', fill=True)
@@ -687,8 +683,8 @@ def descargar_pdf():
             # Formatear valor en formato argentino
             valor_str = f"${valor:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
             
-            # Filas de la tabla (alineadas con el texto descriptivo)
-            pdf.set_x(margen_izq)  # Alinear cada fila con el texto descriptivo
+            # Filas de la tabla (alineadas a la izquierda)
+            pdf.set_x(pdf.l_margin)  # Alinear cada fila desde el margen izquierdo
             nombre_truncado = nombre[:40] if len(nombre) > 40 else nombre
             try:
                 pdf.cell(w_codigo, 8, codigo, border=1, align='C')
@@ -705,8 +701,8 @@ def descargar_pdf():
                 pdf.cell(w_nbu, 8, nbu_str, border=1, align='C')
                 pdf.cell(w_valor, 8, valor_str, border=1, align='R', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         
-        # Total - fila destacada (alineada con el texto descriptivo)
-        pdf.set_x(margen_izq)  # Alinear con el texto descriptivo
+        # Total - fila destacada (alineada a la izquierda)
+        pdf.set_x(pdf.l_margin)  # Alinear desde el margen izquierdo
         pdf.set_font('Helvetica', 'B', 11)
         pdf.set_fill_color(250, 250, 250)  # Gris muy claro para el total
         total_str = f"TOTAL: ${total:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
