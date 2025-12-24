@@ -1,0 +1,24 @@
+{
+  "Scozzina": {
+    "nombre_lab": "LABORATORIO SCOZZINA SAS",
+    "subtitulo": "Análisis Clínicos",
+    "profesionales": "Bioquimico: Castillo Romina MP:0528 - Tec. Qca.: Schanz Carolina MP:100",
+    "direccion": "Pellegrini 631/ 605 - Trelew - Chubut - Cp (9100)",
+    "ciudad": "Trelew",
+    "telefono": "0280-4238264/0280 154627531",
+    "logo_path": "logo_Scozzina.png",
+    "info_bancaria": "Facilito por este medio información bancaria:\r\nBANCO GALICIA\r\nTITULAR : SCHANZ CAROLINA\r\nCTA: CAJA DE AHORRO 4000808-77305\r\nALIAS LABSCOZZINA\r\nCBU 0070730730004000808757\r\nCUIT 30-71895156-5",
+    "firma_texto": "Carolina Schanz - Gerente Titular"
+  },
+  "1": {
+    "nombre_lab": "Laboratorio De Prueba 1",
+    "subtitulo": "Análisis Clínicos",
+    "profesionales": "Bioquímico: Santino Gaito MP: Benjamin Pérez Morano",
+    "direccion": "Moreno 850",
+    "ciudad": "Dolavon",
+    "telefono": "2804400969",
+    "logo_path": "logo_1.png",
+    "info_bancaria": "nombre\r\ncbu\r\nalias\r\nnombre de banco",
+    "firma_texto": "Santino Gaito"
+  }
+}
