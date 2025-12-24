@@ -45,3 +45,203 @@
 2025-12-24 03:12:42,164 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:42] "[32mPOST /login HTTP/1.1[0m" 302 -
 2025-12-24 03:12:42,471 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:42] "GET /presupuestos HTTP/1.1" 200 -
 2025-12-24 03:12:42,719 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:42] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:28:03,229 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2025-12-24 03:28:03,232 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-12-24 03:28:03,566 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:28:03] "GET / HTTP/1.1" 200 -
+2025-12-24 03:28:06,276 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:28:06] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:28:13,253 - __main__ - INFO - Usuario Gaito inició sesión
+2025-12-24 03:28:13,261 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:28:13] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:28:13,364 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:28:13] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:28:13,593 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:28:13] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:28:56,659 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:28:56] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:28:56,762 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:28:56] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:28:57,516 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:28:57] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2025-12-24 03:29:46,079 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:29:46] "POST /descargar_pdf HTTP/1.1" 200 -
+2025-12-24 03:30:10,134 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:30:10] "GET /admin/usuarios HTTP/1.1" 200 -
+2025-12-24 03:30:10,252 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:30:10] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:30:12,591 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:30:12] "[32mPOST /admin/usuarios HTTP/1.1[0m" 302 -
+2025-12-24 03:30:12,616 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:30:12] "GET /admin/usuarios HTTP/1.1" 200 -
+2025-12-24 03:30:13,386 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:30:13] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:30:16,200 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:30:16] "GET /admin/perfil/1 HTTP/1.1" 200 -
+2025-12-24 03:30:16,335 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:30:16] "GET /static/logos/logo_1.png HTTP/1.1" 200 -
+2025-12-24 03:30:16,460 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:30:16] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:34:04,627 - __main__ - INFO - Logo guardado para usuario 1: logo_1.png
+2025-12-24 03:34:04,629 - __main__ - INFO - Perfil actualizado para usuario 1
+2025-12-24 03:34:04,630 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:04] "[32mPOST /admin/perfil/1 HTTP/1.1[0m" 302 -
+2025-12-24 03:34:04,652 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:04] "GET /admin/perfil/1 HTTP/1.1" 200 -
+2025-12-24 03:34:04,951 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:04] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:34:04,970 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:04] "GET /static/logos/logo_1.png HTTP/1.1" 200 -
+2025-12-24 03:34:14,964 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:14] "GET /admin/usuarios HTTP/1.1" 200 -
+2025-12-24 03:34:15,089 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:15] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:34:17,150 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:17] "GET /admin/perfil/1 HTTP/1.1" 200 -
+2025-12-24 03:34:17,257 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:17] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:34:17,323 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:17] "[36mGET /static/logos/logo_1.png HTTP/1.1[0m" 304 -
+2025-12-24 03:34:21,803 - __main__ - INFO - Perfil actualizado para usuario 1
+2025-12-24 03:34:21,805 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:21] "[32mPOST /admin/perfil/1 HTTP/1.1[0m" 302 -
+2025-12-24 03:34:22,007 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:22] "GET /admin/perfil/1 HTTP/1.1" 200 -
+2025-12-24 03:34:22,218 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:22] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:34:22,225 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:22] "[36mGET /static/logos/logo_1.png HTTP/1.1[0m" 304 -
+2025-12-24 03:34:27,441 - __main__ - INFO - Perfil actualizado para usuario 1
+2025-12-24 03:34:27,442 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:27] "[32mPOST /admin/perfil/1 HTTP/1.1[0m" 302 -
+2025-12-24 03:34:27,463 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:27] "GET /admin/perfil/1 HTTP/1.1" 200 -
+2025-12-24 03:34:28,771 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:28] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:34:28,843 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:28] "[36mGET /static/logos/logo_1.png HTTP/1.1[0m" 304 -
+2025-12-24 03:34:36,830 - __main__ - INFO - Perfil actualizado para usuario 1
+2025-12-24 03:34:36,841 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:36] "[32mPOST /admin/perfil/1 HTTP/1.1[0m" 302 -
+2025-12-24 03:34:36,873 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:36] "GET /admin/perfil/1 HTTP/1.1" 200 -
+2025-12-24 03:34:37,106 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:37] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:34:37,224 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:37] "[36mGET /static/logos/logo_1.png HTTP/1.1[0m" 304 -
+2025-12-24 03:34:41,615 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:41] "GET /admin/usuarios HTTP/1.1" 200 -
+2025-12-24 03:34:41,730 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:41] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:34:44,678 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:44] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:34:44,815 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:44] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:34:46,991 - __main__ - INFO - Usuario Gaito cerró sesión
+2025-12-24 03:34:46,992 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:46] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-12-24 03:34:47,015 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:47] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:34:47,284 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:47] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:34:49,025 - __main__ - INFO - Usuario 1 inició sesión
+2025-12-24 03:34:49,026 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:49] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:34:49,080 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:49] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:34:49,310 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:34:49] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:35:03,563 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:35:03] "POST /descargar_pdf HTTP/1.1" 200 -
+2025-12-24 03:36:09,889 - __main__ - INFO - Usuario 1 cerró sesión
+2025-12-24 03:36:09,890 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:36:09] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-12-24 03:36:09,952 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:36:09] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:36:10,271 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:36:10] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:36:17,129 - __main__ - INFO - Usuario Scozzina inició sesión
+2025-12-24 03:36:17,130 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:36:17] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:36:17,190 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:36:17] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:36:17,456 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:36:17] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:36:30,108 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:36:30] "POST /descargar_pdf HTTP/1.1" 200 -
+2025-12-24 03:37:11,889 - __main__ - INFO - Usuario Scozzina cerró sesión
+2025-12-24 03:37:11,921 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:11] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-12-24 03:37:12,014 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:12] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:37:12,499 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:12] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:37:20,034 - __main__ - INFO - Usuario Gaito inició sesión
+2025-12-24 03:37:20,038 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:20] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:37:20,084 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:20] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:37:20,361 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:20] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:37:27,363 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:27] "GET /admin/usuarios HTTP/1.1" 200 -
+2025-12-24 03:37:27,487 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:27] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:37:35,260 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:35] "GET /admin/perfil/1 HTTP/1.1" 200 -
+2025-12-24 03:37:35,388 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:35] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:37:35,534 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:35] "[36mGET /static/logos/logo_1.png HTTP/1.1[0m" 304 -
+2025-12-24 03:37:40,001 - __main__ - INFO - Perfil actualizado para usuario 1
+2025-12-24 03:37:40,002 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:40] "[32mPOST /admin/perfil/1 HTTP/1.1[0m" 302 -
+2025-12-24 03:37:40,021 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:40] "GET /admin/perfil/1 HTTP/1.1" 200 -
+2025-12-24 03:37:40,326 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:40] "[36mGET /static/logos/logo_1.png HTTP/1.1[0m" 304 -
+2025-12-24 03:37:40,332 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:40] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:37:41,821 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:41] "GET /admin/usuarios HTTP/1.1" 200 -
+2025-12-24 03:37:41,952 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:41] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:37:45,789 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:45] "GET /admin/perfil/Scozzina HTTP/1.1" 200 -
+2025-12-24 03:37:45,970 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:45] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:37:46,344 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:46] "[36mGET /static/logos/logo_Scozzina.png HTTP/1.1[0m" 304 -
+2025-12-24 03:37:52,519 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:52] "GET /admin/usuarios HTTP/1.1" 200 -
+2025-12-24 03:37:52,644 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:52] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:37:54,629 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:54] "GET /admin/perfil/1 HTTP/1.1" 200 -
+2025-12-24 03:37:54,772 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:54] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:37:54,926 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:37:54] "[36mGET /static/logos/logo_1.png HTTP/1.1[0m" 304 -
+2025-12-24 03:38:33,799 - __main__ - INFO - Perfil actualizado para usuario 1
+2025-12-24 03:38:33,801 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:33] "[32mPOST /admin/perfil/1 HTTP/1.1[0m" 302 -
+2025-12-24 03:38:33,835 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:33] "GET /admin/perfil/1 HTTP/1.1" 200 -
+2025-12-24 03:38:34,068 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:34] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:38:34,084 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:34] "[36mGET /static/logos/logo_1.png HTTP/1.1[0m" 304 -
+2025-12-24 03:38:35,690 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:35] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:38:35,809 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:35] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:38:36,968 - __main__ - INFO - Usuario Gaito cerró sesión
+2025-12-24 03:38:36,989 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:36] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-12-24 03:38:37,009 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:37] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:38:37,330 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:37] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:38:39,017 - __main__ - INFO - Usuario 1 inició sesión
+2025-12-24 03:38:39,019 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:39] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:38:39,070 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:39] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:38:39,412 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:39] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:38:51,812 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2025-12-24 03:38:51,826 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-12-24 03:38:52,275 - __main__ - INFO - Usuario Usuario cerró sesión
+2025-12-24 03:38:52,277 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:52] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-12-24 03:38:52,315 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:52] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:38:52,772 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:52] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:38:55,710 - __main__ - INFO - Usuario 1 inició sesión
+2025-12-24 03:38:55,712 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:55] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:38:55,796 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:55] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:38:56,159 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:38:56] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:39:07,615 - __main__ - INFO - Usuario 1 cerró sesión
+2025-12-24 03:39:07,617 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:39:07] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-12-24 03:39:07,638 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:39:07] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:39:07,792 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:39:07] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:39:11,018 - __main__ - INFO - Usuario 2 inició sesión
+2025-12-24 03:39:11,019 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:39:11] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:39:11,066 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:39:11] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:39:11,251 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:39:11] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:39:12,961 - __main__ - INFO - Usuario 2 cerró sesión
+2025-12-24 03:39:12,963 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:39:12] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-12-24 03:39:12,984 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:39:12] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:39:13,155 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:39:13] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:39:14,349 - __main__ - INFO - Usuario 1 inició sesión
+2025-12-24 03:39:14,350 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:39:14] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:39:14,403 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:39:14] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:39:14,663 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:39:14] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:39:22,435 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:39:22] "POST /descargar_pdf HTTP/1.1" 200 -
+2025-12-24 03:40:55,553 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:40:55] "POST /descargar_pdf HTTP/1.1" 200 -
+2025-12-24 03:41:10,244 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:41:10] "POST /descargar_pdf HTTP/1.1" 200 -
+2025-12-24 03:41:20,354 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:41:20] "POST /descargar_pdf HTTP/1.1" 200 -
+2025-12-24 03:41:29,735 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2025-12-24 03:41:29,748 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-12-24 03:41:34,079 - flask_wtf.csrf - INFO - The CSRF session token is missing.
+2025-12-24 03:41:34,080 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:41:34] "[31m[1mPOST /descargar_pdf HTTP/1.1[0m" 400 -
+2025-12-24 03:41:36,217 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:41:36] "[32mGET /presupuestos HTTP/1.1[0m" 302 -
+2025-12-24 03:41:36,278 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:41:36] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:41:36,667 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:41:36] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:41:39,202 - __main__ - INFO - Usuario 1 inició sesión
+2025-12-24 03:41:39,203 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:41:39] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:41:39,319 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:41:39] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:41:39,645 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:41:39] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:41:47,772 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:41:47] "POST /descargar_pdf HTTP/1.1" 200 -
+2025-12-24 03:42:45,557 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2025-12-24 03:42:45,559 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-12-24 03:42:46,291 - __main__ - INFO - Usuario Usuario cerró sesión
+2025-12-24 03:42:46,293 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:42:46] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-12-24 03:42:46,374 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:42:46] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:42:47,094 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:42:47] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:42:49,440 - __main__ - INFO - Usuario 1 inició sesión
+2025-12-24 03:42:49,441 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:42:49] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:42:49,527 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:42:49] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:42:49,836 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:42:49] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:42:56,064 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:42:56] "POST /descargar_pdf HTTP/1.1" 200 -
+2025-12-24 03:44:17,345 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2025-12-24 03:44:17,370 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-12-24 03:44:17,430 - __main__ - INFO - Usuario Usuario cerró sesión
+2025-12-24 03:44:17,432 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:17] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-12-24 03:44:17,629 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:17] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:44:18,001 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:18] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:44:19,922 - __main__ - INFO - Usuario 1 inició sesión
+2025-12-24 03:44:19,923 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:19] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:44:20,006 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:20] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:44:20,321 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:20] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:44:24,840 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:24] "POST /descargar_pdf HTTP/1.1" 200 -
+2025-12-24 03:44:36,046 - __main__ - INFO - Usuario 1 cerró sesión
+2025-12-24 03:44:36,048 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:36] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-12-24 03:44:36,090 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:36] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:44:36,408 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:36] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:44:41,311 - __main__ - INFO - Usuario Scozzina inició sesión
+2025-12-24 03:44:41,312 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:41] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:44:41,370 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:41] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:44:41,724 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:41] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:44:51,360 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:44:51] "POST /descargar_pdf HTTP/1.1" 200 -
+2025-12-24 03:45:15,766 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:45:15] "POST /descargar_pdf HTTP/1.1" 200 -

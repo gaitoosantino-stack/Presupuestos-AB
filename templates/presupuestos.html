@@ -8,94 +8,102 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body {
-            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            font-family: 'Segoe UI', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #2c3e50;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 0 20px;
         }
 
         h1 {
             text-align: center;
-            color: #003153;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            font-weight: 300;
+            color: #1a365d;
+            font-size: 2.2em;
+            margin-bottom: 8px;
+            font-weight: 500;
+            letter-spacing: -0.5px;
         }
 
         p {
             text-align: center;
-            color: #555;
-            font-size: 1.1em;
-            margin-bottom: 40px;
+            color: #64748b;
+            font-size: 1em;
+            margin-bottom: 35px;
+            line-height: 1.6;
         }
 
         #presupuesto-form {
             background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 49, 83, 0.1);
+            padding: 45px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             margin-bottom: 30px;
+            border: 1px solid #e2e8f0;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 24px;
         }
 
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 600;
-            color: #003153;
-            font-size: 1em;
+            font-weight: 500;
+            color: #1e293b;
+            font-size: 0.95em;
+            letter-spacing: 0.2px;
         }
 
         .form-group input {
             width: 100%;
-            padding: 15px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: #f8fafc;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 15px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background: #ffffff;
+            color: #1e293b;
+            box-sizing: border-box;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #ff6b35;
-            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
             background: white;
         }
 
         .form-group input::placeholder {
-            color: #999;
+            color: #94a3b8;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
+            background: #2563eb;
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 12px;
+            padding: 12px 24px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+            font-size: 15px;
+            font-weight: 500;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             width: 100%;
-            margin-top: 10px;
+            margin-top: 8px;
+            letter-spacing: 0.3px;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+            background: #1d4ed8;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
         }
 
         .btn-primary:active {
-            transform: translateY(0);
+            background: #1e40af;
         }
 
         #estudios-agregados {
@@ -103,13 +111,14 @@
         }
 
         #estudios-agregados h3 {
-            color: #003153;
-            font-size: 1.5em;
-            margin-bottom: 5px;
-            font-weight: 600;
+            color: #1e293b;
+            font-size: 1.35em;
+            margin-bottom: 16px;
+            font-weight: 500;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            letter-spacing: -0.2px;
         }
 
         #lista-estudios {
@@ -118,61 +127,61 @@
         }
 
         #lista-estudios li {
-            background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 12px;
+            background: #f8fafc;
+            padding: 16px 20px;
+            margin-bottom: 10px;
+            border-radius: 4px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 49, 83, 0.05);
-            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
         }
 
         #lista-estudios li:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(0, 49, 83, 0.1);
+            background: #f1f5f9;
+            border-color: #cbd5e1;
         }
 
         .eliminar-estudio {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            background: #dc2626;
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding: 6px 14px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+            font-size: 13px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .eliminar-estudio:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+            background: #b91c1c;
         }
 
         #total-container {
-            margin-top: 40px;
+            margin-top: 35px;
             text-align: center;
             background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0, 49, 83, 0.1);
+            padding: 28px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
         }
 
         #total-container h3 {
-            color: #003153;
-            font-size: 1.8em;
-            margin-bottom: 10px;
-            font-weight: 600;
+            color: #1e293b;
+            font-size: 1.5em;
+            margin-bottom: 8px;
+            font-weight: 500;
+            letter-spacing: -0.3px;
         }
 
         #total {
             font-size: inherit;
-            font-weight: 700;
-            color: #48bb78;
-            text-shadow: 0 2px 4px rgba(72, 187, 120, 0.2);
+            font-weight: 600;
+            color: #059669;
         }
 
         /* Autocomplete Styles */
@@ -186,10 +195,10 @@
             left: 0;
             right: 0;
             background: white;
-            border: 2px solid #e0e0e0;
+            border: 1px solid #cbd5e1;
             border-top: none;
-            border-radius: 0 0 12px 12px;
-            box-shadow: 0 4px 20px rgba(0, 49, 83, 0.15);
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             max-height: 200px;
             overflow-y: auto;
             z-index: 1000;
@@ -197,10 +206,11 @@
         }
 
         .autocomplete-option {
-            padding: 12px 20px;
+            padding: 10px 16px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.15s ease;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
         }
 
         .autocomplete-option:last-child {
@@ -209,34 +219,34 @@
 
         .autocomplete-option:hover,
         .autocomplete-option.highlighted {
-            background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
-            color: white;
+            background: #f1f5f9;
+            color: #1e293b;
         }
 
         .autocomplete-option.highlighted {
-            background: linear-gradient(135deg, #003153 0%, #002244 100%);
+            background: #e0e7ff;
+            color: #1e40af;
         }
 
         .btn-borrar-todo {
-            background: rgba(220, 53, 69, 0.05);
-            color: #b02a37;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 15px;
+            background: transparent;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+            padding: 4px 10px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.7em;
+            font-size: 0.75em;
             font-family: 'Segoe UI', sans-serif;
             font-weight: 400;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             margin-left: 10px;
-            line-height: 1;
+            line-height: 1.4;
         }
 
         .btn-borrar-todo:hover {
-            background: rgba(220, 53, 69, 0.1);
-            color: #dc3545;
-            transform: translateY(-1px);
-            box-shadow: 0 1px 4px rgba(220, 53, 69, 0.15);
+            background: #fef2f2;
+            color: #dc2626;
+            border-color: #fca5a5;
         }
 
         /* Override container width for footer to match index page */
@@ -248,29 +258,27 @@
         @keyframes estudioAgregado {
             0% {
                 opacity: 0;
-                transform: translateY(-5px) scale(0.98);
             }
             50% {
-                border-left: 4px solid #48bb78;
+                border-left: 3px solid #2563eb;
             }
             100% {
                 opacity: 1;
-                transform: translateY(0) scale(1);
-                border-left: 4px solid transparent;
+                border-left: 3px solid transparent;
             }
         }
 
         #lista-estudios li.estudio-nuevo {
-            animation: estudioAgregado 0.5s ease-out;
+            animation: estudioAgregado 0.4s ease-out;
         }
 
         .ultima-actualizacion {
             text-align: center;
-            color: #999;
-            font-size: 0.85em;
+            color: #94a3b8;
+            font-size: 0.875em;
             margin-top: -30px;
             margin-bottom: 30px;
-            font-style: italic;
+            font-style: normal;
         }
 
         /* Modal para descargar PDF */
@@ -294,35 +302,35 @@
         .modal-content {
             background-color: white !important;
             margin: 10% auto !important;
-            padding: 30px !important;
-            border-radius: 15px !important;
+            padding: 32px !important;
+            border-radius: 4px !important;
             width: 90% !important;
             max-width: 500px !important;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
-            animation: modalFadeIn 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+            animation: modalFadeIn 0.2s ease;
             position: relative !important;
+            border: 1px solid #e2e8f0;
         }
 
         @keyframes modalFadeIn {
             from {
                 opacity: 0;
-                transform: translateY(-20px);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
             }
         }
 
         .modal-header {
-            margin-bottom: 25px;
+            margin-bottom: 24px;
         }
 
         .modal-header h2 {
-            color: #003153;
-            font-size: 1.8em;
+            color: #1e293b;
+            font-size: 1.5em;
             margin: 0;
-            font-weight: 600;
+            font-weight: 500;
+            letter-spacing: -0.3px;
         }
 
         .modal-body .form-group {
@@ -339,19 +347,19 @@
 
         .modal-body .form-group input {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
             font-size: 15px;
             box-sizing: border-box;
-            transition: all 0.3s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
             font-family: inherit;
         }
 
         .modal-body .form-group input:focus {
             outline: none;
-            border-color: #ff6b35;
-            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
         }
 
         .modal-footer {
@@ -362,61 +370,62 @@
         }
 
         .btn-modal {
-            padding: 12px 30px;
+            padding: 10px 24px;
             border: none;
-            border-radius: 8px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 15px;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            font-weight: 500;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .btn-modal-primary {
-            background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
+            background: #2563eb;
             color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .btn-modal-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+            background: #1d4ed8;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
         }
 
         .btn-modal-secondary {
-            background: #6c757d;
+            background: #64748b;
             color: white;
         }
 
         .btn-modal-secondary:hover {
-            background: #5a6268;
+            background: #475569;
         }
     </style>
 </head>
 <body>
     <!-- Header simple -->
-    <header style="background: white; padding: 15px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px;">
-        <div style="max-width: 800px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-weight: 600; color: #003153;">
-                Hola, {{ username }} 👋
+    <header style="background: white; padding: 16px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 24px; border-bottom: 1px solid #e2e8f0;">
+        <div style="max-width: 900px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-weight: 500; color: #1e293b; font-size: 15px;">
+                Usuario: {{ username }}
             </div>
             <div style="display: flex; gap: 10px;">
                 {% if username == 'Gaito' %}
-                <a href="{{ url_for('admin_usuarios') }}" style="padding: 8px 15px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-size: 14px; transition: all 0.3s ease;">Gestionar Usuarios</a>
+                <a href="{{ url_for('admin_usuarios') }}" style="padding: 8px 16px; background: #4f46e5; color: white; text-decoration: none; border-radius: 4px; font-size: 14px; transition: background-color 0.2s ease; font-weight: 500;">Gestionar Usuarios</a>
                 {% endif %}
-                <a href="{{ url_for('logout') }}" style="padding: 8px 15px; background: #f56565; color: white; text-decoration: none; border-radius: 8px; font-size: 14px; transition: all 0.3s ease;">Cerrar Sesión</a>
+                <a href="{{ url_for('logout') }}" style="padding: 8px 16px; background: #64748b; color: white; text-decoration: none; border-radius: 4px; font-size: 14px; transition: background-color 0.2s ease; font-weight: 500;">Cerrar Sesión</a>
             </div>
         </div>
     </header>
 
     <!-- Contenido Principal -->
-    <section style="padding: 40px 20px; min-height: calc(100vh - 100px); background-color: #f9f9f9;">
+    <section style="padding: 35px 20px; min-height: calc(100vh - 100px); background-color: #f5f7fa;">
         <div class="container">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
-                        <div style="padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; 
-                            {% if category == 'success' %}background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;
-                            {% elif category == 'error' %}background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
-                            {% else %}background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;{% endif %}">
+                        <div style="padding: 12px 16px; border-radius: 4px; margin-bottom: 20px; 
+                            {% if category == 'success' %}background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
+                            {% elif category == 'error' %}background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca;
+                            {% else %}background-color: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;{% endif %}">
                             {{ message }}
                         </div>
                     {% endfor %}
@@ -462,11 +471,11 @@
 
                 <!-- Toggle para estudios manuales -->
                 <div class="form-group" style="margin-top: 25px;">
-                    <button type="button" id="toggle-manual" class="btn-secondary" style="width: auto; padding: 12px 20px; background: rgba(255, 255, 255, 0.9); color: #555; border: 1px solid #d1d5db; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.3s ease; backdrop-filter: blur(8px); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); margin-top: 10px;">+ Agregar Estudio Manual</button>
+                    <button type="button" id="toggle-manual" class="btn-secondary" style="width: auto; padding: 10px 18px; background: white; color: #475569; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease; margin-top: 10px;">Agregar Estudio Manual</button>
                 </div>
 
                 <!-- Sección para estudios manuales (oculta por defecto) -->
-                <div id="seccion-manual" style="display: none; margin-top: 20px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e0e0e0;">
+                <div id="seccion-manual" style="display: none; margin-top: 20px; padding: 20px; background: #f8fafc; border-radius: 4px; border: 1px solid #e2e8f0;">
                     <div class="form-group">
                         <label for="estudio-manual">Nombre del Estudio:</label>
                         <input type="text" id="estudio-manual" placeholder="Ej: Consulta médica" autocomplete="off">
@@ -477,9 +486,9 @@
                         <input type="number" id="precio-manual" placeholder="0,00" step="0.01" min="0" autocomplete="off">
                     </div>
 
-                    <div style="display: flex; gap: 15px; align-items: center;">
+                    <div style="display: flex; gap: 12px; align-items: center;">
                         <button type="button" id="agregar-estudio-manual" class="btn-primary" style="width: auto; flex: 1;">Agregar Estudio</button>
-                        <button type="button" id="cancelar-manual" class="btn-secondary" style="width: auto; padding: 12px 18px; background: rgba(108, 117, 125, 0.1); color: #6c757d; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s ease; backdrop-filter: blur(5px); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);">Cancelar</button>
+                        <button type="button" id="cancelar-manual" class="btn-secondary" style="width: auto; padding: 10px 18px; background: white; color: #64748b; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease;">Cancelar</button>
                     </div>
                 </div>
 
@@ -498,7 +507,7 @@
                 </div>
 
                 <div style="margin-top: 30px; text-align: center;">
-                    <button type="button" id="descargar-pdf" class="btn-primary" style="width: auto; padding: 15px 40px; font-size: 16px;">📄 Descargar PDF</button>
+                    <button type="button" id="descargar-pdf" class="btn-primary" style="width: auto; padding: 12px 32px; font-size: 15px;">Descargar PDF</button>
                 </div>
             </form>
         </div>
@@ -508,7 +517,7 @@
     <div id="modal-pdf" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>📄 Descargar Presupuesto PDF</h2>
+                <h2>Descargar Presupuesto PDF</h2>
             </div>
             <div class="modal-body">
                 <div class="form-group">

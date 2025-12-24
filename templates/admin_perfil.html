@@ -8,53 +8,58 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body {
-            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            font-family: 'Segoe UI', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
             padding: 20px;
             min-height: 100vh;
+            color: #2c3e50;
         }
 
         .container {
             max-width: 800px;
             margin: 0 auto;
             background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            padding: 35px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
         }
 
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 32px;
             padding-bottom: 20px;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .header h1 {
-            color: #003153;
-            font-size: 2em;
+            color: #1e293b;
+            font-size: 1.9em;
             margin: 0;
+            font-weight: 500;
+            letter-spacing: -0.3px;
         }
 
         .nav-links {
             display: flex;
-            gap: 15px;
+            gap: 10px;
         }
 
         .nav-links a {
-            padding: 10px 20px;
-            background: #667eea;
+            padding: 8px 16px;
+            background: #2563eb;
             color: white;
             text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.3s ease;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
         }
 
         .nav-links a:hover {
-            background: #764ba2;
-            transform: translateY(-2px);
+            background: #1d4ed8;
         }
 
         .form-group {
@@ -64,25 +69,29 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 600;
-            color: #003153;
+            font-weight: 500;
+            color: #1e293b;
+            font-size: 0.95em;
         }
 
         .form-group input,
         .form-group textarea {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
             font-size: 14px;
             box-sizing: border-box;
             font-family: inherit;
+            color: #1e293b;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
         }
 
         .form-group textarea {
@@ -93,47 +102,48 @@
         .form-group small {
             display: block;
             margin-top: 5px;
-            color: #666;
+            color: #64748b;
             font-size: 12px;
         }
 
         .btn {
-            padding: 12px 24px;
+            padding: 10px 24px;
             border: none;
-            border-radius: 8px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            font-weight: 500;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #2563eb;
             color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            background: #1d4ed8;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
         }
 
         .btn-secondary {
-            background: #6c757d;
+            background: #64748b;
             color: white;
             margin-left: 10px;
         }
 
         .btn-secondary:hover {
-            background: #5a6268;
+            background: #475569;
         }
 
         .logo-preview {
             margin-top: 10px;
             max-width: 200px;
             max-height: 200px;
-            border: 2px dashed #e0e0e0;
+            border: 1px dashed #cbd5e1;
             padding: 10px;
-            border-radius: 8px;
+            border-radius: 4px;
         }
 
         .logo-preview img {
@@ -143,19 +153,21 @@
         }
 
         .alert {
-            padding: 12px 15px;
-            border-radius: 8px;
+            padding: 12px 16px;
+            border-radius: 4px;
             margin-bottom: 20px;
         }
 
         .alert-success {
-            background-color: #d4edda;
-            color: #155724;
+            background-color: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
         }
 
         .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
+            background-color: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
         }
     </style>
 </head>

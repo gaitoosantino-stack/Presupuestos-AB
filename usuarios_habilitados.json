@@ -12,7 +12,7 @@
   "1": {
     "password": "scrypt:32768:8:1$q9h0vEbqu9lWwz2h$c54bdbe63ce648ec176ac66c0eec2447cd763eda150e575c20f0fdd60d0e80eadcaf9bcba3e0cf29034d28039d881f0ea03fdd14cc78c81c43f72840f39b02b7",
     "email": "",
-    "habilitado": false
+    "habilitado": true
   },
   "2": {
     "password": "scrypt:32768:8:1$5DJLqQqLWytcYbds$3c8f5caac77d53e543ae1dc51a1da4c61ae9483e8f18b9adb1f089e56db75b5ffb0f07592095226985300aba63cbb195e20e821efe2107088f74df73b9179f08",

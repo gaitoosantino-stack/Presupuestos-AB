@@ -13,12 +13,12 @@
   "1": {
     "nombre_lab": "Laboratorio De Prueba 1",
     "subtitulo": "Análisis Clínicos",
-    "profesionales": "Bioquímico: Santino Gaito MP: Benjamin Pérez Morano",
-    "direccion": "Moreno 850",
-    "ciudad": "Dolavon",
-    "telefono": "2804400969",
+    "profesionales": "Bioquímico: EJEMPLO 1 MP: EJEMPLO 2",
+    "direccion": "Dirección 0000 - Ciudad - Provicio - Codigo Postal",
+    "ciudad": "CIUDAD",
+    "telefono": "Numero De Telfono",
     "logo_path": "logo_1.png",
-    "info_bancaria": "nombre\r\ncbu\r\nalias\r\nnombre de banco",
-    "firma_texto": "Santino Gaito"
+    "info_bancaria": "Información Bancaria:\r\nNombre del Banco\r\nTITULAR : -\r\nCTA: -\r\nALIAS: -\r\nCBU: -\r\nCUIT: -",
+    "firma_texto": "Nombre Apellido - Gerente Titular"
   }
 }

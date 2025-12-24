@@ -730,6 +730,24 @@ def descargar_pdf():
         firma_texto = safe_text(perfil.get('firma_texto', ''))
         if firma_texto:
             pdf.set_font('Helvetica', '', 10)
+            # Calcular ancho exacto del texto de la firma
+            ancho_texto = pdf.get_string_width(firma_texto)
+            margen_derecho = pdf.w - pdf.r_margin
+            
+            # Obtener posición Y actual
+            y_pos = pdf.get_y()
+            
+            # Calcular posición de la línea: exactamente el mismo ancho que el texto, alineada a la derecha
+            fin_linea = margen_derecho
+            inicio_linea = fin_linea - ancho_texto
+            
+            # Dibujar línea de firma con el mismo ancho que el texto
+            pdf.line(inicio_linea, y_pos, fin_linea, y_pos)
+            
+            # Espacio entre línea y texto
+            pdf.ln(5)
+            
+            # Escribir texto de la firma (alineado a la derecha)
             pdf.cell(0, 6, firma_texto, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='R')
         
         # Generar PDF en memoria
