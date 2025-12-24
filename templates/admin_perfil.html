@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Editar Perfil PDF - {{ username }}</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .header h1 {
+            color: #003153;
+            font-size: 2em;
+            margin: 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-links a {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #003153;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .logo-preview {
+            margin-top: 10px;
+            max-width: 200px;
+            max-height: 200px;
+            border: 2px dashed #e0e0e0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .logo-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Editar Perfil PDF - {{ username }}</h1>
+            <div class="nav-links">
+                <a href="{{ url_for('admin_usuarios') }}">Volver a Usuarios</a>
+                <a href="{{ url_for('presupuestos') }}">Calculadora</a>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('admin_perfil', username=username) }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            <div class="form-group">
+                <label>Nombre del Laboratorio:</label>
+                <input type="text" name="nombre_lab" value="{{ perfil.get('nombre_lab', '') }}" required>
+                <small>Ej: LABORATORIO SCOZZINA SAS</small>
+            </div>
+
+            <div class="form-group">
+                <label>Subtítulo:</label>
+                <input type="text" name="subtitulo" value="{{ perfil.get('subtitulo', '') }}">
+                <small>Ej: ANALISIS CLINICOS</small>
+            </div>
+
+            <div class="form-group">
+                <label>Profesionales:</label>
+                <textarea name="profesionales">{{ perfil.get('profesionales', '') }}</textarea>
+                <small>Ej: Bioquímico: Castillo Romina MP:0528 – Téc. Qca.: Schanz Carolina MP:100</small>
+            </div>
+
+            <div class="form-group">
+                <label>Dirección:</label>
+                <input type="text" name="direccion" value="{{ perfil.get('direccion', '') }}">
+                <small>Ej: Pellegrini 631/ 605 – Trelew – Chubut – cp (9100)</small>
+            </div>
+
+            <div class="form-group">
+                <label>Ciudad:</label>
+                <input type="text" name="ciudad" value="{{ perfil.get('ciudad', '') }}">
+                <small>Ej: Trelew</small>
+            </div>
+
+            <div class="form-group">
+                <label>Teléfono:</label>
+                <input type="text" name="telefono" value="{{ perfil.get('telefono', '') }}">
+                <small>Ej: 0280-4238264/0280 154627531</small>
+            </div>
+
+            <div class="form-group">
+                <label>Logo:</label>
+                <input type="file" name="logo" accept="image/png,image/jpeg,image/jpg,image/gif">
+                <small>Formatos permitidos: PNG, JPG, JPEG, GIF</small>
+                {% if perfil.get('logo_path') %}
+                <div class="logo-preview">
+                    <p>Logo actual:</p>
+                    <img src="{{ url_for('static', filename='logos/' + perfil.get('logo_path', '')) }}" alt="Logo actual">
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Información Bancaria:</label>
+                <textarea name="info_bancaria" rows="6">{{ perfil.get('info_bancaria', '') }}</textarea>
+                <small>Información completa del banco, cuenta, alias, CBU, CUIT, etc. (una línea por dato)</small>
+            </div>
+
+            <div class="form-group">
+                <label>Firma:</label>
+                <input type="text" name="firma_texto" value="{{ perfil.get('firma_texto', '') }}">
+                <small>Ej: Atentamente, Carolina Schanz - Gerente Titular</small>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <button type="submit" class="btn btn-primary">Guardar Perfil</button>
+                <a href="{{ url_for('admin_usuarios') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
+

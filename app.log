@@ -30,3 +30,18 @@
 2025-12-24 03:10:03,399 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:10:03] "[32mPOST /login HTTP/1.1[0m" 302 -
 2025-12-24 03:10:03,417 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:10:03] "GET /login HTTP/1.1" 200 -
 2025-12-24 03:10:03,570 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:10:03] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:12:31,950 - __main__ - INFO - Usuario 2 inició sesión
+2025-12-24 03:12:31,951 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:31] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:12:32,021 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:32] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:12:32,224 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:32] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:12:35,265 - __main__ - INFO - Usuario 2 cerró sesión
+2025-12-24 03:12:35,266 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:35] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-12-24 03:12:35,285 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:35] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:12:35,484 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:35] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:12:39,902 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:39] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:12:39,921 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:39] "GET /login HTTP/1.1" 200 -
+2025-12-24 03:12:40,028 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:40] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-12-24 03:12:42,102 - __main__ - INFO - Usuario 2 inició sesión
+2025-12-24 03:12:42,164 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:42] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-12-24 03:12:42,471 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:42] "GET /presupuestos HTTP/1.1" 200 -
+2025-12-24 03:12:42,719 - werkzeug - INFO - 127.0.0.1 - - [24/Dec/2025 03:12:42] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
