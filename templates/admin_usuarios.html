@@ -216,6 +216,199 @@
             color: #991b1b;
             border: 1px solid #fecaca;
         }
+
+        /* Modal para preview de sincronización */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            overflow: auto;
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 32px;
+            border-radius: 4px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            animation: modalFadeIn 0.2s ease;
+            position: relative;
+            border: 1px solid #e2e8f0;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 16px;
+        }
+
+        .modal-header h2 {
+            color: #1e293b;
+            font-size: 1.5em;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 24px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-modal {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-modal-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-modal-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-modal-secondary {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .btn-modal-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .preview-info {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2563eb;
+        }
+
+        .preview-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            margin-top: 16px;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+
+        .preview-table th,
+        .preview-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        .preview-table th {
+            background: #f8fafc;
+            font-weight: 500;
+            color: #1e293b;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .preview-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .precio-anterior {
+            color: #dc2626;
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .precio-nuevo {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .precio-na {
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .badge-nuevo {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-modificado {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-cortada {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .precio-cortada {
+            color: #991b1b;
+            font-style: italic;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
@@ -237,6 +430,27 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
+
+        <!-- Sincronizar precios desde Google Sheet -->
+        <div class="section">
+            <h2>Estado de Obras Sociales</h2>
+            <p style="margin-bottom: 15px; color: #64748b; font-size: 0.95em;">
+                Consulta el estado actual de todas las obras sociales (vigentes y cortadas) con sus precios.
+            </p>
+            <a href="{{ url_for('admin_estado_obras') }}" class="btn btn-primary" style="font-size: 14px; text-decoration: none; display: inline-block;">
+                📊 Ver Estado de Obras Sociales
+            </a>
+        </div>
+
+        <div class="section">
+            <h2>Sincronizar Precios</h2>
+            <p style="margin-bottom: 15px; color: #64748b; font-size: 0.95em;">
+                Actualiza los precios de obras sociales desde el Google Sheet externo.
+            </p>
+            <button type="button" id="btn-preview-sync" class="btn btn-primary" style="font-size: 14px;">
+                🔄 Sincronizar Precios con Google Sheet
+            </button>
+        </div>
 
         <!-- Agregar nuevo usuario -->
         <div class="section">
@@ -314,6 +528,136 @@
             </table>
         </div>
     </div>
+
+    <!-- Modal para preview de sincronización -->
+    <div id="modal-sync-preview" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📋 Preview de Sincronización de Precios</h2>
+            </div>
+            <div class="modal-body" id="modal-sync-body">
+                <div class="loading-spinner">
+                    <p>Cargando preview de datos...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="modal-cancelar-sync" class="btn-modal btn-modal-secondary">Cancelar</button>
+                <form id="form-confirm-sync" method="POST" action="{{ url_for('admin_sync_precios') }}" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" id="modal-confirmar-sync" class="btn-modal btn-modal-primary" style="display: none;">✅ Confirmar Sincronización</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Manejar clic en botón de preview
+        document.getElementById('btn-preview-sync').addEventListener('click', function() {
+            const modal = document.getElementById('modal-sync-preview');
+            const modalBody = document.getElementById('modal-sync-body');
+            const confirmBtn = document.getElementById('modal-confirmar-sync');
+            
+            // Mostrar modal con loading
+            modal.classList.add('show');
+            modalBody.innerHTML = '<div class="loading-spinner"><p>Cargando preview de datos...</p></div>';
+            confirmBtn.style.display = 'none';
+            
+            // Hacer petición GET para obtener preview
+            fetch('{{ url_for("admin_sync_precios_preview") }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        let html = '<div class="preview-info">';
+                        html += `<p><strong>${data.message}</strong></p>`;
+                        if (data.total_cambios > 0) {
+                            html += `<p style="margin-top: 8px; color: #64748b; font-size: 0.9em;">Se mostrarán las obras con cambios. El archivo completo se actualizará al confirmar.</p>`;
+                        }
+                        html += '</div>';
+                        
+                        if (data.cambios && data.cambios.length > 0) {
+                            html += '<div class="preview-table-container"><table class="preview-table"><thead><tr><th style="width: 35%;">Obra Social</th><th style="width: 25%;">Precio Actual</th><th style="width: 25%;">Precio Nuevo</th><th style="width: 15%;">Estado</th></tr></thead><tbody>';
+                            data.cambios.forEach(cambio => {
+                                const esNuevo = cambio.cambio === 'nuevo';
+                                const esModificado = cambio.cambio === 'modificado';
+                                const esCortada = cambio.cambio === 'cortada';
+                                
+                                let badgeClass, badgeText, precioActualClass, precioNuevoClass, precioActualText, precioNuevoText;
+                                
+                                if (esCortada) {
+                                    badgeClass = 'badge-cortada';
+                                    badgeText = '✗ Cortada';
+                                    precioActualClass = cambio.precio_actual === 'Ya estaba cortada' ? 'precio-na' : 'precio-anterior';
+                                    precioNuevoClass = 'precio-cortada';
+                                    precioActualText = cambio.precio_actual === 'Ya estaba cortada' ? '<em>' + cambio.precio_actual + '</em>' : '$' + cambio.precio_actual;
+                                    precioNuevoText = cambio.precio_nuevo.startsWith('Cortada') ? '<em>' + cambio.precio_nuevo + '</em>' : (cambio.precio_nuevo.startsWith('$') ? cambio.precio_nuevo : '$' + cambio.precio_nuevo);
+                                } else if (esNuevo) {
+                                    badgeClass = 'badge-nuevo';
+                                    badgeText = '🆕 Nueva';
+                                    precioActualClass = 'precio-na';
+                                    precioNuevoClass = 'precio-nuevo';
+                                    precioActualText = '<em>Nueva obra</em>';
+                                    precioNuevoText = '$' + cambio.precio_nuevo;
+                                } else {
+                                    badgeClass = 'badge-modificado';
+                                    badgeText = '📝 Modificado';
+                                    precioActualClass = 'precio-anterior';
+                                    precioNuevoClass = 'precio-nuevo';
+                                    precioActualText = '$' + cambio.precio_actual;
+                                    precioNuevoText = '$' + cambio.precio_nuevo;
+                                }
+                                
+                                html += `<tr>
+                                    <td><strong>${cambio.nombre}</strong></td>
+                                    <td class="${precioActualClass}">${precioActualText}</td>
+                                    <td class="${precioNuevoClass}">${precioNuevoText}</td>
+                                    <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                                </tr>`;
+                            });
+                            html += '</tbody></table></div>';
+                            
+                            if (data.total_cambios > 50) {
+                                html += `<p style="margin-top: 12px; color: #64748b; font-size: 0.9em; text-align: center;">... y ${data.total_cambios - 50} cambios más</p>`;
+                            }
+                        } else {
+                            html += '<div style="text-align: center; padding: 40px; color: #64748b;"><p>✅ No hay cambios pendientes. Todos los precios están actualizados.</p></div>';
+                            confirmBtn.style.display = 'none';
+                        }
+                        
+                        modalBody.innerHTML = html;
+                        if (data.total_cambios > 0) {
+                            confirmBtn.style.display = 'inline-block';
+                        }
+                    } else {
+                        modalBody.innerHTML = `<div class="alert alert-error"><p><strong>❌ Error:</strong> ${data.message}</p></div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    modalBody.innerHTML = `<div class="alert alert-error"><p><strong>❌ Error:</strong> No se pudo obtener el preview. Por favor, intenta nuevamente.</p></div>`;
+                });
+        });
+        
+        // Cerrar modal al hacer clic en cancelar
+        document.getElementById('modal-cancelar-sync').addEventListener('click', function() {
+            const modal = document.getElementById('modal-sync-preview');
+            modal.classList.remove('show');
+        });
+        
+        // Cerrar modal al hacer clic fuera del contenido
+        document.getElementById('modal-sync-preview').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('show');
+            }
+        });
+        
+        // Cerrar modal con ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('modal-sync-preview');
+                modal.classList.remove('show');
+            }
+        });
+    </script>
 </body>
 </html>
 

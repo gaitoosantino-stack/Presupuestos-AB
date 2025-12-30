@@ -254,6 +254,18 @@
                 <small>Ej: Atentamente, Carolina Schanz - Gerente Titular</small>
             </div>
 
+            <div class="form-group">
+                <label>Imagen de Firma Digital:</label>
+                <input type="file" name="firma_imagen" accept="image/png,image/jpeg,image/jpg,image/gif">
+                <small>Formatos permitidos: PNG, JPG, JPEG, GIF. La imagen se mostrará sobre la línea de firma.</small>
+                {% if perfil.get('firma_path') %}
+                <div class="logo-preview">
+                    <p>Firma actual:</p>
+                    <img src="{{ url_for('static', filename='logos/' + perfil.get('firma_path', '')) }}" alt="Firma actual">
+                </div>
+                {% endif %}
+            </div>
+
             <div style="margin-top: 30px;">
                 <button type="submit" class="btn btn-primary">Guardar Perfil</button>
                 <a href="{{ url_for('admin_usuarios') }}" class="btn btn-secondary">Cancelar</a>

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, session, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, session, send_file, jsonify
 from flask_wtf.csrf import CSRFProtect
 import os
 import json
@@ -10,6 +10,8 @@ from werkzeug.utils import secure_filename
 from fpdf import FPDF
 from fpdf.enums import XPos, YPos
 import io
+import pandas as pd
+import re
 
 # Cargar variables de entorno (opcional - funciona sin .env)
 load_dotenv()
@@ -45,6 +47,14 @@ USERS_FILE = 'usuarios_habilitados.json'
 PERFILES_FILE = 'perfiles.json'
 # Carpeta para logos
 LOGO_FOLDER = 'static/logos'
+# Archivo de obras sociales
+OBRAS_FILE = 'obras_entero.txt'
+# Archivo para almacenar estado completo de obras sociales (con estado vigente/cortada)
+OBRAS_ESTADO_FILE = 'obras_estado.json'
+# URL del archivo Excel/CSV para sincronización de precios (configurar aquí o en variable de entorno)
+# Puede ser Google Sheets (CSV) o OneDrive/Excel (.xlsx)
+# Ejemplo OneDrive: https://onedrive.live.com/download?resid=RESID
+GOOGLE_SHEET_URL = os.environ.get('GOOGLE_SHEET_URL', 'https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g')
 
 def init_users_file():
     """Inicializa el archivo de usuarios si no existe"""
@@ -142,7 +152,8 @@ def get_lab_profile(username):
         'telefono': '',
         'logo_path': '',
         'info_bancaria': '',
-        'firma_texto': ''
+        'firma_texto': '',
+        'firma_path': ''
     }
 
 def require_login(f):
@@ -272,8 +283,11 @@ def presupuestos():
                 flash('Error inesperado al procesar el presupuesto.', 'error')
         return redirect(url_for('presupuestos'))
 
-    # Leer obras sociales
+    # Leer obras sociales (vigentes y cortadas)
     obras = {}
+    obras_estado = {}  # Para almacenar el estado de cada obra
+    
+    # Primero cargar obras vigentes desde obras_entero.txt
     try:
         with open('obras_entero.txt', 'r', encoding='utf-8') as f:
             for line in f:
@@ -282,14 +296,33 @@ def presupuestos():
                     # Convertir formato argentino: 1.740,88 -> 1740.88
                     precio = precio.replace('.', '').replace(',', '.')
                     obras[obra] = precio
-        # Ordenar alfabéticamente
-        obras = dict(sorted(obras.items()))
+                    obras_estado[obra] = 'vigente'
     except FileNotFoundError:
         logger.error("Archivo obras_entero.txt no encontrado")
-        obras = {}
     except Exception as e:
         logger.error(f"Error al leer obras sociales: {e}")
-        obras = {}
+    
+    # Luego cargar obras cortadas desde obras_estado.json
+    try:
+        estado_data = load_obras_estado()
+        if estado_data and 'obras' in estado_data:
+            for nombre_obra, info_obra in estado_data['obras'].items():
+                if info_obra.get('estado') == 'cortada':
+                    # Agregar obra cortada (con precio si existe, o None)
+                    precio_cortada = info_obra.get('precio')
+                    if precio_cortada:
+                        # Convertir a formato numérico si es string
+                        if isinstance(precio_cortada, str):
+                            precio_cortada = precio_cortada.replace('.', '').replace(',', '.')
+                        obras[nombre_obra] = str(precio_cortada)
+                    else:
+                        obras[nombre_obra] = None
+                    obras_estado[nombre_obra] = 'cortada'
+    except Exception as e:
+        logger.error(f"Error al cargar obras cortadas: {e}")
+    
+    # Ordenar alfabéticamente
+    obras = dict(sorted(obras.items()))
 
     # Leer estudios
     estudios = {}
@@ -308,11 +341,809 @@ def presupuestos():
         logger.error(f"Error al leer estudios: {e}")
         estudios = {}
 
-    return render_template('presupuestos.html', obras=obras, estudios=estudios, username=session.get('username'))
+    return render_template('presupuestos.html', obras=obras, obras_estado=obras_estado, estudios=estudios, username=session.get('username'))
+
+def normalizar_precio_argentino(precio_str):
+    """
+    Normaliza un precio a formato argentino (punto para miles, coma para decimales).
+    Maneja formatos: inglés (1335.60), argentino (1.335,60), o sin formato (1335).
+    """
+    if not precio_str or precio_str == '' or precio_str.lower() == 'nan':
+        return None
+    
+    # Limpiar espacios y símbolos de moneda
+    precio_limpio = str(precio_str).strip().replace(' ', '').replace('$', '').replace('€', '')
+    
+    # Si está vacío después de limpiar, retornar None
+    if not precio_limpio:
+        return None
+    
+    # Intentar convertir a float primero para normalizar
+    try:
+        # Si tiene coma, puede ser formato argentino o inglés con coma como separador de miles
+        if ',' in precio_limpio and '.' in precio_limpio:
+            # Tiene ambos: determinar cuál es decimal
+            # Si hay más dígitos después de la coma que del punto, la coma es decimal (formato argentino)
+            partes_coma = precio_limpio.split(',')
+            partes_punto = precio_limpio.split('.')
+            if len(partes_coma[-1]) <= 2 and len(partes_punto[-1]) > 2:
+                # Formato argentino: 1.335,60
+                return precio_limpio
+            elif len(partes_punto[-1]) <= 2 and len(partes_coma[-1]) > 2:
+                # Formato inglés con coma como miles: 1,335.60 -> convertir a 1.335,60
+                precio_limpio = precio_limpio.replace(',', 'X').replace('.', ',').replace('X', '.')
+                return precio_limpio
+            else:
+                # Ambos podrían ser válidos, asumir formato argentino si la coma tiene 2 dígitos después
+                if len(partes_coma[-1]) == 2:
+                    return precio_limpio
+                else:
+                    # Convertir formato inglés a argentino
+                    precio_limpio = precio_limpio.replace(',', 'X').replace('.', ',').replace('X', '.')
+                    return precio_limpio
+        elif ',' in precio_limpio:
+            # Solo tiene coma
+            partes = precio_limpio.split(',')
+            if len(partes[-1]) <= 2:
+                # Coma es decimal (formato argentino sin puntos de miles)
+                return precio_limpio
+            else:
+                # Coma es separador de miles (formato inglés), convertir
+                precio_limpio = precio_limpio.replace(',', '.')
+                # Ahora tiene punto, procesar como formato inglés
+        elif '.' in precio_limpio:
+            # Solo tiene punto
+            partes = precio_limpio.split('.')
+            if len(partes[-1]) <= 2:
+                # Punto es decimal (formato inglés), convertir a argentino
+                precio_limpio = precio_limpio.replace('.', ',')
+                return precio_limpio
+            else:
+                # Punto es separador de miles (formato argentino sin decimales)
+                # Agregar decimales
+                return precio_limpio + ',00'
+        
+        # No tiene ni punto ni coma, es un número entero
+        # Convertir a float y luego a formato argentino
+        precio_float = float(precio_limpio)
+        # Formatear con 2 decimales en formato argentino
+        precio_formateado = f"{precio_float:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+        return precio_formateado
+        
+    except (ValueError, AttributeError):
+        # Si no se puede convertir, intentar procesar como string
+        # Validar que solo tenga números, puntos y comas
+        if not re.match(r'^[\d.,]+$', precio_limpio):
+            return None
+        
+        # Si tiene punto y no tiene coma, el punto probablemente es decimal (formato inglés)
+        if '.' in precio_limpio and ',' not in precio_limpio:
+            precio_limpio = precio_limpio.replace('.', ',')
+            return precio_limpio
+        
+        # Si tiene coma y no tiene punto, mantener (formato argentino)
+        if ',' in precio_limpio and '.' not in precio_limpio:
+            return precio_limpio
+        
+        # Si no tiene ni punto ni coma, agregar decimales
+        if '.' not in precio_limpio and ',' not in precio_limpio:
+            return precio_limpio + ',00'
+        
+        return precio_limpio
+
+def load_current_obras():
+    """Carga las obras sociales actuales desde obras_entero.txt"""
+    obras = {}
+    try:
+        if os.path.exists(OBRAS_FILE):
+            with open(OBRAS_FILE, 'r', encoding='utf-8') as f:
+                for line in f:
+                    if ':' in line:
+                        obra, precio = line.strip().split(':', 1)
+                        obras[obra] = precio
+    except Exception as e:
+        logger.error(f"Error al leer obras actuales: {e}")
+    return obras
+
+def comparar_precios(precio_actual, precio_nuevo):
+    """
+    Compara dos precios en formato argentino.
+    Retorna True si son diferentes, False si son iguales.
+    """
+    try:
+        # Convertir ambos precios a float para comparar
+        def precio_a_float(precio_str):
+            if not precio_str:
+                return None
+            # Remover espacios y convertir formato argentino a float
+            precio_limpio = str(precio_str).strip().replace(' ', '').replace('.', '').replace(',', '.')
+            return float(precio_limpio)
+        
+        precio_actual_float = precio_a_float(precio_actual)
+        precio_nuevo_float = precio_a_float(precio_nuevo)
+        
+        if precio_actual_float is None or precio_nuevo_float is None:
+            return True  # Si alguno es None, consideramos que hay cambio
+        
+        # Comparar con tolerancia de 0.01 para evitar problemas de precisión
+        return abs(precio_actual_float - precio_nuevo_float) > 0.01
+    except Exception as e:
+        logger.warning(f"Error al comparar precios: {e}")
+        return True  # En caso de error, asumimos que hay cambio
+
+def preview_precios_google_sheet():
+    """
+    Obtiene un preview de los precios que se sincronizarían desde el Google Sheet/OneDrive.
+    Compara con los precios actuales y solo muestra los que han cambiado.
+    
+    Retorna:
+        tuple: (success: bool, message: str, cambios_dict: dict, count: int)
+        cambios_dict contiene: {'nombre': {'precio_actual': str, 'precio_nuevo': str, 'cambio': str}}
+    """
+    if not GOOGLE_SHEET_URL:
+        return False, "URL del archivo no configurada.", {}, 0
+    
+    try:
+        logger.info(f"Obteniendo preview desde: {GOOGLE_SHEET_URL}")
+        df = None
+        
+        # Convertir URL de OneDrive a formato de descarga si es necesario
+        url = convert_onedrive_url(GOOGLE_SHEET_URL)
+        logger.info(f"URL convertida para descarga: {url}")
+        
+        # Intentar múltiples métodos de descarga
+        # Para URLs de OneDrive personal, probamos primero con requests ya que pandas puede fallar
+        df = None
+        error_str = ""
+        
+        # Método 1: Intentar con requests primero (más confiable para OneDrive personal)
+        if ':x:/g/personal/' in url or 'onedrive.live.com' in url:
+            logger.info("URL de OneDrive detectada, intentando descarga con requests primero...")
+            file_content = download_file_with_requests(url)
+            if file_content:
+                try:
+                    df = pd.read_excel(io.BytesIO(file_content), engine='openpyxl', header=None)
+                    logger.info("Archivo descargado y leído exitosamente con requests + pandas")
+                except Exception as mem_e:
+                    logger.warning(f"Error al leer archivo desde memoria: {mem_e}")
+        
+        # Método 2: Si requests falló, intentar leer directamente con pandas
+        if df is None:
+            try:
+                df = pd.read_excel(url, engine='openpyxl', header=None)
+                logger.info("Archivo leído exitosamente con pandas.read_excel")
+            except Exception as e:
+                error_str = str(e)
+                logger.warning(f"No se pudo leer directamente con pandas: {e}")
+                
+                # Método 3: Intentar con formato alternativo de OneDrive
+                if 'onedrive.live.com' in url:
+                    # Intentar con download.aspx en lugar de download?
+                    if '/download?' in url:
+                        try:
+                            alt_url = url.replace('/download?', '/download.aspx?')
+                            logger.info(f"Intentando formato alternativo: {alt_url[:80]}...")
+                            df = pd.read_excel(alt_url, engine='openpyxl', header=None)
+                            logger.info("Archivo leído exitosamente con formato alternativo")
+                        except Exception as alt_e:
+                            logger.warning(f"Formato alternativo también falló: {alt_e}")
+                    
+                    # Intentar con la URL original sin conversión
+                    if df is None and GOOGLE_SHEET_URL != url:
+                        try:
+                            logger.info(f"Intentando con URL original sin conversión: {GOOGLE_SHEET_URL[:80]}...")
+                            file_content = download_file_with_requests(GOOGLE_SHEET_URL)
+                            if file_content:
+                                df = pd.read_excel(io.BytesIO(file_content), engine='openpyxl', header=None)
+                                logger.info("Archivo descargado con URL original y leído exitosamente")
+                        except Exception as orig_e:
+                            logger.warning(f"URL original también falló: {orig_e}")
+                
+                # Método 4: Intentar descargar con requests usando la URL convertida
+                if df is None:
+                    file_content = download_file_with_requests(url)
+                    if file_content:
+                        try:
+                            df = pd.read_excel(io.BytesIO(file_content), engine='openpyxl', header=None)
+                            logger.info("Archivo descargado y leído exitosamente con requests + pandas (segundo intento)")
+                        except Exception as mem_e:
+                            logger.error(f"Error al leer archivo desde memoria: {mem_e}")
+                            # Intentar formato alternativo con requests
+                            if 'onedrive.live.com' in url and '/download?' in url:
+                                alt_url = url.replace('/download?', '/download.aspx?')
+                                file_content = download_file_with_requests(alt_url)
+                                if file_content:
+                                    df = pd.read_excel(io.BytesIO(file_content), engine='openpyxl', header=None)
+                                    logger.info("Archivo descargado con formato alternativo y leído exitosamente")
+                
+                # Si aún falla, verificar errores HTTP específicos
+                if df is None:
+                    if '404' in error_str or 'Not Found' in error_str:
+                        return False, f"❌ Error 404: El archivo no se encontró en la URL. Por favor, verifica que la URL de OneDrive/Google Sheets sea correcta y que el archivo esté compartido públicamente. URL actual: {GOOGLE_SHEET_URL[:80]}...", {}, 0
+                    elif '403' in error_str or 'Forbidden' in error_str:
+                        return False, f"❌ Error 403: Acceso denegado. El archivo puede no estar compartido públicamente. Verifica los permisos del archivo en OneDrive/Google Sheets.", {}, 0
+                    elif '401' in error_str or 'Unauthorized' in error_str:
+                        return False, f"❌ Error 401: No autorizado. El archivo puede requerir autenticación. Verifica que el archivo esté compartido públicamente.", {}, 0
+                    else:
+                        raise e
+        
+        if df is None:
+            raise Exception("No se pudo leer el archivo con ningún método")
+        
+        obras_dict = {}  # Todas las obras del Excel (vigentes y cortadas)
+        obras_cortadas_dict = {}  # Obras cortadas para el preview
+        
+        # Procesar Bloque 1 (Columnas B y F)
+        for idx in range(2, len(df)):
+            nombre = df.iloc[idx, 1] if len(df.columns) > 1 else None
+            precio = df.iloc[idx, 5] if len(df.columns) > 5 else None
+            vigente = df.iloc[idx, 3] if len(df.columns) > 3 else None
+            
+            # Validar nombre (es obligatorio)
+            if pd.isna(nombre):
+                continue
+            
+            nombre = str(nombre).strip()
+            
+            if not nombre or nombre == '' or nombre.lower() in ['obras sociales', 'obra social', 'nombre']:
+                continue
+            
+            # Determinar estado
+            estado = 'vigente'
+            if not pd.isna(vigente):
+                vigente_str = str(vigente).strip().lower()
+                if vigente_str in ['suspendida', 'suspendid', 'cortada']:
+                    estado = 'cortada'
+            
+            # Procesar precio (puede estar vacío para obras cortadas)
+            precio_normalizado = None
+            if not pd.isna(precio):
+                precio_str = str(precio).strip()
+                precio_normalizado = normalizar_precio_argentino(precio_str)
+            
+            # Guardar obra cortada (con o sin precio)
+            if estado == 'cortada':
+                obras_cortadas_dict[nombre] = {
+                    'precio': precio_normalizado,
+                    'estado': 'cortada'
+                }
+            
+            # Solo guardar en obras_dict si está vigente Y tiene precio válido
+            if estado == 'vigente':
+                if precio_normalizado is not None:
+                    obras_dict[nombre] = precio_normalizado
+                # Si está vigente pero no tiene precio válido, la saltamos (no debería pasar)
+                elif not pd.isna(precio):
+                    logger.warning(f"Obra vigente {nombre} tiene precio inválido: {precio}")
+        
+        # Procesar Bloque 2 (Columnas K y O)
+        for idx in range(2, len(df)):
+            nombre = df.iloc[idx, 10] if len(df.columns) > 10 else None
+            precio = df.iloc[idx, 14] if len(df.columns) > 14 else None
+            vigente = df.iloc[idx, 12] if len(df.columns) > 12 else None
+            
+            # Validar nombre (es obligatorio)
+            if pd.isna(nombre):
+                continue
+            
+            nombre = str(nombre).strip()
+            
+            if not nombre or nombre == '' or nombre.lower() in ['obras sociales', 'obra social', 'nombre']:
+                continue
+            
+            # Determinar estado
+            estado = 'vigente'
+            if not pd.isna(vigente):
+                vigente_str = str(vigente).strip().lower()
+                if vigente_str in ['suspendida', 'suspendid', 'cortada']:
+                    estado = 'cortada'
+            
+            # Procesar precio (puede estar vacío para obras cortadas)
+            precio_normalizado = None
+            if not pd.isna(precio):
+                precio_str = str(precio).strip()
+                precio_normalizado = normalizar_precio_argentino(precio_str)
+            
+            # Guardar obra cortada (con o sin precio)
+            if estado == 'cortada':
+                obras_cortadas_dict[nombre] = {
+                    'precio': precio_normalizado,
+                    'estado': 'cortada'
+                }
+            
+            # Solo guardar en obras_dict si está vigente Y tiene precio válido
+            if estado == 'vigente':
+                if precio_normalizado is not None:
+                    obras_dict[nombre] = precio_normalizado
+                # Si está vigente pero no tiene precio válido, la saltamos (no debería pasar)
+                elif not pd.isna(precio):
+                    logger.warning(f"Obra vigente {nombre} tiene precio inválido: {precio}")
+        
+        # Comparar con precios actuales y solo incluir cambios
+        obras_actuales = load_current_obras()
+        # Cargar estado actual completo para comparar cambios de estado
+        estado_actual_data = load_obras_estado()
+        obras_estado_actual = estado_actual_data.get('obras', {})
+        
+        cambios_dict = {}
+        
+        # Procesar obras vigentes con cambios de precio
+        for nombre, precio_nuevo in obras_dict.items():
+            precio_actual = obras_actuales.get(nombre)
+            
+            # Si la obra no existe actualmente o el precio cambió
+            if precio_actual is None or comparar_precios(precio_actual, precio_nuevo):
+                cambios_dict[nombre] = {
+                    'precio_actual': precio_actual if precio_actual else 'Nueva obra',
+                    'precio_nuevo': precio_nuevo,
+                    'cambio': 'nuevo' if precio_actual is None else 'modificado',
+                    'estado': 'vigente'
+                }
+        
+        # Agregar obras cortadas SOLO si cambiaron de estado (de vigente a cortada)
+        for nombre, datos_cortada in obras_cortadas_dict.items():
+            # Verificar el estado actual de la obra
+            obra_estado_actual = obras_estado_actual.get(nombre, {})
+            estado_anterior = obra_estado_actual.get('estado', 'vigente')  # Si no existe, asumimos que estaba vigente
+            
+            # Solo incluir si cambió de vigente a cortada (no si ya estaba cortada)
+            if estado_anterior == 'vigente':
+                precio_actual = obras_actuales.get(nombre)
+                if precio_actual is None:
+                    # Intentar obtener desde obras_estado.json
+                    precio_actual = obra_estado_actual.get('precio')
+                
+                cambios_dict[nombre] = {
+                    'precio_actual': precio_actual if precio_actual else 'Nueva obra cortada',
+                    'precio_nuevo': datos_cortada.get('precio') if datos_cortada.get('precio') else 'Cortada (sin precio)',
+                    'cambio': 'cortada',
+                    'estado': 'cortada'
+                }
+        
+        # También detectar obras que están actualmente vigentes pero no están en el nuevo Excel (se cortaron)
+        nombres_nuevos = set(obras_dict.keys()) | set(obras_cortadas_dict.keys())
+        for nombre_actual, precio_actual in obras_actuales.items():
+            if nombre_actual not in nombres_nuevos:
+                # Verificar si realmente estaba vigente (no cortada)
+                obra_estado_actual = obras_estado_actual.get(nombre_actual, {})
+                estado_anterior = obra_estado_actual.get('estado', 'vigente')
+                
+                # Solo incluir si estaba vigente (no si ya estaba cortada)
+                if estado_anterior == 'vigente':
+                    cambios_dict[nombre_actual] = {
+                        'precio_actual': precio_actual,
+                        'precio_nuevo': 'Cortada (no está en el Excel)',
+                        'cambio': 'cortada',
+                        'estado': 'cortada'
+                    }
+        
+        count = len(cambios_dict)
+        cambios_ordenados = dict(sorted(cambios_dict.items()))
+        
+        total_obras_vigentes = len(obras_dict)
+        total_obras_cortadas = len(obras_cortadas_dict)
+        if count == 0:
+            mensaje = f"✅ No hay cambios. Todas las obras ({total_obras_vigentes}) ya tienen los precios actualizados."
+        else:
+            cambios_precio = sum(1 for c in cambios_dict.values() if c['cambio'] in ['nuevo', 'modificado'])
+            cambios_cortadas = sum(1 for c in cambios_dict.values() if c['cambio'] == 'cortada')
+            mensaje = f"Se encontraron {count} cambio(s): {cambios_precio} precio(s) modificado(s) y {cambios_cortadas} obra(s) cortada(s)."
+        
+        return True, mensaje, cambios_ordenados, count
+            
+    except pd.errors.EmptyDataError:
+        return False, "El archivo está vacío o no se pudo leer.", {}, 0
+    except Exception as e:
+        error_str = str(e)
+        # Detectar errores HTTP específicos en el catch general
+        if '404' in error_str or 'Not Found' in error_str:
+            error_msg = f"❌ Error 404: El archivo no se encontró en la URL. Por favor, verifica que la URL de OneDrive/Google Sheets sea correcta y que el archivo esté compartido públicamente. URL actual: {GOOGLE_SHEET_URL[:80]}..."
+        elif '403' in error_str or 'Forbidden' in error_str:
+            error_msg = f"❌ Error 403: Acceso denegado. El archivo puede no estar compartido públicamente. Verifica los permisos del archivo en OneDrive/Google Sheets."
+        elif '401' in error_str or 'Unauthorized' in error_str:
+            error_msg = f"❌ Error 401: No autorizado. El archivo puede requerir autenticación. Verifica que el archivo esté compartido públicamente."
+        else:
+            error_msg = f"Error al obtener preview: {error_str}"
+        logger.error(error_msg, exc_info=True)
+        return False, error_msg, {}, 0
+
+def convert_onedrive_url(url):
+    """
+    Convierte una URL de OneDrive a formato de descarga directa.
+    Intenta múltiples formatos para maximizar la compatibilidad.
+    
+    Para URLs de OneDrive personal (:x:/g/personal/...), a veces la URL original
+    funciona mejor que el formato de descarga directa.
+    
+    Formatos soportados:
+    - https://onedrive.live.com/download?resid=RESID
+    - https://onedrive.live.com/:x:/g/personal/...?resid=RESID
+    - https://onedrive.live.com/download.aspx?resid=RESID
+    - https://1drv.ms/x/s!RESID
+    - URLs de Google Sheets (exportar como CSV/Excel)
+    """
+    if not url:
+        return url
+    
+    # Google Sheets: convertir a formato de exportación CSV
+    if 'docs.google.com/spreadsheets' in url:
+        # Si ya es una URL de exportación, devolver tal cual
+        if '/export?' in url:
+            return url
+        # Convertir URL de Google Sheets a formato de exportación CSV
+        # Extraer el ID del documento
+        import re
+        sheet_id_match = re.search(r'/spreadsheets/d/([a-zA-Z0-9-_]+)', url)
+        if sheet_id_match:
+            sheet_id = sheet_id_match.group(1)
+            # Intentar exportar como Excel primero
+            return f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=xlsx&id={sheet_id}"
+        return url
+    
+    # OneDrive
+    if 'onedrive.live.com' in url or '1drv.ms' in url:
+        # Si ya tiene formato de descarga directa, devolver tal cual
+        if '/download?' in url and 'resid=' in url:
+            return url
+        if '/download.aspx?' in url and 'resid=' in url:
+            return url
+        
+        # Para URLs con formato :x:/g/personal/..., a veces la URL original funciona mejor
+        # Intentamos primero con la URL original modificada para forzar descarga
+        if ':x:/g/personal/' in url:
+            # Intentar agregar parámetro download=1 si no existe
+            if 'download=1' not in url:
+                separator = '&' if '?' in url else '?'
+                url_with_download = f"{url}{separator}download=1"
+                logger.info(f"URL de OneDrive personal detectada, agregando download=1: {url_with_download[:80]}...")
+                return url_with_download
+            return url
+        
+        # Intentar extraer resid de la URL (puede estar en diferentes formatos)
+        import urllib.parse
+        import re
+        
+        # Buscar resid en los parámetros de la URL
+        # Puede estar como: resid=RESID o resid=RESID!suffix
+        resid_match = re.search(r'resid=([^&]+)', url)
+        if resid_match:
+            resid = urllib.parse.unquote(resid_match.group(1))
+            # Limpiar el resid de espacios y caracteres extra
+            resid = resid.strip()
+            
+            # Intentar múltiples formatos de descarga
+            # Formato 1: download?resid= (formato clásico)
+            format1 = f"https://onedrive.live.com/download?resid={resid}"
+            # Formato 2: download.aspx?resid= (formato alternativo)
+            format2 = f"https://onedrive.live.com/download.aspx?resid={resid}"
+            
+            logger.info(f"URL de OneDrive convertida (formato 1): {format1}")
+            # Retornar el formato 1 primero (más común)
+            return format1
+        
+        # Si es un enlace corto de OneDrive (1drv.ms), necesitaríamos expandirlo
+        # Por ahora, devolvemos la URL original
+        if '1drv.ms' in url:
+            logger.warning(f"URL de OneDrive corta detectada (1drv.ms). Puede requerir expansión manual. URL: {url}")
+        
+        # Si no tiene resid pero es un enlace de OneDrive, intentar formato alternativo
+        # Para archivos compartidos públicamente, a veces funciona el formato original
+        logger.warning(f"No se pudo extraer resid de la URL de OneDrive. Intentando con URL original: {url[:80]}...")
+        return url
+    
+    return url
+
+def download_file_with_requests(url):
+    """
+    Descarga un archivo usando requests como alternativa cuando pandas falla.
+    Retorna los bytes del archivo o None si falla.
+    
+    Para OneDrive, usa headers apropiados para simular un navegador.
+    """
+    try:
+        import requests
+        logger.info(f"Intentando descargar archivo con requests desde: {url[:80]}...")
+        
+        # Headers para simular un navegador (OneDrive a veces requiere esto)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,*/*',
+            'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
+        }
+        
+        # Para URLs de OneDrive personal, intentar primero sin modificar
+        # Si la URL tiene parámetros, agregar download=1 si no existe
+        if ':x:/g/personal/' in url and 'download=1' not in url:
+            separator = '&' if '?' in url else '?'
+            url_with_download = f"{url}{separator}download=1"
+            logger.info(f"Intentando con download=1: {url_with_download[:80]}...")
+            try:
+                response = requests.get(url_with_download, headers=headers, timeout=30, allow_redirects=True)
+                response.raise_for_status()
+                # Verificar que el contenido sea realmente un archivo Excel
+                content_type = response.headers.get('Content-Type', '').lower()
+                if 'excel' in content_type or 'spreadsheet' in content_type or 'application/vnd' in content_type:
+                    logger.info(f"Archivo descargado exitosamente (Content-Type: {content_type})")
+                    return response.content
+                elif len(response.content) > 1000:  # Si tiene contenido significativo, asumir que es válido
+                    logger.info(f"Archivo descargado exitosamente (tamaño: {len(response.content)} bytes)")
+                    return response.content
+            except Exception as e1:
+                logger.warning(f"Error con download=1, intentando URL original: {e1}")
+        
+        # Intentar con la URL original
+        response = requests.get(url, headers=headers, timeout=30, allow_redirects=True)
+        response.raise_for_status()
+        
+        # Verificar que el contenido sea realmente un archivo Excel
+        content_type = response.headers.get('Content-Type', '').lower()
+        if 'excel' in content_type or 'spreadsheet' in content_type or 'application/vnd' in content_type:
+            logger.info(f"Archivo descargado exitosamente (Content-Type: {content_type})")
+            return response.content
+        elif len(response.content) > 1000:  # Si tiene contenido significativo, asumir que es válido
+            logger.info(f"Archivo descargado exitosamente (tamaño: {len(response.content)} bytes)")
+            return response.content
+        else:
+            logger.warning(f"Respuesta recibida pero contenido sospechoso (Content-Type: {content_type}, tamaño: {len(response.content)} bytes)")
+            # De todas formas, intentar devolverlo si tiene algún contenido
+            if len(response.content) > 100:
+                return response.content
+            return None
+            
+    except ImportError:
+        logger.warning("La biblioteca 'requests' no está instalada. Instálala con: pip install requests")
+        return None
+    except Exception as e:
+        logger.error(f"Error al descargar archivo con requests: {e}")
+        return None
+
+def sync_precios_google_sheet():
+    """
+    Sincroniza los precios de obras sociales desde un Google Sheet/OneDrive Excel.
+    
+    Lee dos bloques de datos:
+    - Bloque 1: Nombre en Columna B, Precio (UB) en Columna F
+    - Bloque 2: Nombre en Columna K, Precio (UB) en Columna O
+    
+    Retorna:
+        tuple: (success: bool, message: str, count: int)
+    """
+    if not GOOGLE_SHEET_URL:
+        return False, "URL del archivo no configurada. Por favor, configura GOOGLE_SHEET_URL en app.py o en variables de entorno.", 0
+    
+    try:
+        logger.info(f"Leyendo archivo desde: {GOOGLE_SHEET_URL}")
+        df = None
+        
+        # Convertir URL de OneDrive a formato de descarga si es necesario
+        url = convert_onedrive_url(GOOGLE_SHEET_URL)
+        logger.info(f"URL convertida para descarga: {url}")
+        
+        # Intentar múltiples métodos de descarga
+        # Método 1: Leer directamente con pandas (más rápido)
+        try:
+            df = pd.read_excel(url, engine='openpyxl', header=None)
+            logger.info("Archivo leído exitosamente con pandas.read_excel")
+        except Exception as e:
+            error_str = str(e)
+            logger.warning(f"No se pudo leer directamente con pandas: {e}")
+            
+            # Método 2: Intentar con formato alternativo de OneDrive
+            if 'onedrive.live.com' in url and '/download?' in url:
+                try:
+                    # Intentar con download.aspx en lugar de download?
+                    alt_url = url.replace('/download?', '/download.aspx?')
+                    logger.info(f"Intentando formato alternativo: {alt_url[:80]}...")
+                    df = pd.read_excel(alt_url, engine='openpyxl', header=None)
+                    logger.info("Archivo leído exitosamente con formato alternativo")
+                except Exception as alt_e:
+                    logger.warning(f"Formato alternativo también falló: {alt_e}")
+            
+            # Método 3: Si pandas falla, intentar descargar con requests y leer desde memoria
+            if df is None:
+                file_content = download_file_with_requests(url)
+                if file_content:
+                    try:
+                        df = pd.read_excel(io.BytesIO(file_content), engine='openpyxl', header=None)
+                        logger.info("Archivo descargado y leído exitosamente con requests + pandas")
+                    except Exception as mem_e:
+                        logger.error(f"Error al leer archivo desde memoria: {mem_e}")
+                        # Intentar formato alternativo con requests
+                        if 'onedrive.live.com' in url and '/download?' in url:
+                            alt_url = url.replace('/download?', '/download.aspx?')
+                            file_content = download_file_with_requests(alt_url)
+                            if file_content:
+                                df = pd.read_excel(io.BytesIO(file_content), engine='openpyxl', header=None)
+                                logger.info("Archivo descargado con formato alternativo y leído exitosamente")
+            
+            # Si aún falla, verificar errores HTTP específicos
+            if df is None:
+                if '404' in error_str or 'Not Found' in error_str:
+                    return False, f"❌ Error 404: El archivo no se encontró en la URL. Por favor, verifica que la URL de OneDrive/Google Sheets sea correcta y que el archivo esté compartido públicamente. URL actual: {GOOGLE_SHEET_URL[:80]}...", 0
+                elif '403' in error_str or 'Forbidden' in error_str:
+                    return False, f"❌ Error 403: Acceso denegado. El archivo puede no estar compartido públicamente. Verifica los permisos del archivo en OneDrive/Google Sheets.", 0
+                elif '401' in error_str or 'Unauthorized' in error_str:
+                    return False, f"❌ Error 401: No autorizado. El archivo puede requerir autenticación. Verifica que el archivo esté compartido públicamente.", 0
+                else:
+                    raise e
+        
+        if df is None:
+            raise Exception("No se pudo leer el archivo con ningún método")
+        
+        obras_dict = {}  # Para obras_entero.txt (solo activas)
+        obras_estado_dict = {}  # Para obras_estado.json (todas con estado)
+        
+        # Bloque 1: Columna B (índice 1) = Nombre, Columna F (índice 5) = Precio
+        # Bloque 2: Columna K (índice 10) = Nombre, Columna O (índice 14) = Precio
+        # Los datos empiezan en la fila 3 (índice 2), después de los encabezados
+        
+        # Procesar Bloque 1 (Columnas B y F)
+        # Columna D (índice 3) = Vigente, Columna B (índice 1) = Nombre, Columna F (índice 5) = Precio
+        for idx in range(2, len(df)):  # Empezar desde fila 3 (índice 2)
+            nombre = df.iloc[idx, 1] if len(df.columns) > 1 else None  # Columna B (índice 1)
+            precio = df.iloc[idx, 5] if len(df.columns) > 5 else None  # Columna F (índice 5)
+            vigente = df.iloc[idx, 3] if len(df.columns) > 3 else None  # Columna D (índice 3) = Vigente
+            
+            # Validar nombre (es obligatorio)
+            if pd.isna(nombre):
+                continue
+            
+            nombre = str(nombre).strip()
+            
+            # Saltar si el nombre está vacío o parece ser un encabezado
+            if not nombre or nombre == '' or nombre.lower() in ['obras sociales', 'obra social', 'nombre']:
+                continue
+            
+            # Determinar estado
+            estado = 'vigente'
+            if not pd.isna(vigente):
+                vigente_str = str(vigente).strip().lower()
+                if vigente_str in ['suspendida', 'suspendid', 'cortada']:
+                    estado = 'cortada'
+            
+            # Procesar precio (puede estar vacío para obras cortadas)
+            precio_normalizado = None
+            if not pd.isna(precio):
+                precio_str = str(precio).strip()
+                precio_normalizado = normalizar_precio_argentino(precio_str)
+            
+            # Guardar en obras_estado_dict (todas las obras con su estado, incluso sin precio)
+            obras_estado_dict[nombre] = {
+                'precio': precio_normalizado if precio_normalizado else None,
+                'estado': estado,
+                'ultima_actualizacion': datetime.now().isoformat()
+            }
+            
+            # Solo guardar en obras_dict si está vigente Y tiene precio válido
+            if estado == 'vigente':
+                if precio_normalizado is not None:
+                    obras_dict[nombre] = precio_normalizado
+                elif not pd.isna(precio):
+                    logger.warning(f"Obra vigente {nombre} tiene precio inválido: {precio}")
+        
+        # Procesar Bloque 2 (Columnas K y O)
+        # Columna M (índice 12) = Vigente, Columna K (índice 10) = Nombre, Columna O (índice 14) = Precio
+        for idx in range(2, len(df)):  # Empezar desde fila 3 (índice 2)
+            nombre = df.iloc[idx, 10] if len(df.columns) > 10 else None  # Columna K (índice 10)
+            precio = df.iloc[idx, 14] if len(df.columns) > 14 else None  # Columna O (índice 14)
+            vigente = df.iloc[idx, 12] if len(df.columns) > 12 else None  # Columna M (índice 12) = Vigente
+            
+            # Validar nombre (es obligatorio)
+            if pd.isna(nombre):
+                continue
+            
+            nombre = str(nombre).strip()
+            
+            # Saltar si el nombre está vacío o parece ser un encabezado
+            if not nombre or nombre == '' or nombre.lower() in ['obras sociales', 'obra social', 'nombre']:
+                continue
+            
+            # Determinar estado
+            estado = 'vigente'
+            if not pd.isna(vigente):
+                vigente_str = str(vigente).strip().lower()
+                if vigente_str in ['suspendida', 'suspendid', 'cortada']:
+                    estado = 'cortada'
+            
+            # Procesar precio (puede estar vacío para obras cortadas)
+            precio_normalizado = None
+            if not pd.isna(precio):
+                precio_str = str(precio).strip()
+                precio_normalizado = normalizar_precio_argentino(precio_str)
+            
+            # Guardar en obras_estado_dict (todas las obras con su estado, incluso sin precio)
+            obras_estado_dict[nombre] = {
+                'precio': precio_normalizado if precio_normalizado else None,
+                'estado': estado,
+                'ultima_actualizacion': datetime.now().isoformat()
+            }
+            
+            # Solo guardar en obras_dict si está vigente Y tiene precio válido
+            if estado == 'vigente':
+                if precio_normalizado is not None:
+                    obras_dict[nombre] = precio_normalizado
+                elif not pd.isna(precio):
+                    logger.warning(f"Obra vigente {nombre} tiene precio inválido: {precio}")
+        
+        # Escribir el archivo obras_entero.txt (solo obras activas)
+        if obras_dict:
+            # Ordenar alfabéticamente por nombre
+            obras_ordenadas = dict(sorted(obras_dict.items()))
+            
+            # Escribir al archivo
+            with open(OBRAS_FILE, 'w', encoding='utf-8') as f:
+                for nombre, precio in obras_ordenadas.items():
+                    f.write(f"{nombre}:{precio}\n")
+        
+        # Escribir el archivo obras_estado.json (todas las obras con estado)
+        if obras_estado_dict:
+            obras_estado_ordenadas = dict(sorted(obras_estado_dict.items()))
+            
+            # Agregar metadata
+            estado_data = {
+                'fecha_actualizacion': datetime.now().isoformat(),
+                'total_obras': len(obras_estado_ordenadas),
+                'obras_vigentes': sum(1 for o in obras_estado_ordenadas.values() if o['estado'] == 'vigente'),
+                'obras_cortadas': sum(1 for o in obras_estado_ordenadas.values() if o['estado'] == 'cortada'),
+                'obras': obras_estado_ordenadas
+            }
+            
+            with open(OBRAS_ESTADO_FILE, 'w', encoding='utf-8') as f:
+                json.dump(estado_data, f, indent=2, ensure_ascii=False)
+            
+            count = len(obras_dict) if obras_dict else 0
+            total_count = len(obras_estado_dict)
+            cortadas_count = estado_data['obras_cortadas']
+            logger.info(f"Sincronización completada: {count} obras activas, {total_count} total (incluyendo {cortadas_count} cortadas)")
+            return True, f"✅ Sincronización exitosa: {count} obras activas importadas ({total_count} total, {cortadas_count} cortadas).", count
+        else:
+            return False, "❌ No se encontraron obras sociales válidas en el archivo.", 0
+            
+    except pd.errors.EmptyDataError:
+        error_msg = "El archivo está vacío o no se pudo leer."
+        logger.error(error_msg)
+        return False, f"❌ {error_msg}", 0
+    except Exception as e:
+        error_str = str(e)
+        # Detectar errores HTTP específicos
+        if '404' in error_str or 'Not Found' in error_str:
+            error_msg = f"Error 404: El archivo no se encontró en la URL. Por favor, verifica que la URL de OneDrive/Google Sheets sea correcta y que el archivo esté compartido públicamente. URL actual: {GOOGLE_SHEET_URL[:80]}..."
+        elif '403' in error_str or 'Forbidden' in error_str:
+            error_msg = f"Error 403: Acceso denegado. El archivo puede no estar compartido públicamente. Verifica los permisos del archivo en OneDrive/Google Sheets."
+        elif '401' in error_str or 'Unauthorized' in error_str:
+            error_msg = f"Error 401: No autorizado. El archivo puede requerir autenticación. Verifica que el archivo esté compartido públicamente."
+        else:
+            error_msg = f"Error al sincronizar precios: {error_str}"
+        logger.error(error_msg, exc_info=True)
+        return False, f"❌ {error_msg}", 0
 
 def is_gaito_admin():
     """Verifica si el usuario actual es Gaito (el único admin)"""
     return session.get('username') == 'Gaito'
+
+def load_obras_estado():
+    """Carga el estado de obras sociales desde el archivo JSON"""
+    try:
+        if os.path.exists(OBRAS_ESTADO_FILE):
+            with open(OBRAS_ESTADO_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        else:
+            return {
+                'fecha_actualizacion': None,
+                'total_obras': 0,
+                'obras_vigentes': 0,
+                'obras_cortadas': 0,
+                'obras': {}
+            }
+    except Exception as e:
+        logger.error(f"Error al cargar estado de obras: {e}")
+        return {
+            'fecha_actualizacion': None,
+            'total_obras': 0,
+            'obras_vigentes': 0,
+            'obras_cortadas': 0,
+            'obras': {}
+        }
 
 # Ruta admin para gestionar usuarios (solo para Gaito)
 @app.route('/admin/usuarios', methods=['GET', 'POST'])
@@ -390,6 +1221,60 @@ def admin_usuarios():
     
     return render_template('admin_usuarios.html', users=users, current_user=session.get('username'))
 
+# Ruta para obtener preview de precios antes de sincronizar (solo para Gaito)
+@app.route('/admin/sync_precios/preview', methods=['GET'])
+@require_login
+def admin_sync_precios_preview():
+    # Solo Gaito puede acceder a esta ruta
+    if not is_gaito_admin():
+        return jsonify({'success': False, 'message': 'No tienes permiso para acceder a esta sección.'}), 403
+    
+    success, message, cambios_dict, count = preview_precios_google_sheet()
+    
+    if success:
+        # Convertir a lista para JSON (mostrar todos los cambios, o máximo 50)
+        cambios_list = []
+        for nombre, datos in list(cambios_dict.items())[:50]:
+            cambios_list.append({
+                'nombre': nombre,
+                'precio_actual': datos.get('precio_actual', 'N/A'),
+                'precio_nuevo': datos.get('precio_nuevo', 'N/A'),
+                'cambio': datos.get('cambio', 'modificado')
+            })
+        
+        return jsonify({
+            'success': True,
+            'message': message,
+            'count': count,
+            'cambios': cambios_list,
+            'total_cambios': count
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'message': message
+        })
+
+# Ruta para sincronizar precios desde Google Sheet (solo para Gaito)
+@app.route('/admin/sync_precios', methods=['POST'])
+@require_login
+def admin_sync_precios():
+    # Solo Gaito puede acceder a esta ruta
+    if not is_gaito_admin():
+        flash('No tienes permiso para acceder a esta sección.', 'error')
+        return redirect(url_for('presupuestos'))
+    
+    success, message, count = sync_precios_google_sheet()
+    
+    if success:
+        flash(message, 'success')
+        logger.info(f"Precios sincronizados por {session.get('username')}: {count} obras sociales")
+    else:
+        flash(message, 'error')
+        logger.error(f"Error al sincronizar precios: {message}")
+    
+    return redirect(url_for('admin_usuarios'))
+
 # Ruta para editar perfil de laboratorio (solo Gaito)
 @app.route('/admin/perfil/<username>', methods=['GET', 'POST'])
 @require_login
@@ -429,6 +1314,22 @@ def admin_perfil(username):
                     perfil['logo_path'] = logo_filename
                     logger.info(f"Logo guardado para usuario {username}: {logo_filename}")
         
+        # Manejar subida de imagen de firma
+        if 'firma_imagen' in request.files:
+            file = request.files['firma_imagen']
+            if file and file.filename:
+                # Validar extensión
+                allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+                filename = secure_filename(file.filename)
+                if '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions:
+                    # Guardar con nombre único basado en username
+                    extension = filename.rsplit('.', 1)[1].lower()
+                    firma_filename = f'firma_{username}.{extension}'
+                    firma_path = os.path.join(LOGO_FOLDER, firma_filename)
+                    file.save(firma_path)
+                    perfil['firma_path'] = firma_filename
+                    logger.info(f"Imagen de firma guardada para usuario {username}: {firma_filename}")
+        
         # Guardar perfil
         perfiles[username] = perfil
         if save_perfiles(perfiles):
@@ -440,6 +1341,41 @@ def admin_perfil(username):
         return redirect(url_for('admin_perfil', username=username))
     
     return render_template('admin_perfil.html', username=username, perfil=perfil)
+
+# Ruta para ver estado de obras sociales (solo para Gaito)
+@app.route('/admin/estado_obras', methods=['GET'])
+@require_login
+def admin_estado_obras():
+    # Solo Gaito puede acceder a esta ruta
+    if not is_gaito_admin():
+        flash('No tienes permiso para acceder a esta sección.', 'error')
+        return redirect(url_for('presupuestos'))
+    
+    estado_data = load_obras_estado()
+    
+    # Formatear fecha de actualización
+    fecha_actualizacion = None
+    if estado_data.get('fecha_actualizacion'):
+        try:
+            fecha_dt = datetime.fromisoformat(estado_data['fecha_actualizacion'])
+            fecha_actualizacion = fecha_dt.strftime('%d/%m/%Y %H:%M:%S')
+        except:
+            fecha_actualizacion = estado_data.get('fecha_actualizacion')
+    
+    # Convertir obras a lista ordenada para el template
+    obras_list = []
+    for nombre, datos in sorted(estado_data.get('obras', {}).items()):
+        obras_list.append({
+            'nombre': nombre,
+            'precio': datos.get('precio', 'N/A'),
+            'estado': datos.get('estado', 'vigente'),
+            'ultima_actualizacion': datos.get('ultima_actualizacion', '')
+        })
+    
+    return render_template('admin_estado_obras.html', 
+                         estado_data=estado_data,
+                         obras_list=obras_list,
+                         fecha_actualizacion=fecha_actualizacion)
 
 # Ruta para descargar PDF
 @app.route('/descargar_pdf', methods=['POST'])
@@ -453,6 +1389,8 @@ def descargar_pdf():
         
         # Obtener datos del formulario
         nombre_paciente = request.form.get('nombre_paciente', '').strip()
+        nombre_obra_social = request.form.get('nombre_obra_social', '').strip()
+        numero_afiliado = request.form.get('numero_afiliado', '').strip()
         fecha_presupuesto_str = request.form.get('fecha_presupuesto', '')
         estudios_json = request.form.get('estudios_json', '[]')
         
@@ -630,6 +1568,15 @@ def descargar_pdf():
         pdf.set_font('Helvetica', 'B', 12)
         nombre_cliente = safe_text(nombre_paciente if nombre_paciente else 'Cliente')
         pdf.cell(0, 8, f"SRES: {nombre_cliente}", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
+        pdf.ln(2)
+        # Obra Social
+        nombre_obra = safe_text(nombre_obra_social if nombre_obra_social else 'Obra Social no especificada')
+        pdf.cell(0, 8, f"Obra Social: {nombre_obra}", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
+        # Número de Afiliado (solo si tiene valor)
+        if numero_afiliado:
+            pdf.ln(2)
+            numero_afiliado_texto = safe_text(numero_afiliado)
+            pdf.cell(0, 8, f"N° De Afiliado: {numero_afiliado_texto}", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
         pdf.ln(5)
         
         # Título del presupuesto - CENTRADO
@@ -724,27 +1671,76 @@ def descargar_pdf():
         
         # Firma - alineada a la derecha
         firma_texto = safe_text(perfil.get('firma_texto', ''))
-        if firma_texto:
+        firma_path = perfil.get('firma_path', '')
+        
+        if firma_texto or firma_path:
             pdf.set_font('Helvetica', '', 10)
-            # Calcular ancho exacto del texto de la firma
-            ancho_texto = pdf.get_string_width(firma_texto)
             margen_derecho = pdf.w - pdf.r_margin
+            y_pos_inicial = pdf.get_y()
             
-            # Obtener posición Y actual
-            y_pos = pdf.get_y()
-            
-            # Calcular posición de la línea: exactamente el mismo ancho que el texto, alineada a la derecha
-            fin_linea = margen_derecho
-            inicio_linea = fin_linea - ancho_texto
-            
-            # Dibujar línea de firma con el mismo ancho que el texto
-            pdf.line(inicio_linea, y_pos, fin_linea, y_pos)
-            
-            # Espacio entre línea y texto
-            pdf.ln(5)
-            
-            # Escribir texto de la firma (alineado a la derecha)
-            pdf.cell(0, 6, firma_texto, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='R')
+            # Si hay imagen de firma, mostrarla primero
+            if firma_path:
+                firma_full_path = os.path.join(LOGO_FOLDER, firma_path)
+                if os.path.exists(firma_full_path):
+                    try:
+                        # Tamaño máximo para la imagen de firma (ancho máximo 40mm)
+                        firma_width_mm = 40
+                        try:
+                            from PIL import Image
+                            img = Image.open(firma_full_path)
+                            img_width, img_height = img.size
+                            # Mantener proporción
+                            firma_height_mm = (img_height / img_width) * firma_width_mm
+                            # Limitar altura máxima
+                            if firma_height_mm > 20:
+                                firma_height_mm = 20
+                                firma_width_mm = (img_width / img_height) * 20
+                        except:
+                            firma_height_mm = 15
+                        
+                        # Calcular posición X para alinear a la derecha
+                        x_firma = margen_derecho - firma_width_mm
+                        
+                        # Insertar imagen de firma
+                        pdf.image(firma_full_path, x=x_firma, y=y_pos_inicial, w=firma_width_mm, h=firma_height_mm)
+                        
+                        # Dibujar línea de firma justo debajo de la imagen
+                        y_pos_linea = y_pos_inicial + firma_height_mm + 1
+                        pdf.line(x_firma, y_pos_linea, margen_derecho, y_pos_linea)
+                        
+                        # Si hay texto de firma, mostrarlo debajo de la línea
+                        if firma_texto:
+                            pdf.set_y(y_pos_linea + 3)
+                            pdf.cell(0, 6, firma_texto, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='R')
+                        else:
+                            # Si no hay texto, solo avanzar un poco el cursor
+                            pdf.set_y(y_pos_linea + 3)
+                    except Exception as e:
+                        logger.warning(f"No se pudo insertar imagen de firma: {e}")
+                        # Si falla la imagen, continuar con el texto normal
+                        if firma_texto:
+                            ancho_texto = pdf.get_string_width(firma_texto)
+                            fin_linea = margen_derecho
+                            inicio_linea = fin_linea - ancho_texto
+                            pdf.line(inicio_linea, y_pos_inicial, fin_linea, y_pos_inicial)
+                            pdf.ln(5)
+                            pdf.cell(0, 6, firma_texto, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='R')
+                elif firma_texto:
+                    # Si la imagen no existe pero hay texto, mostrar solo el texto
+                    ancho_texto = pdf.get_string_width(firma_texto)
+                    fin_linea = margen_derecho
+                    inicio_linea = fin_linea - ancho_texto
+                    pdf.line(inicio_linea, y_pos_inicial, fin_linea, y_pos_inicial)
+                    pdf.ln(5)
+                    pdf.cell(0, 6, firma_texto, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='R')
+            elif firma_texto:
+                # Solo texto de firma, sin imagen
+                ancho_texto = pdf.get_string_width(firma_texto)
+                fin_linea = margen_derecho
+                inicio_linea = fin_linea - ancho_texto
+                pdf.line(inicio_linea, y_pos_inicial, fin_linea, y_pos_inicial)
+                pdf.ln(5)
+                pdf.cell(0, 6, firma_texto, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='R')
         
         # Generar PDF en memoria
         pdf_output = io.BytesIO()
