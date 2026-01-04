@@ -47,6 +47,13 @@ USERS_FILE = 'usuarios_habilitados.json'
 PERFILES_FILE = 'perfiles.json'
 # Carpeta para logos
 LOGO_FOLDER = 'static/logos'
+# Configuración de Asociación Bioquímica (aparecerá en todos los PDFs)
+ASOCIACION_BIOQUIMICA = {
+    'logo_path': 'logo_asociacion_bioquimica.png',
+    'nombre': 'Asociacion Bioquimica del Ne del Chubut',
+    'direccion': 'Paraguay 37, U9100 Trelew, Chubut',
+    'telefono': '02804420440'
+}
 # Archivo de obras sociales
 OBRAS_FILE = 'obras_entero.txt'
 # Archivo para almacenar estado completo de obras sociales (con estado vigente/cortada)
@@ -1464,109 +1471,426 @@ def descargar_pdf():
                 self.fecha_presupuesto = fecha_presupuesto
                 self.safe_text = safe_text_func
                 self.set_auto_page_break(auto=True, margin=15)
+                self._header_rendering = False  # Bandera para evitar recursión
+                self.y_linea_separadora = None  # Guardar posición Y de la línea separadora
             
             def header(self):
-                """Header que se repite en cada página"""
-                y_start = 10
-                x_logo = 10
+                # Evitar recursión infinita
+                if self._header_rendering:
+                    return
+                self._header_rendering = True
+                try:
+                    """Header: 60% izquierda (Laboratorio), 40% derecha (Asociación)"""
+                    y_start = 8
+                    ancho_pagina = self.w
+                    margen_lateral = 10
+                    margen_derecho = 10
+                    
+                    # ========== CONFIGURACIÓN DE CAJAS ==========
+                    # Bloque Izquierdo: 45% del ancho
+                    ancho_izquierda = (ancho_pagina - margen_lateral - margen_derecho) * 0.45
+                    # Espacio vacío (Centro): 10% del ancho
+                    espacio_centro = (ancho_pagina - margen_lateral - margen_derecho) * 0.10
+                    # Bloque Derecho: 45% del ancho
+                    ancho_derecha = (ancho_pagina - margen_lateral - margen_derecho) * 0.45
+                    
+                    x_izquierda = margen_lateral
+                    x_derecha = x_izquierda + ancho_izquierda + espacio_centro
+                    
+                    # Tamaños de logos específicos - Ajustados para que coincidan con la altura del texto
+                    # Altura total del texto izquierdo: ~23mm, derecho: ~26mm
+                    # Hacer los logos un poco más grandes que el texto
+                    logo_lab_max_height = 28  # Aproximadamente la altura del texto + margen
+                    logo_asoc_max_height = 28  # Aproximadamente la altura del texto + margen
+                    margen_logo_texto = 4
+                    
+                    # Line height compacto
+                    line_height = 1.2
+                    espacio_lineas = 0.5
+                    
+                    # ========== CAJA IZQUIERDA: LABORATORIO (60% del ancho) ==========
+                    # Alineación: Todo a la IZQUIERDA
+                    x_lab = x_izquierda
+                    y_lab = y_start
+                    
+                    # Logo del laboratorio (máximo 50px = 14mm)
+                    logo_lab_width = logo_lab_max_height
+                    logo_lab_height = 0
+                    if self.perfil.get('logo_path'):
+                        logo_full_path = os.path.join(LOGO_FOLDER, self.perfil['logo_path'])
+                        if os.path.exists(logo_full_path):
+                            try:
+                                try:
+                                    from PIL import Image
+                                    img = Image.open(logo_full_path)
+                                    img_width, img_height = img.size
+                                    logo_height_mm = (img_height / img_width) * logo_lab_max_height
+                                    if logo_height_mm > logo_lab_max_height:
+                                        logo_height_mm = logo_lab_max_height
+                                        logo_width_mm = (img_width / img_height) * logo_lab_max_height
+                                    else:
+                                        logo_width_mm = logo_lab_max_height
+                                    logo_lab_width = logo_width_mm
+                                except:
+                                    logo_lab_width = logo_lab_max_height
+                                    logo_height_mm = logo_lab_max_height
+                                
+                                self.image(logo_full_path, x=x_lab, y=y_lab, w=logo_lab_width, h=logo_height_mm)
+                                logo_lab_height = logo_height_mm
+                            except Exception as e:
+                                logger.warning(f"No se pudo insertar logo del laboratorio: {e}")
+                    
+                    # Texto a la derecha del logo - CENTRADO VERTICALMENTE
+                    x_texto_lab = x_lab + logo_lab_width + margen_logo_texto if logo_lab_height > 0 else x_lab
+                    ancho_texto_lab = ancho_izquierda - (logo_lab_width + margen_logo_texto if logo_lab_height > 0 else 0)
+                    # Validar que el ancho sea positivo
+                    if ancho_texto_lab <= 0:
+                        ancho_texto_lab = ancho_izquierda
+                    
+                    # Calcular altura total del texto para centrarlo verticalmente con el logo
+                    # Fila 1: Título (10pt) - REDUCIDO
+                    # Fila 2: Subtítulo (8pt) - REDUCIDO
+                    # Fila 3: Profesionales (8pt)
+                    # Fila 4: Dirección (8pt)
+                    # Fila 5: Teléfonos (8pt)
+                    altura_total_texto = (3.5 * line_height) + espacio_lineas + (3 * line_height) + espacio_lineas + (3 * line_height) + espacio_lineas + (3 * line_height) + espacio_lineas + (3 * line_height)
+                    
+                    # Centrar verticalmente: si hay logo, alinear el centro del texto con el centro del logo
+                    # Validar que el cálculo no dé valores negativos
+                    if logo_lab_height > 0:
+                        offset_vertical = (logo_lab_height - altura_total_texto) / 2
+                        y_inicio = max(y_lab, y_lab + offset_vertical)  # Asegurar que no sea negativo
+                    else:
+                        y_inicio = y_lab
+                    
+                    y_actual = y_inicio
                 
-                # Logo pequeño en la esquina superior izquierda
-                if self.perfil.get('logo_path'):
-                    logo_full_path = os.path.join(LOGO_FOLDER, self.perfil['logo_path'])
-                    if os.path.exists(logo_full_path):
+                # Fila 1: "LABORATORIO SCOZZINA SAS" - Arial (Helvetica), Negrita, 10pt, Negro
+                    self.set_font('Helvetica', 'B', 10)  # REDUCIDO de 12 a 10pt
+                    nombre_lab = self.safe_text(self.perfil.get('nombre_lab', 'Laboratorio'))
+                    self.set_xy(x_texto_lab, y_actual)
+                    self.cell(ancho_texto_lab, 3.5 * line_height, nombre_lab, align='L')
+                    y_actual += 3.5 * line_height + espacio_lineas
+                
+                # Fila 2: "Análisis Clínicos" - Arial, Cursiva, 8pt, Gris Oscuro
+                    self.set_font('Helvetica', 'I', 8)  # REDUCIDO de 9 a 8pt
+                    subtitulo = self.safe_text(self.perfil.get('subtitulo', 'Analisis Clinicos'))
+                    self.set_xy(x_texto_lab, y_actual)
+                    self.cell(ancho_texto_lab, 3 * line_height, subtitulo, align='L')
+                    y_actual += 3 * line_height + espacio_lineas
+                
+                    # Fila 3: Profesionales - Arial, 8pt, Gris (formato: Bioq. R. Castillo | Tec. C. Schanz)
+                    self.set_font('Helvetica', '', 8)
+                    profesionales_text = self.safe_text(self.perfil.get('profesionales', ''))
+                    if profesionales_text:
+                        # Formatear: extraer iniciales y simplificar
+                        # Ejemplo: "Bioquimico: Castillo Romina MP:0528 - Tec. Qca.: Schanz Carolina MP:100"
+                        # Convertir a: "Bioq. R. Castillo | Tec. C. Schanz"
+                        if 'Bioquimico:' in profesionales_text or 'Bioq.' in profesionales_text:
+                            # Simplificar formato
+                            profesionales_text = profesionales_text.replace('Bioquimico:', 'Bioq.').replace('Bioquímica:', 'Bioq.')
+                            profesionales_text = profesionales_text.replace('Tec. Qca.:', 'Tec.').replace('Tec. Qca:', 'Tec.')
+                            # Remover matrículas (MP:xxxx)
+                            profesionales_text = re.sub(r'\s*MP:\d+\s*', ' ', profesionales_text)
+                            # Formatear con pipes
+                            if '|' not in profesionales_text and '-' in profesionales_text:
+                                profesionales_text = profesionales_text.replace(' - ', ' | ')
+                            # Extraer iniciales si es posible (simplificado)
+                            partes = profesionales_text.split('|')
+                            partes_formateadas = []
+                            for parte in partes:
+                                parte = parte.strip()
+                                # Intentar extraer inicial del nombre
+                                palabras = parte.split()
+                                if len(palabras) >= 2:
+                                    # Tomar primera palabra (Bioq./Tec.) y última palabra (apellido)
+                                    if palabras[0] in ['Bioq.', 'Tec.']:
+                                        partes_formateadas.append(f"{palabras[0]} {palabras[-1]}")
+                                    else:
+                                        partes_formateadas.append(parte)
+                                else:
+                                    partes_formateadas.append(parte)
+                            profesionales_text = ' | '.join(partes_formateadas)
+                        self.set_xy(x_texto_lab, y_actual)
+                        self.cell(ancho_texto_lab, 3 * line_height, profesionales_text, align='L')
+                        y_actual += 3 * line_height + espacio_lineas
+                
+                    # Fila 4: Dirección - Arial, 8pt, Gris (formato limpio, sin teléfono)
+                    direccion_text = self.safe_text(self.perfil.get('direccion', ''))
+                    ciudad = self.safe_text(self.perfil.get('ciudad', ''))
+                    
+                    # Formatear dirección limpia: "Pellegrini 631/605, Trelew (CP 9100)"
+                    direccion_line = ""
+                    if direccion_text:
+                        # Limpiar dirección (remover duplicados, CP, etc.)
+                        direccion_limpia = direccion_text.split('-')[0].strip()  # Tomar solo hasta el primer guión
+                        # Remover espacios extra en la dirección
+                        direccion_limpia = direccion_limpia.replace('  ', ' ').replace('/ ', '/').strip()
+                        if ciudad:
+                            direccion_line = f"{direccion_limpia}, {ciudad}"
+                        else:
+                            direccion_line = direccion_limpia
+                        # Agregar CP si está en la dirección original
+                        if '(9100)' in direccion_text or 'Cp (9100)' in direccion_text or 'CP (9100)' in direccion_text:
+                            direccion_line = direccion_line.replace('Cp (9100)', '').replace('CP (9100)', '').replace('(9100)', '').strip()
+                            if ciudad:
+                                direccion_line = f"{direccion_limpia}, {ciudad} (CP 9100)"
+                            else:
+                                direccion_line = f"{direccion_limpia} (CP 9100)"
+                    
+                    if direccion_line:
+                        self.set_xy(x_texto_lab, y_actual)
+                        self.cell(ancho_texto_lab, 3 * line_height, direccion_line, align='L')
+                        y_actual += 3 * line_height + espacio_lineas
+                
+                    # Fila 5: Teléfonos - Arial, 8pt, Gris (línea separada)
+                    telefono = self.perfil.get('telefono', '')
+                    if telefono:
+                        # Formatear teléfono limpio: "(0280) 423-8264 / 15-4627531"
+                        telefono_limpio = telefono.replace('/', ' / ').replace('  ', ' ').strip()
+                        # Formatear con paréntesis y guiones
+                        if '0280' in telefono_limpio:
+                            partes_tel = telefono_limpio.split('/')
+                            tel_formateado = []
+                            for parte in partes_tel:
+                                parte = parte.strip()
+                                if '0280' in parte:
+                                    # Formatear: (0280) 423-8264
+                                    parte = parte.replace('0280', '(0280)').replace('--', '-').replace(' ', '')
+                                    # Agregar guión después del código de área si no lo tiene
+                                    if ') ' not in parte and ')' in parte:
+                                        parte = parte.replace(')', ') ')
+                                else:
+                                    # Para números sin código de área (ej: 15-4627531)
+                                    parte = parte.replace(' ', '-')
+                                tel_formateado.append(parte)
+                            telefono_limpio = ' / '.join(tel_formateado)
+                        
+                        telefono_line = f"Tel: {telefono_limpio}"
+                        self.set_xy(x_texto_lab, y_actual)
+                        self.cell(ancho_texto_lab, 3 * line_height, telefono_line, align='L')
+                        y_actual += 3 * line_height
+                
+                    altura_izquierda = max(y_actual - y_inicio, logo_lab_height)
+                
+                # ========== CAJA DERECHA: ASOCIACIÓN BIOQUÍMICA (40% del ancho) ==========
+                # Alineación: Todo a la DERECHA
+                    y_asoc = y_start  # Mismo Y que caja izquierda
+                
+                # Logo ABNECh (máximo 40px = 11mm) a la derecha del texto
+                    logo_asoc_width = logo_asoc_max_height
+                    logo_asoc_height = 0
+                    x_logo_asoc = 0
+                    logo_asoc_path = os.path.join(LOGO_FOLDER, ASOCIACION_BIOQUIMICA['logo_path'])
+                    if os.path.exists(logo_asoc_path):
                         try:
-                            # Logo pequeño: máximo 25mm de ancho
-                            logo_width_mm = 25
                             try:
                                 from PIL import Image
-                                img = Image.open(logo_full_path)
+                                img = Image.open(logo_asoc_path)
                                 img_width, img_height = img.size
-                                # Mantener proporción
-                                logo_height_mm = (img_height / img_width) * logo_width_mm
-                                # Limitar altura máxima
-                                if logo_height_mm > 25:
-                                    logo_height_mm = 25
-                                    logo_width_mm = (img_width / img_height) * 25
+                                logo_height_mm = (img_height / img_width) * logo_asoc_max_height
+                                if logo_height_mm > logo_asoc_max_height:
+                                    logo_height_mm = logo_asoc_max_height
+                                    logo_width_mm = (img_width / img_height) * logo_asoc_max_height
+                                else:
+                                    logo_width_mm = logo_asoc_max_height
+                                logo_asoc_width = logo_width_mm
                             except:
-                                logo_height_mm = 25
+                                logo_asoc_width = logo_asoc_max_height
+                                logo_height_mm = logo_asoc_max_height
                             
-                            # Insertar logo pequeño en esquina superior izquierda
-                            self.image(logo_full_path, x=x_logo, y=y_start, w=logo_width_mm, h=logo_height_mm)
+                            # Logo alineado a la derecha de la caja
+                            x_logo_asoc = x_derecha + ancho_derecha - logo_asoc_width
+                            self.image(logo_asoc_path, x=x_logo_asoc, y=y_asoc, w=logo_asoc_width, h=logo_height_mm)
+                            logo_asoc_height = logo_height_mm
                         except Exception as e:
-                            logger.warning(f"No se pudo insertar logo: {e}")
+                            logger.warning(f"No se pudo insertar logo de Asociación Bioquímica: {e}")
                 
-                # Bloque de texto institucional CENTRADO
-                self.set_y(y_start + 2)
-                self.set_x(0)
+                # Texto a la izquierda del logo, alineado a la derecha - CENTRADO VERTICALMENTE
+                    if logo_asoc_height > 0:
+                        ancho_texto_asoc = x_logo_asoc - margen_logo_texto - x_derecha
+                    else:
+                        ancho_texto_asoc = ancho_derecha
+                    # Validar que el ancho sea positivo
+                    if ancho_texto_asoc <= 0:
+                        ancho_texto_asoc = ancho_derecha
+                    x_texto_asoc = x_derecha
                 
-                # Título del laboratorio - CENTRADO
-                self.set_font('Helvetica', 'B', 18)
-                nombre_lab = self.safe_text(self.perfil.get('nombre_lab', 'Laboratorio'))
-                try:
-                    self.cell(0, 10, nombre_lab, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
-                except Exception as e:
-                    logger.error(f"Error al escribir nombre_lab: {nombre_lab}, error: {e}")
-                    self.cell(0, 10, 'Laboratorio', new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
+                # Calcular altura total del texto para centrarlo verticalmente con el logo
+                # Ajustar para que tenga la misma altura que el bloque izquierdo (6 líneas ahora)
+                # Fila 1: Título parte 1 (10pt) - REDUCIDO y partido en dos
+                # Fila 2: Título parte 2 (10pt)
+                # Fila 3: Matrícula (8pt)
+                # Fila 4: Dirección parte 1 (8pt)
+                # Fila 5: Dirección parte 2 (8pt)
+                # Fila 6: Teléfono (8pt)
+                    altura_total_texto_asoc = (3.5 * line_height) + espacio_lineas + (3.5 * line_height) + espacio_lineas + (3 * line_height) + espacio_lineas + (3 * line_height) + espacio_lineas + (3 * line_height) + espacio_lineas + (3 * line_height)
                 
-                # Subtítulo - CENTRADO
-                self.set_font('Helvetica', '', 13)
-                subtitulo = self.safe_text(self.perfil.get('subtitulo', 'Analisis Clinicos'))
-                self.cell(0, 7, subtitulo, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
-                self.ln(2)
+                # Centrar verticalmente con el logo
+                # Validar que el cálculo no dé valores negativos
+                    if logo_asoc_height > 0:
+                        offset_vertical_asoc = (logo_asoc_height - altura_total_texto_asoc) / 2
+                        y_inicio_asoc = max(y_asoc, y_asoc + offset_vertical_asoc)  # Asegurar que no sea negativo
+                    else:
+                        y_inicio_asoc = y_asoc
                 
-                # Profesionales - CENTRADO
-                self.set_font('Helvetica', '', 10)
-                profesionales_text = self.safe_text(self.perfil.get('profesionales', ''))
-                if profesionales_text:
-                    try:
-                        self.cell(0, 6, profesionales_text, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
-                    except Exception as e:
-                        logger.error(f"Error al escribir profesionales: {profesionales_text[:50]}, error: {e}")
-                        profesionales_text = profesionales_text.replace('–', '-').replace('—', '-')
-                        profesionales_text = profesionales_text.encode('ascii', 'ignore').decode('ascii')
-                        self.cell(0, 6, profesionales_text, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
+                    y_actual_asoc = y_inicio_asoc
                 
-                # Dirección - CENTRADO
-                direccion_text = self.safe_text(self.perfil.get('direccion', ''))
-                if direccion_text:
-                    try:
-                        self.cell(0, 6, direccion_text, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
-                    except Exception as e:
-                        logger.error(f"Error al escribir direccion: {direccion_text[:50]}, error: {e}")
-                        direccion_text = direccion_text.replace('–', '-').replace('—', '-')
-                        direccion_text = direccion_text.encode('ascii', 'ignore').decode('ascii')
-                        self.cell(0, 6, direccion_text, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
+                # Fila 1: "ASOC. BIOQUÍMICA" - Arial, Negrita, 10pt (partido en dos líneas)
+                    self.set_font('Helvetica', 'B', 10)  # REDUCIDO a 10pt
+                # Partir el título siempre en: "ASOC. BIOQUÍMICA" y "DEL NE DEL CHUBUT"
+                    titulo_parte1 = "ASOC. BIOQUÍMICA"
+                    titulo_parte2 = "DEL NE DEL CHUBUT"
                 
-                # Ciudad y teléfono - CENTRADO
-                ciudad = self.safe_text(self.perfil.get('ciudad', ''))
-                telefono = self.perfil.get('telefono', '')
-                if ciudad or telefono:
-                    info_line = ciudad
-                    if telefono:
-                        info_line += f" - Tel: {telefono}"
-                    self.cell(0, 6, self.safe_text(info_line), new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
+                    self.set_xy(x_texto_asoc, y_actual_asoc)
+                    self.cell(ancho_texto_asoc, 3.5 * line_height, titulo_parte1, align='R')
+                    y_actual_asoc += 3.5 * line_height + espacio_lineas
                 
-                # Línea separadora
-                self.ln(3)
-                self.line(10, self.get_y(), 200, self.get_y())
-                self.ln(3)
+                # Fila 2: "DEL NE DEL CHUBUT" - Arial, Negrita, 10pt
+                    self.set_xy(x_texto_asoc, y_actual_asoc)
+                    self.cell(ancho_texto_asoc, 3.5 * line_height, titulo_parte2, align='R')
+                    y_actual_asoc += 3.5 * line_height + espacio_lineas
                 
-                # Fecha y ubicación - alineada a la derecha
-                meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
-                         'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
-                fecha_str = f"{self.fecha_presupuesto.day} de {meses[self.fecha_presupuesto.month - 1]} {self.fecha_presupuesto.year}"
-                self.cell(0, 6, f"{fecha_str}, {ciudad}", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='R')
+                # Fila 3: Matrícula / Ente Regulador - Arial, 8pt
+                    self.set_font('Helvetica', '', 8)
+                    matricula_texto = "Ente Regulador"  # Texto genérico, puede personalizarse
+                    self.set_xy(x_texto_asoc, y_actual_asoc)
+                    self.cell(ancho_texto_asoc, 3 * line_height, matricula_texto, align='R')
+                    y_actual_asoc += 3 * line_height + espacio_lineas
                 
-                self.ln(5)  # Espacio antes del cuerpo
+                # Fila 4: Dirección parte 1 - "Paraguay 37" - Arial, 8pt
+                    if ASOCIACION_BIOQUIMICA.get('direccion'):
+                        direccion_asoc = self.safe_text(ASOCIACION_BIOQUIMICA['direccion'])
+                        # Separar dirección: "Paraguay 37" en una línea
+                        if ',' in direccion_asoc:
+                            partes = direccion_asoc.split(',')
+                            direccion_parte1 = partes[0].strip()  # "Paraguay 37"
+                            self.set_xy(x_texto_asoc, y_actual_asoc)
+                            self.cell(ancho_texto_asoc, 3 * line_height, direccion_parte1, align='R')
+                            y_actual_asoc += 3 * line_height + espacio_lineas
+                            
+                            # Fila 5: Dirección parte 2 - "Trelew - Chubut" - Arial, 8pt
+                            if len(partes) > 1:
+                                direccion_parte2 = partes[-1].strip()  # "U9100 Trelew, Chubut" o similar
+                                # Limpiar y formatear: extraer Trelew y Chubut
+                                direccion_parte2 = direccion_parte2.replace('U9100', '').replace('U 9100', '').replace('U9100', '').strip()
+                                # Buscar Trelew y Chubut
+                                if 'Trelew' in direccion_parte2:
+                                    if 'Chubut' in direccion_parte2:
+                                        direccion_parte2 = "Trelew - Chubut"
+                                    else:
+                                        direccion_parte2 = "Trelew - Chubut"
+                                elif 'Chubut' in direccion_parte2:
+                                    direccion_parte2 = f"Trelew - {direccion_parte2}"
+                                else:
+                                    # Si no encuentra, usar el texto limpio
+                                    direccion_parte2 = direccion_parte2.replace(',', ' - ').strip()
+                                self.set_xy(x_texto_asoc, y_actual_asoc)
+                                self.cell(ancho_texto_asoc, 3 * line_height, direccion_parte2, align='R')
+                                y_actual_asoc += 3 * line_height + espacio_lineas
+                            else:
+                                # Si solo hay una parte, agregar "Trelew - Chubut"
+                                self.set_xy(x_texto_asoc, y_actual_asoc)
+                                self.cell(ancho_texto_asoc, 3 * line_height, "Trelew - Chubut", align='R')
+                                y_actual_asoc += 3 * line_height + espacio_lineas
+                        else:
+                            # Si no hay coma, intentar separar por espacios
+                            if 'Paraguay' in direccion_asoc:
+                                # Extraer "Paraguay 37"
+                                palabras = direccion_asoc.split()
+                                if len(palabras) >= 2:
+                                    direccion_parte1 = f"{palabras[0]} {palabras[1]}"
+                                    self.set_xy(x_texto_asoc, y_actual_asoc)
+                                    self.cell(ancho_texto_asoc, 3 * line_height, direccion_parte1, align='R')
+                                    y_actual_asoc += 3 * line_height + espacio_lineas
+                                    # Segunda línea
+                                    self.set_xy(x_texto_asoc, y_actual_asoc)
+                                    self.cell(ancho_texto_asoc, 3 * line_height, "Trelew - Chubut", align='R')
+                                    y_actual_asoc += 3 * line_height + espacio_lineas
+                                else:
+                                    self.set_xy(x_texto_asoc, y_actual_asoc)
+                                    self.cell(ancho_texto_asoc, 3 * line_height, direccion_asoc, align='R')
+                                    y_actual_asoc += 3 * line_height + espacio_lineas
+                                    self.set_xy(x_texto_asoc, y_actual_asoc)
+                                    self.cell(ancho_texto_asoc, 3 * line_height, "Trelew - Chubut", align='R')
+                                    y_actual_asoc += 3 * line_height + espacio_lineas
+                    else:
+                        # Si no hay dirección, agregar líneas para mantener estructura
+                        self.set_xy(x_texto_asoc, y_actual_asoc)
+                        self.cell(ancho_texto_asoc, 3 * line_height, "Paraguay 37", align='R')
+                        y_actual_asoc += 3 * line_height + espacio_lineas
+                        self.set_xy(x_texto_asoc, y_actual_asoc)
+                        self.cell(ancho_texto_asoc, 3 * line_height, "Trelew - Chubut", align='R')
+                        y_actual_asoc += 3 * line_height + espacio_lineas
+                    
+                    # Fila 6: Teléfono - Arial, 8pt
+                    if ASOCIACION_BIOQUIMICA.get('telefono'):
+                        telefono_asoc = self.safe_text(ASOCIACION_BIOQUIMICA['telefono'])
+                        # Formatear: "Tel: 0280-4420440"
+                        telefono_formateado = telefono_asoc.replace(' ', '').replace('-', '-')
+                        if '0280' in telefono_formateado and '-' not in telefono_formateado:
+                            # Formatear: 02804420440 -> 0280-4420440
+                            if len(telefono_formateado) == 11:
+                                telefono_formateado = f"{telefono_formateado[:4]}-{telefono_formateado[4:]}"
+                        telefono_line = f"Tel: {telefono_formateado}"
+                        self.set_xy(x_texto_asoc, y_actual_asoc)
+                        self.cell(ancho_texto_asoc, 3 * line_height, telefono_line, align='R')
+                        y_actual_asoc += 3 * line_height
+                
+                    altura_derecha = max(y_actual_asoc - y_inicio_asoc, logo_asoc_height)
+                
+                # Altura máxima del header
+                    altura_maxima = max(altura_izquierda, altura_derecha)
+                
+                # ========== LÍNEA SEPARADORA ==========
+                # Validar altura máxima para evitar valores problemáticos
+                    altura_maxima = min(altura_maxima, 50)  # Limitar altura máxima a 50mm
+                    y_linea = y_start + altura_maxima + 3
+                # Validar que y_linea esté dentro de los límites de la página
+                    if y_linea > self.h - 20:
+                        y_linea = self.h - 20
+                
+                    self.set_line_width(0.5)
+                    self.line(10, y_linea, 200, y_linea)
+                    self.set_line_width(0.2)
+                    
+                    # Guardar posición Y de la línea separadora para usar en el cuerpo
+                    self.y_linea_separadora = y_linea
+                
+                # NO dibujar la fecha aquí - se moverá al cuerpo del PDF
+                # NO usar set_y() aquí - puede causar recursión infinita
+                # FPDF manejará automáticamente la posición Y después del header
+                finally:
+                    self._header_rendering = False
+            
         
         # Crear PDF con header automático
         pdf = PDFConHeader(perfil, fecha_presupuesto, safe_text)
         pdf.add_page()  # El header se dibujará automáticamente
         
+        # Fecha - debajo de la línea separadora (solo en la primera página, no parte del header)
+        # Usar la posición Y exacta de la línea separadora calculada en el header
+        if pdf.y_linea_separadora is not None:
+            meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+                     'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+            fecha_str = f"{fecha_presupuesto.day} de {meses[fecha_presupuesto.month - 1]} {fecha_presupuesto.year}"
+            ciudad = safe_text(perfil.get('ciudad', ''))
+            pdf.set_font('Helvetica', '', 10)
+            pdf.set_xy(0, pdf.y_linea_separadora + 2)
+            pdf.cell(0, 4, f"{fecha_str}, {ciudad}", align='R')
+            # Establecer posición Y después de la fecha
+            pdf.set_y(pdf.y_linea_separadora + 6)
+        else:
+            # Fallback si no se calculó la línea (no debería pasar)
+            pdf.set_y(26)
+        
+        # Espacio adicional para separar claramente el cuerpo del header
+        pdf.ln(8)
+        
         # CUERPO (solo en la primera página)
         # Datos del cliente
-        pdf.set_font('Helvetica', 'B', 12)
         nombre_cliente = safe_text(nombre_paciente if nombre_paciente else 'Cliente')
+        pdf.set_font('Helvetica', 'B', 12)
         pdf.cell(0, 8, f"SRES: {nombre_cliente}", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
         pdf.ln(2)
         # Obra Social
@@ -1657,64 +1981,129 @@ def descargar_pdf():
         pdf.cell(w_valor, 9, total_str, border=1, align='R', fill=True, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.set_fill_color(255, 255, 255)  # Restaurar color blanco
         
-        pdf.ln(12)  # Espacio antes del pie de página
+        pdf.ln(12)  # Espacio después de la tabla
         
-        # PIE DE PÁGINA - diseño mejorado
+        # PIE DE PÁGINA - Información bancaria y Firma como bloque indivisible
         info_bancaria = perfil.get('info_bancaria', '')
-        if info_bancaria:
-            pdf.set_font('Helvetica', '', 10)
-            # Dividir en líneas
-            for line in info_bancaria.split('\n'):
-                if line.strip():
-                    pdf.cell(0, 6, safe_text(line.strip()), new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
-            pdf.ln(8)
-        
-        # Firma - alineada a la derecha
         firma_texto = safe_text(perfil.get('firma_texto', ''))
         firma_path = perfil.get('firma_path', '')
         
+        # Calcular altura total del bloque (info bancaria + firma)
+        altura_info_bancaria = 0
+        if info_bancaria:
+            lineas_info = [line for line in info_bancaria.split('\n') if line.strip()]
+            altura_info_bancaria = len(lineas_info) * 6  # 6mm por línea
+        
+        # Calcular altura de la firma (incluyendo espacio para firma manual)
+        altura_firma = 0
+        espacio_firma_manual = 15  # Espacio para firma manual con tinta
+        if firma_path:
+            try:
+                firma_full_path = os.path.join(LOGO_FOLDER, firma_path)
+                if os.path.exists(firma_full_path):
+                    try:
+                        from PIL import Image
+                        img = Image.open(firma_full_path)
+                        img_width, img_height = img.size
+                        firma_width_mm = 40
+                        firma_height_mm = (img_height / img_width) * firma_width_mm
+                        if firma_height_mm > 20:
+                            firma_height_mm = 20
+                        altura_firma = firma_height_mm + espacio_firma_manual + 1 + 3  # imagen + espacio firma manual + línea + espacio
+                        if firma_texto:
+                            altura_firma += 6  # texto adicional
+                    except:
+                        altura_firma = 15 + espacio_firma_manual + 3  # altura por defecto + espacio firma manual
+                        if firma_texto:
+                            altura_firma += 6
+            except:
+                pass
+        elif firma_texto:
+            altura_firma = espacio_firma_manual + 5 + 6  # espacio firma manual + línea + texto
+        
+        # Altura total del bloque
+        altura_bloque = max(altura_info_bancaria, altura_firma) + 10  # +10mm de margen
+        
+        # Verificar si hay espacio suficiente en la página actual
+        espacio_disponible = pdf.h - pdf.get_y() - pdf.b_margin
+        if espacio_disponible < altura_bloque:
+            # No hay espacio suficiente, crear nueva página
+            pdf.add_page()
+            # Después de crear nueva página, posicionar debajo del header
+            # El header tiene aproximadamente 26mm de altura (línea separadora)
+            # Usar la posición Y de la línea separadora si está disponible, sino usar aproximación
+            if pdf.y_linea_separadora is not None:
+                altura_header_completo = pdf.y_linea_separadora + 2  # Línea + pequeño margen
+            else:
+                altura_header_completo = 26  # Aproximación
+            # Aumentar margen para evitar que se superponga con el header
+            pdf.set_y(altura_header_completo + 20)  # 20mm de margen después del header para evitar superposición
+        
+        # Guardar posición Y inicial del bloque
+        y_bloque_inicio = pdf.get_y()
+        
+        # Dibujar información bancaria a la izquierda
+        if info_bancaria:
+            pdf.set_font('Helvetica', '', 10)
+            x_info = pdf.l_margin
+            y_info = y_bloque_inicio
+            pdf.set_xy(x_info, y_info)
+            for line in info_bancaria.split('\n'):
+                if line.strip():
+                    pdf.cell(0, 6, safe_text(line.strip()), new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
+        
+        # Dibujar firma a la derecha (mismo Y inicial que info bancaria)
         if firma_texto or firma_path:
             pdf.set_font('Helvetica', '', 10)
             margen_derecho = pdf.w - pdf.r_margin
-            y_pos_inicial = pdf.get_y()
+            y_firma_inicio = y_bloque_inicio
             
             # Si hay imagen de firma, mostrarla primero
             if firma_path:
                 firma_full_path = os.path.join(LOGO_FOLDER, firma_path)
                 if os.path.exists(firma_full_path):
                     try:
-                        # Tamaño máximo para la imagen de firma (ancho máximo 40mm)
-                        firma_width_mm = 40
+                        # Tamaño para la imagen de firma (más pequeño y proporcional)
+                        # Ancho máximo 50mm para que se vea mejor
+                        firma_width_mm = 50
                         try:
                             from PIL import Image
                             img = Image.open(firma_full_path)
                             img_width, img_height = img.size
                             # Mantener proporción
                             firma_height_mm = (img_height / img_width) * firma_width_mm
-                            # Limitar altura máxima
-                            if firma_height_mm > 20:
-                                firma_height_mm = 20
-                                firma_width_mm = (img_width / img_height) * 20
+                            # Limitar altura máxima a 25mm
+                            if firma_height_mm > 25:
+                                firma_height_mm = 25
+                                firma_width_mm = (img_width / img_height) * 25
+                            # Asegurar un tamaño mínimo razonable
+                            if firma_height_mm < 10:
+                                firma_height_mm = 10
+                                firma_width_mm = (img_width / img_height) * 10
                         except:
-                            firma_height_mm = 15
+                            firma_width_mm = 50
+                            firma_height_mm = 20
                         
                         # Calcular posición X para alinear a la derecha
                         x_firma = margen_derecho - firma_width_mm
                         
-                        # Insertar imagen de firma
-                        pdf.image(firma_full_path, x=x_firma, y=y_pos_inicial, w=firma_width_mm, h=firma_height_mm)
+                        # PRIMERO calcular dónde va la línea de firma
+                        espacio_firma_manual = 15  # Espacio para firma manual
+                        y_pos_linea = y_firma_inicio + espacio_firma_manual
                         
-                        # Dibujar línea de firma justo debajo de la imagen
-                        y_pos_linea = y_pos_inicial + firma_height_mm + 1
+                        # LUEGO poner la imagen JUSTO ENCIMA de la línea
+                        y_imagen_firma = y_pos_linea - firma_height_mm - 2  # 2mm de espacio entre imagen y línea
+                        
+                        # Insertar imagen de firma ENCIMA de la línea
+                        pdf.image(firma_full_path, x=x_firma, y=y_imagen_firma, w=firma_width_mm, h=firma_height_mm, keep_aspect_ratio=True)
+                        
+                        # Dibujar la línea de firma
                         pdf.line(x_firma, y_pos_linea, margen_derecho, y_pos_linea)
                         
                         # Si hay texto de firma, mostrarlo debajo de la línea
                         if firma_texto:
-                            pdf.set_y(y_pos_linea + 3)
+                            pdf.set_xy(0, y_pos_linea + 3)
                             pdf.cell(0, 6, firma_texto, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='R')
-                        else:
-                            # Si no hay texto, solo avanzar un poco el cursor
-                            pdf.set_y(y_pos_linea + 3)
                     except Exception as e:
                         logger.warning(f"No se pudo insertar imagen de firma: {e}")
                         # Si falla la imagen, continuar con el texto normal
@@ -1722,24 +2111,30 @@ def descargar_pdf():
                             ancho_texto = pdf.get_string_width(firma_texto)
                             fin_linea = margen_derecho
                             inicio_linea = fin_linea - ancho_texto
-                            pdf.line(inicio_linea, y_pos_inicial, fin_linea, y_pos_inicial)
-                            pdf.ln(5)
+                            # Espacio para firma manual
+                            espacio_firma_manual = 15
+                            pdf.line(inicio_linea, y_firma_inicio + espacio_firma_manual, fin_linea, y_firma_inicio + espacio_firma_manual)
+                            pdf.set_xy(0, y_firma_inicio + espacio_firma_manual + 5)
                             pdf.cell(0, 6, firma_texto, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='R')
                 elif firma_texto:
                     # Si la imagen no existe pero hay texto, mostrar solo el texto
                     ancho_texto = pdf.get_string_width(firma_texto)
                     fin_linea = margen_derecho
                     inicio_linea = fin_linea - ancho_texto
-                    pdf.line(inicio_linea, y_pos_inicial, fin_linea, y_pos_inicial)
-                    pdf.ln(5)
+                    # Espacio para firma manual
+                    espacio_firma_manual = 15
+                    pdf.line(inicio_linea, y_firma_inicio + espacio_firma_manual, fin_linea, y_firma_inicio + espacio_firma_manual)
+                    pdf.set_xy(0, y_firma_inicio + espacio_firma_manual + 5)
                     pdf.cell(0, 6, firma_texto, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='R')
             elif firma_texto:
                 # Solo texto de firma, sin imagen
                 ancho_texto = pdf.get_string_width(firma_texto)
                 fin_linea = margen_derecho
                 inicio_linea = fin_linea - ancho_texto
-                pdf.line(inicio_linea, y_pos_inicial, fin_linea, y_pos_inicial)
-                pdf.ln(5)
+                # Espacio para firma manual
+                espacio_firma_manual = 15
+                pdf.line(inicio_linea, y_firma_inicio + espacio_firma_manual, fin_linea, y_firma_inicio + espacio_firma_manual)
+                pdf.set_xy(0, y_firma_inicio + espacio_firma_manual + 5)
                 pdf.cell(0, 6, firma_texto, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='R')
         
         # Generar PDF en memoria
