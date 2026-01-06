@@ -566,11 +566,11 @@ def preview_precios_google_sheet():
                 # Si aún falla, verificar errores HTTP específicos
                 if df is None:
                     if '404' in error_str or 'Not Found' in error_str:
-                        return False, f"❌ Error 404: El archivo no se encontró en la URL. Por favor, verifica que la URL de OneDrive/Google Sheets sea correcta y que el archivo esté compartido públicamente. URL actual: {GOOGLE_SHEET_URL[:80]}...", {}, 0
+                        return False, f"Error 404: El archivo no se encontró en la URL. Por favor, verifica que la URL de OneDrive/Google Sheets sea correcta y que el archivo esté compartido públicamente. URL actual: {GOOGLE_SHEET_URL[:80]}...", {}, 0
                     elif '403' in error_str or 'Forbidden' in error_str:
-                        return False, f"❌ Error 403: Acceso denegado. El archivo puede no estar compartido públicamente. Verifica los permisos del archivo en OneDrive/Google Sheets.", {}, 0
+                        return False, f"Error 403: Acceso denegado. El archivo puede no estar compartido públicamente. Verifica los permisos del archivo en OneDrive/Google Sheets.", {}, 0
                     elif '401' in error_str or 'Unauthorized' in error_str:
-                        return False, f"❌ Error 401: No autorizado. El archivo puede requerir autenticación. Verifica que el archivo esté compartido públicamente.", {}, 0
+                        return False, f"Error 401: No autorizado. El archivo puede requerir autenticación. Verifica que el archivo esté compartido públicamente.", {}, 0
                     else:
                         raise e
         
@@ -730,7 +730,7 @@ def preview_precios_google_sheet():
         total_obras_vigentes = len(obras_dict)
         total_obras_cortadas = len(obras_cortadas_dict)
         if count == 0:
-            mensaje = f"✅ No hay cambios. Todas las obras ({total_obras_vigentes}) ya tienen los precios actualizados."
+            mensaje = f"No hay cambios. Todas las obras ({total_obras_vigentes}) ya tienen los precios actualizados."
         else:
             cambios_precio = sum(1 for c in cambios_dict.values() if c['cambio'] in ['nuevo', 'modificado'])
             cambios_cortadas = sum(1 for c in cambios_dict.values() if c['cambio'] == 'cortada')
@@ -744,11 +744,11 @@ def preview_precios_google_sheet():
         error_str = str(e)
         # Detectar errores HTTP específicos en el catch general
         if '404' in error_str or 'Not Found' in error_str:
-            error_msg = f"❌ Error 404: El archivo no se encontró en la URL. Por favor, verifica que la URL de OneDrive/Google Sheets sea correcta y que el archivo esté compartido públicamente. URL actual: {GOOGLE_SHEET_URL[:80]}..."
+            error_msg = f"Error 404: El archivo no se encontró en la URL. Por favor, verifica que la URL de OneDrive/Google Sheets sea correcta y que el archivo esté compartido públicamente. URL actual: {GOOGLE_SHEET_URL[:80]}..."
         elif '403' in error_str or 'Forbidden' in error_str:
-            error_msg = f"❌ Error 403: Acceso denegado. El archivo puede no estar compartido públicamente. Verifica los permisos del archivo en OneDrive/Google Sheets."
+            error_msg = f"Error 403: Acceso denegado. El archivo puede no estar compartido públicamente. Verifica los permisos del archivo en OneDrive/Google Sheets."
         elif '401' in error_str or 'Unauthorized' in error_str:
-            error_msg = f"❌ Error 401: No autorizado. El archivo puede requerir autenticación. Verifica que el archivo esté compartido públicamente."
+            error_msg = f"Error 401: No autorizado. El archivo puede requerir autenticación. Verifica que el archivo esté compartido públicamente."
         else:
             error_msg = f"Error al obtener preview: {error_str}"
         logger.error(error_msg, exc_info=True)
@@ -966,11 +966,11 @@ def sync_precios_google_sheet():
             # Si aún falla, verificar errores HTTP específicos
             if df is None:
                 if '404' in error_str or 'Not Found' in error_str:
-                    return False, f"❌ Error 404: El archivo no se encontró en la URL. Por favor, verifica que la URL de OneDrive/Google Sheets sea correcta y que el archivo esté compartido públicamente. URL actual: {GOOGLE_SHEET_URL[:80]}...", 0
+                    return False, f"Error 404: El archivo no se encontró en la URL. Por favor, verifica que la URL de OneDrive/Google Sheets sea correcta y que el archivo esté compartido públicamente. URL actual: {GOOGLE_SHEET_URL[:80]}...", 0
                 elif '403' in error_str or 'Forbidden' in error_str:
-                    return False, f"❌ Error 403: Acceso denegado. El archivo puede no estar compartido públicamente. Verifica los permisos del archivo en OneDrive/Google Sheets.", 0
+                    return False, f"Error 403: Acceso denegado. El archivo puede no estar compartido públicamente. Verifica los permisos del archivo en OneDrive/Google Sheets.", 0
                 elif '401' in error_str or 'Unauthorized' in error_str:
-                    return False, f"❌ Error 401: No autorizado. El archivo puede requerir autenticación. Verifica que el archivo esté compartido públicamente.", 0
+                    return False, f"Error 401: No autorizado. El archivo puede requerir autenticación. Verifica que el archivo esté compartido públicamente.", 0
                 else:
                     raise e
         
@@ -1102,14 +1102,14 @@ def sync_precios_google_sheet():
             total_count = len(obras_estado_dict)
             cortadas_count = estado_data['obras_cortadas']
             logger.info(f"Sincronización completada: {count} obras activas, {total_count} total (incluyendo {cortadas_count} cortadas)")
-            return True, f"✅ Sincronización exitosa: {count} obras activas importadas ({total_count} total, {cortadas_count} cortadas).", count
+            return True, f"Sincronización exitosa: {count} obras activas importadas ({total_count} total, {cortadas_count} cortadas).", count
         else:
-            return False, "❌ No se encontraron obras sociales válidas en el archivo.", 0
+            return False, "No se encontraron obras sociales válidas en el archivo.", 0
             
     except pd.errors.EmptyDataError:
         error_msg = "El archivo está vacío o no se pudo leer."
         logger.error(error_msg)
-        return False, f"❌ {error_msg}", 0
+        return False, f"{error_msg}", 0
     except Exception as e:
         error_str = str(e)
         # Detectar errores HTTP específicos
@@ -1122,7 +1122,7 @@ def sync_precios_google_sheet():
         else:
             error_msg = f"Error al sincronizar precios: {error_str}"
         logger.error(error_msg, exc_info=True)
-        return False, f"❌ {error_msg}", 0
+        return False, f"{error_msg}", 0
 
 def is_gaito_admin():
     """Verifica si el usuario actual es Gaito (el único admin)"""

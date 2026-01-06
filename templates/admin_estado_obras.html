@@ -19,9 +19,9 @@
             max-width: 1200px;
             margin: 0 auto;
             background: white;
-            padding: 35px;
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
             border: 1px solid #e2e8f0;
         }
 
@@ -29,17 +29,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 32px;
+            margin-bottom: 36px;
             padding-bottom: 20px;
             border-bottom: 1px solid #e2e8f0;
         }
 
         .header h1 {
             color: #1e293b;
-            font-size: 1.9em;
+            font-size: 1.95em;
             margin: 0;
-            font-weight: 500;
-            letter-spacing: -0.3px;
+            font-weight: 600;
+            letter-spacing: -0.4px;
         }
 
         .nav-links {
@@ -71,25 +71,26 @@
 
         .stat-card {
             background: #f8fafc;
-            padding: 20px;
-            border-radius: 4px;
+            padding: 24px;
+            border-radius: 6px;
             border: 1px solid #e2e8f0;
         }
 
         .stat-card h3 {
-            margin: 0 0 8px 0;
-            font-size: 0.9em;
+            margin: 0 0 10px 0;
+            font-size: 0.875em;
             color: #64748b;
-            font-weight: 500;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .stat-card .value {
-            font-size: 2em;
-            font-weight: 600;
+            font-size: 2.1em;
+            font-weight: 700;
             color: #1e293b;
             margin: 0;
+            line-height: 1.2;
         }
 
         .stat-card.vigentes .value {
@@ -103,14 +104,16 @@
         .info-box {
             background: #f0f9ff;
             border: 1px solid #bae6fd;
-            border-radius: 4px;
-            padding: 15px;
-            margin-bottom: 25px;
+            border-left: 3px solid #0ea5e9;
+            border-radius: 5px;
+            padding: 16px 18px;
+            margin-bottom: 28px;
             color: #0c4a6e;
         }
 
         .info-box strong {
             color: #0369a1;
+            font-weight: 600;
         }
 
         .filters {
@@ -135,16 +138,26 @@
 
         .filter-group select,
         .filter-group input {
-            padding: 8px 12px;
+            padding: 9px 14px;
             border: 1px solid #cbd5e1;
-            border-radius: 4px;
+            border-radius: 5px;
             font-size: 14px;
+            background: white;
+            transition: border-color 0.2s ease;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .table-container {
             overflow-x: auto;
             border: 1px solid #e2e8f0;
-            border-radius: 4px;
+            border-radius: 6px;
+            background: white;
         }
 
         table {
@@ -159,19 +172,23 @@
         }
 
         th {
-            padding: 14px 16px;
+            padding: 14px 18px;
             text-align: left;
             font-weight: 600;
             color: #1e293b;
-            font-size: 0.9em;
+            font-size: 0.875em;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         td {
-            padding: 12px 16px;
+            padding: 14px 18px;
             border-bottom: 1px solid #f1f5f9;
             color: #475569;
+        }
+
+        tbody tr {
+            transition: background-color 0.15s ease;
         }
 
         tbody tr:hover {
@@ -184,7 +201,7 @@
 
         .badge {
             display: inline-block;
-            padding: 4px 12px;
+            padding: 5px 13px;
             border-radius: 12px;
             font-size: 0.85em;
             font-weight: 500;
@@ -204,6 +221,7 @@
             font-weight: 600;
             color: #1e293b;
             font-family: 'Courier New', monospace;
+            font-size: 0.95em;
         }
 
         .no-data {
@@ -221,9 +239,9 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 Estado de Obras Sociales</h1>
+            <h1>Estado de Obras Sociales</h1>
             <div class="nav-links">
-                <a href="{{ url_for('admin_usuarios') }}">← Volver a Gestión</a>
+                <a href="{{ url_for('admin_usuarios') }}">Volver a Gestión</a>
                 <a href="{{ url_for('presupuestos') }}">Presupuestos</a>
             </div>
         </div>
@@ -287,9 +305,9 @@
                         </td>
                         <td>
                             {% if obra.estado == 'vigente' %}
-                                <span class="badge badge-vigente">✓ Vigente</span>
+                                <span class="badge badge-vigente">Vigente</span>
                             {% else %}
-                                <span class="badge badge-cortada">✗ Cortada</span>
+                                <span class="badge badge-cortada">Cortada</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -298,7 +316,7 @@
             </table>
             {% else %}
             <div class="no-data">
-                <p>📭 No hay datos de obras sociales disponibles.</p>
+                <p>No hay datos de obras sociales disponibles.</p>
                 <p style="font-size: 0.9em; color: #94a3b8;">Sincroniza los precios desde Google Sheet para ver el estado.</p>
             </div>
             {% endif %}
