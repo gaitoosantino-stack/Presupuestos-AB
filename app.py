@@ -1815,7 +1815,13 @@ def descargar_pdf():
                         telefono_line = f"Tel: {telefono_formateado}"
                         self.set_xy(x_texto_asoc, y_actual_asoc)
                         self.cell(ancho_texto_asoc, 3 * line_height, telefono_line, align='R')
-                        y_actual_asoc += 3 * line_height
+                        y_actual_asoc += 3 * line_height + espacio_lineas
+                    
+                    # Fila 7: E-mail - Arial, 8pt
+                    email_asoc = "E-mail: abnechtrelew@gmail.com"
+                    self.set_xy(x_texto_asoc, y_actual_asoc)
+                    self.cell(ancho_texto_asoc, 3 * line_height, email_asoc, align='R')
+                    y_actual_asoc += 3 * line_height
                 
                     altura_derecha = max(y_actual_asoc - y_inicio_asoc, logo_asoc_height)
                 
