@@ -1579,41 +1579,21 @@ def descargar_pdf():
                     self.cell(ancho_texto_lab, 3 * line_height, subtitulo, align='L')
                     y_actual += 3 * line_height + espacio_lineas
                 
-                    # Fila 3: Profesionales - Arial, 8pt, Gris (formato: Bioq. R. Castillo | Tec. C. Schanz)
+                    # Fila 3: Profesionales - Arial, 8pt, Gris (información completa en dos líneas)
                     self.set_font('Helvetica', '', 8)
                     profesionales_text = self.safe_text(self.perfil.get('profesionales', ''))
                     if profesionales_text:
-                        # Formatear: extraer iniciales y simplificar
+                        # Separar por " - " y mostrar cada profesional en una línea separada
                         # Ejemplo: "Bioquimico: Castillo Romina MP:0528 - Tec. Qca.: Schanz Carolina MP:100"
-                        # Convertir a: "Bioq. R. Castillo | Tec. C. Schanz"
-                        if 'Bioquimico:' in profesionales_text or 'Bioq.' in profesionales_text:
-                            # Simplificar formato
-                            profesionales_text = profesionales_text.replace('Bioquimico:', 'Bioq.').replace('Bioquímica:', 'Bioq.')
-                            profesionales_text = profesionales_text.replace('Tec. Qca.:', 'Tec.').replace('Tec. Qca:', 'Tec.')
-                            # Remover matrículas (MP:xxxx)
-                            profesionales_text = re.sub(r'\s*MP:\d+\s*', ' ', profesionales_text)
-                            # Formatear con pipes
-                            if '|' not in profesionales_text and '-' in profesionales_text:
-                                profesionales_text = profesionales_text.replace(' - ', ' | ')
-                            # Extraer iniciales si es posible (simplificado)
-                            partes = profesionales_text.split('|')
-                            partes_formateadas = []
-                            for parte in partes:
-                                parte = parte.strip()
-                                # Intentar extraer inicial del nombre
-                                palabras = parte.split()
-                                if len(palabras) >= 2:
-                                    # Tomar primera palabra (Bioq./Tec.) y última palabra (apellido)
-                                    if palabras[0] in ['Bioq.', 'Tec.']:
-                                        partes_formateadas.append(f"{palabras[0]} {palabras[-1]}")
-                                    else:
-                                        partes_formateadas.append(parte)
-                                else:
-                                    partes_formateadas.append(parte)
-                            profesionales_text = ' | '.join(partes_formateadas)
-                        self.set_xy(x_texto_lab, y_actual)
-                        self.cell(ancho_texto_lab, 3 * line_height, profesionales_text, align='L')
-                        y_actual += 3 * line_height + espacio_lineas
+                        # Resultado: Línea 1: "Bioquimico: Castillo Romina MP:0528"
+                        #           Línea 2: "Tec. Qca.: Schanz Carolina MP:100"
+                        partes_profesionales = profesionales_text.split(' - ')
+                        for parte in partes_profesionales:
+                            parte = parte.strip()
+                            if parte:
+                                self.set_xy(x_texto_lab, y_actual)
+                                self.cell(ancho_texto_lab, 3 * line_height, parte, align='L')
+                                y_actual += 3 * line_height + espacio_lineas
                 
                     # Fila 4: Dirección - Arial, 8pt, Gris (formato limpio, sin teléfono)
                     direccion_text = self.safe_text(self.perfil.get('direccion', ''))
