@@ -332,8 +332,9 @@ def presupuestos():
         estado_data = load_obras_estado()
         if estado_data and 'obras' in estado_data:
             for nombre_obra, info_obra in estado_data['obras'].items():
-                if info_obra.get('estado') == 'cortada':
-                    # Agregar obra cortada (con precio si existe, o None)
+                estado_obra = info_obra.get('estado')
+                if estado_obra in ['sin_convenio', 'suspendida']:
+                    # Agregar obra sin convenio/suspendida (con precio si existe, o None)
                     precio_cortada = info_obra.get('precio')
                     if precio_cortada:
                         # Convertir a formato numérico si es string
@@ -342,7 +343,7 @@ def presupuestos():
                         obras[nombre_obra] = str(precio_cortada)
                     else:
                         obras[nombre_obra] = None
-                    obras_estado[nombre_obra] = 'cortada'
+                    obras_estado[nombre_obra] = estado_obra
     except Exception as e:
         logger.error(f"Error al cargar obras cortadas: {e}")
     
@@ -617,8 +618,10 @@ def preview_precios_google_sheet():
             estado = 'vigente'
             if not pd.isna(vigente):
                 vigente_str = str(vigente).strip().lower()
-                if vigente_str in ['suspendida', 'suspendid', 'cortada', 'sin convenio']:
-                    estado = 'cortada'
+                if vigente_str in ['sin convenio', 'sinconvenio', 'cortada']:
+                    estado = 'sin_convenio'
+                elif vigente_str in ['suspendida', 'suspendid']:
+                    estado = 'suspendida'
             
             # Procesar precio (puede estar vacío para obras cortadas)
             precio_normalizado = None
@@ -626,11 +629,11 @@ def preview_precios_google_sheet():
                 precio_str = str(precio).strip()
                 precio_normalizado = normalizar_precio_argentino(precio_str)
             
-            # Guardar obra cortada (con o sin precio)
-            if estado == 'cortada':
+            # Guardar obra sin convenio/suspendida (con o sin precio)
+            if estado in ['sin_convenio', 'suspendida']:
                 obras_cortadas_dict[nombre] = {
                     'precio': precio_normalizado,
-                    'estado': 'cortada'
+                    'estado': estado
                 }
             
             # Solo guardar en obras_dict si está vigente Y tiene precio válido
@@ -660,8 +663,10 @@ def preview_precios_google_sheet():
             estado = 'vigente'
             if not pd.isna(vigente):
                 vigente_str = str(vigente).strip().lower()
-                if vigente_str in ['suspendida', 'suspendid', 'cortada', 'sin convenio']:
-                    estado = 'cortada'
+                if vigente_str in ['sin convenio', 'sinconvenio', 'cortada']:
+                    estado = 'sin_convenio'
+                elif vigente_str in ['suspendida', 'suspendid']:
+                    estado = 'suspendida'
             
             # Procesar precio (puede estar vacío para obras cortadas)
             precio_normalizado = None
@@ -669,11 +674,11 @@ def preview_precios_google_sheet():
                 precio_str = str(precio).strip()
                 precio_normalizado = normalizar_precio_argentino(precio_str)
             
-            # Guardar obra cortada (con o sin precio)
-            if estado == 'cortada':
+            # Guardar obra sin convenio/suspendida (con o sin precio)
+            if estado in ['sin_convenio', 'suspendida']:
                 obras_cortadas_dict[nombre] = {
                     'precio': precio_normalizado,
-                    'estado': 'cortada'
+                    'estado': estado
                 }
             
             # Solo guardar en obras_dict si está vigente Y tiene precio válido
@@ -705,60 +710,65 @@ def preview_precios_google_sheet():
                     'estado': 'vigente'
                 }
         
-        # Agregar obras cortadas SOLO si cambiaron de estado (de vigente a cortada)
-        for nombre, datos_cortada in obras_cortadas_dict.items():
+        # Agregar obras sin convenio/suspendidas SOLO si cambiaron de estado (de vigente a no vigente)
+        for nombre, datos_no_vigente in obras_cortadas_dict.items():
             # Verificar el estado actual de la obra
             obra_estado_actual = obras_estado_actual.get(nombre, {})
             estado_anterior = obra_estado_actual.get('estado', 'vigente')  # Si no existe, asumimos que estaba vigente
             
-            # Solo incluir si cambió de vigente a cortada (no si ya estaba cortada)
+            # Solo incluir si cambió de vigente a no vigente (no si ya estaba no vigente)
             if estado_anterior == 'vigente':
                 precio_actual = obras_actuales.get(nombre)
                 if precio_actual is None:
                     # Intentar obtener desde obras_estado.json
                     precio_actual = obra_estado_actual.get('precio')
                 
+                estado_nuevo = datos_no_vigente.get('estado', 'sin_convenio')
+                estado_texto = 'Sin Convenio' if estado_nuevo == 'sin_convenio' else 'Suspendida'
+                
                 cambios_dict[nombre] = {
-                    'precio_actual': precio_actual if precio_actual else 'Nueva obra cortada',
-                    'precio_nuevo': datos_cortada.get('precio') if datos_cortada.get('precio') else 'Cortada (sin precio)',
-                    'cambio': 'cortada',
-                    'estado': 'cortada'
+                    'precio_actual': precio_actual if precio_actual else f'Nueva obra {estado_texto.lower()}',
+                    'precio_nuevo': datos_no_vigente.get('precio') if datos_no_vigente.get('precio') else f'{estado_texto} (sin precio)',
+                    'cambio': estado_nuevo,
+                    'estado': estado_nuevo
                 }
         
-        # También detectar obras que están actualmente vigentes pero no están en el nuevo Excel (se cortaron)
+        # También detectar obras que están actualmente vigentes pero no están en el nuevo Excel (se cambiaron de estado)
         nombres_nuevos = set(obras_dict.keys()) | set(obras_cortadas_dict.keys())
         for nombre_actual, precio_actual in obras_actuales.items():
             if nombre_actual not in nombres_nuevos:
-                # Verificar si realmente estaba vigente (no cortada)
+                # Verificar si realmente estaba vigente (no si ya estaba no vigente)
                 obra_estado_actual = obras_estado_actual.get(nombre_actual, {})
                 estado_anterior = obra_estado_actual.get('estado', 'vigente')
                 
-                # Solo incluir si estaba vigente (no si ya estaba cortada)
+                # Solo incluir si estaba vigente (no si ya estaba no vigente)
                 if estado_anterior == 'vigente':
                     cambios_dict[nombre_actual] = {
                         'precio_actual': precio_actual,
-                        'precio_nuevo': 'Cortada (no está en el Excel)',
-                        'cambio': 'cortada',
-                        'estado': 'cortada'
+                        'precio_nuevo': 'Sin Convenio (no está en el Excel)',
+                        'cambio': 'sin_convenio',
+                        'estado': 'sin_convenio'
                     }
         
         count = len(cambios_dict)
         cambios_ordenados = dict(sorted(cambios_dict.items()))
         
         total_obras_vigentes = len(obras_dict)
-        total_obras_cortadas = len(obras_cortadas_dict)
-        # Obtener el total real de obras del estado actual (vigentes + cortadas)
+        total_obras_no_vigentes = len(obras_cortadas_dict)
+        # Obtener el total real de obras del estado actual (vigentes + no vigentes)
         total_obras_actual = estado_actual_data.get('total_obras', 0)
         if total_obras_actual == 0:
-            # Si no hay total en el estado, calcularlo sumando vigentes y cortadas actuales
-            total_obras_actual = len(obras_estado_actual) if obras_estado_actual else (total_obras_vigentes + total_obras_cortadas)
+            # Si no hay total en el estado, calcularlo sumando vigentes y no vigentes actuales
+            total_obras_actual = len(obras_estado_actual) if obras_estado_actual else (total_obras_vigentes + total_obras_no_vigentes)
         
         if count == 0:
             mensaje = f"No hay cambios. Todas las obras ({total_obras_actual}) ya tienen los precios actualizados."
         else:
             cambios_precio = sum(1 for c in cambios_dict.values() if c['cambio'] in ['nuevo', 'modificado'])
-            cambios_cortadas = sum(1 for c in cambios_dict.values() if c['cambio'] == 'cortada')
-            mensaje = f"Se encontraron {count} cambio(s): {cambios_precio} precio(s) modificado(s) y {cambios_cortadas} obra(s) cortada(s)."
+            cambios_sin_convenio = sum(1 for c in cambios_dict.values() if c['cambio'] == 'sin_convenio')
+            cambios_suspendidas = sum(1 for c in cambios_dict.values() if c['cambio'] == 'suspendida')
+            cambios_no_vigentes = cambios_sin_convenio + cambios_suspendidas
+            mensaje = f"Se encontraron {count} cambio(s): {cambios_precio} precio(s) modificado(s) y {cambios_no_vigentes} obra(s) no vigente(s) ({cambios_sin_convenio} sin convenio, {cambios_suspendidas} suspendidas)."
         
         return True, mensaje, cambios_ordenados, count
             
@@ -1029,8 +1039,10 @@ def sync_precios_google_sheet():
             estado = 'vigente'
             if not pd.isna(vigente):
                 vigente_str = str(vigente).strip().lower()
-                if vigente_str in ['suspendida', 'suspendid', 'cortada', 'sin convenio']:
-                    estado = 'cortada'
+                if vigente_str in ['sin convenio', 'sinconvenio', 'cortada']:
+                    estado = 'sin_convenio'
+                elif vigente_str in ['suspendida', 'suspendid']:
+                    estado = 'suspendida'
             
             # Procesar precio (puede estar vacío para obras cortadas)
             precio_normalizado = None
@@ -1073,8 +1085,10 @@ def sync_precios_google_sheet():
             estado = 'vigente'
             if not pd.isna(vigente):
                 vigente_str = str(vigente).strip().lower()
-                if vigente_str in ['suspendida', 'suspendid', 'cortada', 'sin convenio']:
-                    estado = 'cortada'
+                if vigente_str in ['sin convenio', 'sinconvenio', 'cortada']:
+                    estado = 'sin_convenio'
+                elif vigente_str in ['suspendida', 'suspendid']:
+                    estado = 'suspendida'
             
             # Procesar precio (puede estar vacío para obras cortadas)
             precio_normalizado = None
@@ -1111,11 +1125,14 @@ def sync_precios_google_sheet():
             obras_estado_ordenadas = dict(sorted(obras_estado_dict.items()))
             
             # Agregar metadata
+            obras_sin_convenio = sum(1 for o in obras_estado_ordenadas.values() if o['estado'] == 'sin_convenio')
+            obras_suspendidas = sum(1 for o in obras_estado_ordenadas.values() if o['estado'] == 'suspendida')
             estado_data = {
                 'fecha_actualizacion': datetime.now().isoformat(),
                 'total_obras': len(obras_estado_ordenadas),
                 'obras_vigentes': sum(1 for o in obras_estado_ordenadas.values() if o['estado'] == 'vigente'),
-                'obras_cortadas': sum(1 for o in obras_estado_ordenadas.values() if o['estado'] == 'cortada'),
+                'obras_sin_convenio': obras_sin_convenio,
+                'obras_suspendidas': obras_suspendidas,
                 'obras': obras_estado_ordenadas
             }
             
@@ -1124,9 +1141,11 @@ def sync_precios_google_sheet():
             
             count = len(obras_dict) if obras_dict else 0
             total_count = len(obras_estado_dict)
-            cortadas_count = estado_data['obras_cortadas']
-            logger.info(f"Sincronización completada: {count} obras activas, {total_count} total (incluyendo {cortadas_count} cortadas)")
-            return True, f"Sincronización exitosa: {count} obras activas importadas ({total_count} total, {cortadas_count} cortadas).", count
+            sin_convenio_count = estado_data['obras_sin_convenio']
+            suspendidas_count = estado_data['obras_suspendidas']
+            no_vigentes_count = sin_convenio_count + suspendidas_count
+            logger.info(f"Sincronización completada: {count} obras activas, {total_count} total (incluyendo {sin_convenio_count} sin convenio, {suspendidas_count} suspendidas)")
+            return True, f"Sincronización exitosa: {count} obras activas importadas ({total_count} total, {no_vigentes_count} no vigentes).", count
         else:
             return False, "No se encontraron obras sociales válidas en el archivo.", 0
             
@@ -1164,7 +1183,8 @@ def load_obras_estado():
                 'fecha_actualizacion': None,
                 'total_obras': 0,
                 'obras_vigentes': 0,
-                'obras_cortadas': 0,
+                'obras_sin_convenio': 0,
+                'obras_suspendidas': 0,
                 'obras': {}
             }
     except Exception as e:
@@ -1173,7 +1193,8 @@ def load_obras_estado():
             'fecha_actualizacion': None,
             'total_obras': 0,
             'obras_vigentes': 0,
-            'obras_cortadas': 0,
+            'obras_sin_convenio': 0,
+            'obras_suspendidas': 0,
             'obras': {}
         }
 

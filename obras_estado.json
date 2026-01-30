@@ -1,398 +1,399 @@
 {
-  "fecha_actualizacion": "2026-01-30T09:49:52.759046",
+  "fecha_actualizacion": "2026-01-30T10:33:17.585408",
   "total_obras": 78,
   "obras_vigentes": 64,
-  "obras_cortadas": 14,
+  "obras_sin_convenio": 9,
+  "obras_suspendidas": 5,
   "obras": {
     "ACA Salud - AVALIAN": {
       "precio": "1648,73",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.749157"
+      "ultima_actualizacion": "2026-01-30T10:33:17.580426"
     },
     "ART Berkley": {
       "precio": "2.645,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.757083"
+      "ultima_actualizacion": "2026-01-30T10:33:17.583614"
     },
     "ART Experta": {
       "precio": "1.707,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.755088"
+      "ultima_actualizacion": "2026-01-30T10:33:17.582417"
     },
     "ART Federacion Patronal": {
       "precio": "2.500,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.751100"
+      "ultima_actualizacion": "2026-01-30T10:33:17.580426"
     },
     "ART Galeno": {
       "precio": "1687,46",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.756085"
+      "ultima_actualizacion": "2026-01-30T10:33:17.582417"
     },
     "ART La Segunda": {
       "precio": "2.480,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.753094"
+      "ultima_actualizacion": "2026-01-30T10:33:17.581418"
     },
     "ART OMINT": {
       "precio": "1899,24",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.752553"
+      "ultima_actualizacion": "2026-01-30T10:33:17.580426"
     },
     "ART Prevencion Salud": {
       "precio": "1567,99",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.753094"
+      "ultima_actualizacion": "2026-01-30T10:33:17.580426"
     },
     "ART Provincia": {
       "precio": "1451,76",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.755088"
+      "ultima_actualizacion": "2026-01-30T10:33:17.582417"
     },
     "ART SANCOR Seguros": {
       "precio": "1536,59",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.753094"
+      "ultima_actualizacion": "2026-01-30T10:33:17.580426"
     },
     "Bancarios": {
       "precio": "2.395,00",
-      "estado": "cortada",
-      "ultima_actualizacion": "2026-01-30T09:49:52.750101"
+      "estado": "suspendida",
+      "ultima_actualizacion": "2026-01-30T10:33:17.580426"
     },
     "CLERO": {
       "precio": "2.500,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.748135"
+      "ultima_actualizacion": "2026-01-30T10:33:17.579426"
     },
     "Camioneros": {
       "precio": "2.200,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.744119"
+      "ultima_actualizacion": "2026-01-30T10:33:17.577690"
     },
     "DASU": {
       "precio": "1.934,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.737138"
+      "ultima_actualizacion": "2026-01-30T10:33:17.575204"
     },
     "DASUTeN": {
       "precio": "1988,48",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.737138"
+      "ultima_actualizacion": "2026-01-30T10:33:17.575438"
     },
     "Empresarios y Monotributistas": {
       "precio": "2.150,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.753094"
+      "ultima_actualizacion": "2026-01-30T10:33:17.580426"
     },
     "GALENO": {
       "precio": "1687,46",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.742124"
+      "ultima_actualizacion": "2026-01-30T10:33:17.577319"
     },
     "GEA S.A": {
       "precio": "2.320,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.757083"
+      "ultima_actualizacion": "2026-01-30T10:33:17.583961"
     },
     "GERDANNA Salud": {
       "precio": "0,00",
-      "estado": "cortada",
-      "ultima_actualizacion": "2026-01-30T09:49:52.756085"
+      "estado": "sin_convenio",
+      "ultima_actualizacion": "2026-01-30T10:33:17.583415"
     },
     "Generar Salud - Luz y Fuerza": {
       "precio": "1446,8",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.743122"
+      "ultima_actualizacion": "2026-01-30T10:33:17.577430"
     },
     "IOSFA": {
       "precio": "1253,28",
-      "estado": "cortada",
-      "ultima_actualizacion": "2026-01-30T09:49:52.741127"
+      "estado": "suspendida",
+      "ultima_actualizacion": "2026-01-30T10:33:17.576922"
     },
     "Jerarquicos Salud": {
       "precio": "1606,07",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.754091"
+      "ultima_actualizacion": "2026-01-30T10:33:17.581418"
     },
     "MEDICUS": {
       "precio": "1623,88",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.749157"
+      "ultima_actualizacion": "2026-01-30T10:33:17.579426"
     },
     "MEDIFE": {
       "precio": "1843,23",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.754091"
+      "ultima_actualizacion": "2026-01-30T10:33:17.581418"
     },
     "MITA - Textiles": {
       "precio": "2.364,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.743159"
+      "ultima_actualizacion": "2026-01-30T10:33:17.577690"
     },
     "OMINT": {
       "precio": "1899,24",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.741127"
+      "ultima_actualizacion": "2026-01-30T10:33:17.576922"
     },
     "OSALARA": {
       "precio": "2.500,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.735141"
+      "ultima_actualizacion": "2026-01-30T10:33:17.574442"
     },
     "OSALARA DIRECTO": {
       "precio": "2.500,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.748135"
+      "ultima_actualizacion": "2026-01-30T10:33:17.579426"
     },
     "OSAPM - Propaganda Medica - APM": {
       "precio": "2.500,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.743159"
+      "ultima_actualizacion": "2026-01-30T10:33:17.577690"
     },
     "OSBLYCA - Barracas-Lanas": {
       "precio": "2303,86",
-      "estado": "cortada",
-      "ultima_actualizacion": "2026-01-30T09:49:52.735141"
+      "estado": "suspendida",
+      "ultima_actualizacion": "2026-01-30T10:33:17.571448"
     },
     "OSDE": {
       "precio": "1611,68",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.743159"
+      "ultima_actualizacion": "2026-01-30T10:33:17.577690"
     },
     "OSDIPP": {
       "precio": "1.740,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.741127"
+      "ultima_actualizacion": "2026-01-30T10:33:17.576922"
     },
     "OSDOP - GRUPO ROISA": {
       "precio": "2238,7",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.735141"
+      "ultima_actualizacion": "2026-01-30T10:33:17.573443"
     },
     "OSECAC": {
       "precio": "1.418,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.756085"
+      "ultima_actualizacion": "2026-01-30T10:33:17.582417"
     },
     "OSETYA": {
       "precio": "0,00",
-      "estado": "cortada",
-      "ultima_actualizacion": "2026-01-30T09:49:52.740459"
+      "estado": "sin_convenio",
+      "ultima_actualizacion": "2026-01-30T10:33:17.576922"
     },
     "OSFATLyF": {
       "precio": "2502,87",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.744119"
+      "ultima_actualizacion": "2026-01-30T10:33:17.577690"
     },
     "OSFATUN": {
       "precio": "2306,33",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.757083"
+      "ultima_actualizacion": "2026-01-30T10:33:17.583961"
     },
     "OSFENTOS (O. Sanitarias)": {
       "precio": "2.150,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.736535"
+      "ultima_actualizacion": "2026-01-30T10:33:17.574442"
     },
     "OSPACA": {
       "precio": "2008,71",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.736535"
+      "ultima_actualizacion": "2026-01-30T10:33:17.574442"
     },
     "OSPCRA - Cementerios": {
       "precio": "1.418,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.734677"
+      "ultima_actualizacion": "2026-01-30T10:33:17.569667"
     },
     "OSPE": {
       "precio": "1.650,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.738133"
+      "ultima_actualizacion": "2026-01-30T10:33:17.575438"
     },
     "OSPECON": {
       "precio": "1.313,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.755088"
+      "ultima_actualizacion": "2026-01-30T10:33:17.582417"
     },
     "OSPEDyC": {
       "precio": "1.625,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.745114"
+      "ultima_actualizacion": "2026-01-30T10:33:17.578500"
     },
     "OSPERyHRA ( Porteros )": {
       "precio": "0,00",
-      "estado": "cortada",
-      "ultima_actualizacion": "2026-01-30T09:49:52.754091"
+      "estado": "suspendida",
+      "ultima_actualizacion": "2026-01-30T10:33:17.581418"
     },
     "OSPESCA": {
       "precio": "2.150,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.752553"
+      "ultima_actualizacion": "2026-01-30T10:33:17.580426"
     },
     "OSPRERA Monotributista": {
       "precio": "0,00",
-      "estado": "cortada",
-      "ultima_actualizacion": "2026-01-30T09:49:52.747110"
+      "estado": "sin_convenio",
+      "ultima_actualizacion": "2026-01-30T10:33:17.579426"
     },
     "OSPRERA NATIVUS": {
       "precio": "2110,86",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.757083"
+      "ultima_actualizacion": "2026-01-30T10:33:17.584413"
     },
     "OSPRERA Rural": {
       "precio": "0,00",
-      "estado": "cortada",
-      "ultima_actualizacion": "2026-01-30T09:49:52.747110"
+      "estado": "sin_convenio",
+      "ultima_actualizacion": "2026-01-30T10:33:17.578500"
     },
     "OSPSIP - Personal Seguridad Privada": {
       "precio": "1.418,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.756085"
+      "ultima_actualizacion": "2026-01-30T10:33:17.583614"
     },
     "OSSEG - Seguros": {
       "precio": "2331,26",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.742124"
+      "ultima_actualizacion": "2026-01-30T10:33:17.577430"
     },
     "OSSIMRA": {
       "precio": "2.150,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.756085"
+      "ultima_actualizacion": "2026-01-30T10:33:17.582417"
     },
     "OSTEL": {
       "precio": "1.418,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.755088"
+      "ultima_actualizacion": "2026-01-30T10:33:17.582417"
     },
     "OSTPCPHYARA (Pasteleros y Panaderos )": {
       "precio": "1.750,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.755088"
+      "ultima_actualizacion": "2026-01-30T10:33:17.581418"
     },
     "OSTYR": {
       "precio": "2.150,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.753094"
+      "ultima_actualizacion": "2026-01-30T10:33:17.581418"
     },
     "OSUOMRA": {
       "precio": "1.425,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.754091"
+      "ultima_actualizacion": "2026-01-30T10:33:17.581418"
     },
     "OSUTHGRA - Gastronomicos": {
       "precio": "2110,86",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.755088"
+      "ultima_actualizacion": "2026-01-30T10:33:17.582417"
     },
     "Ospil": {
       "precio": "0,00",
-      "estado": "cortada",
-      "ultima_actualizacion": "2026-01-30T09:49:52.747110"
+      "estado": "sin_convenio",
+      "ultima_actualizacion": "2026-01-30T10:33:17.579426"
     },
     "PAMI": {
       "precio": "816,94",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.739132"
+      "ultima_actualizacion": "2026-01-30T10:33:17.575438"
     },
     "PARTICULAR": {
       "precio": "3.000,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.734677"
+      "ultima_actualizacion": "2026-01-30T10:33:17.569667"
     },
     "PERSONAL DE MAESTRANZA": {
       "precio": "1.313,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.757083"
+      "ultima_actualizacion": "2026-01-30T10:33:17.584413"
     },
     "Patrones de Cabotaje": {
       "precio": "1.418,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.749157"
+      "ultima_actualizacion": "2026-01-30T10:33:17.579426"
     },
     "Poder Judicial": {
       "precio": "1760,01",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.740131"
+      "ultima_actualizacion": "2026-01-30T10:33:17.576434"
     },
     "Policia Federal": {
       "precio": "0,00",
-      "estado": "cortada",
-      "ultima_actualizacion": "2026-01-30T09:49:52.739132"
+      "estado": "sin_convenio",
+      "ultima_actualizacion": "2026-01-30T10:33:17.576434"
     },
     "Prevencion Salud": {
       "precio": "1602,8",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.744119"
+      "ultima_actualizacion": "2026-01-30T10:33:17.577690"
     },
     "SANCOR SALUD": {
       "precio": "1567,32",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.748135"
+      "ultima_actualizacion": "2026-01-30T10:33:17.579426"
     },
     "SANOS SALUD": {
       "precio": "2110,86",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.757083"
+      "ultima_actualizacion": "2026-01-30T10:33:17.583961"
     },
     "SAT - Personal de TV": {
       "precio": "1755,92",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.744119"
+      "ultima_actualizacion": "2026-01-30T10:33:17.577690"
     },
     "SEROS": {
       "precio": "1.400,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.739132"
+      "ultima_actualizacion": "2026-01-30T10:33:17.575438"
     },
     "SOMU - Maritimos": {
       "precio": "1.418,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.745114"
+      "ultima_actualizacion": "2026-01-30T10:33:17.578500"
     },
     "SPF - Servicio Penitenciario Federal": {
       "precio": "2.065,00",
-      "estado": "cortada",
-      "ultima_actualizacion": "2026-01-30T09:49:52.735141"
+      "estado": "suspendida",
+      "ultima_actualizacion": "2026-01-30T10:33:17.573781"
     },
     "Serenos de Buques": {
       "precio": "1.418,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.744119"
+      "ultima_actualizacion": "2026-01-30T10:33:17.577690"
     },
     "Swiss Medical": {
       "precio": "1677,96",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.754091"
+      "ultima_actualizacion": "2026-01-30T10:33:17.581418"
     },
     "UNION PERSONAL (accord-classic)": {
       "precio": "1669,5",
-      "estado": "cortada",
-      "ultima_actualizacion": "2026-01-30T09:49:52.740459"
+      "estado": "sin_convenio",
+      "ultima_actualizacion": "2026-01-30T10:33:17.576434"
     },
     "UNION PERSONAL PMO-19": {
       "precio": "1335,6",
-      "estado": "cortada",
-      "ultima_actualizacion": "2026-01-30T09:49:52.740459"
+      "estado": "sin_convenio",
+      "ultima_actualizacion": "2026-01-30T10:33:17.576434"
     },
     "UNO Salud": {
       "precio": "1.862,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.734148"
+      "ultima_actualizacion": "2026-01-30T10:33:17.569667"
     },
     "UP– ACCORD - CLASICO": {
       "precio": "1.150,00",
-      "estado": "cortada",
-      "ultima_actualizacion": "2026-01-30T09:49:52.742124"
+      "estado": "sin_convenio",
+      "ultima_actualizacion": "2026-01-30T10:33:17.577430"
     },
     "VISITAR - ANDAR": {
       "precio": "2008,71",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.738145"
+      "ultima_actualizacion": "2026-01-30T10:33:17.575438"
     },
     "WORD SALUD": {
       "precio": "2.105,00",
       "estado": "vigente",
-      "ultima_actualizacion": "2026-01-30T09:49:52.757083"
+      "ultima_actualizacion": "2026-01-30T10:33:17.583961"
     }
   }
 }

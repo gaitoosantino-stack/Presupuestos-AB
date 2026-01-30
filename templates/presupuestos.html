@@ -652,17 +652,17 @@
         </div>
     </div>
 
-    <!-- Modal para obra social cortada -->
+    <!-- Modal para obra social no vigente -->
     <div id="modal-obra-cortada" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>
-                    Obra Social Cortada
+                    Obra Social No Vigente
                 </h2>
             </div>
             <div class="modal-body">
                 <p>
-                    La obra social <span class="obra-nombre" id="nombre-obra-cortada"></span> está actualmente <span class="estado-cortada">cortada</span>.
+                    La obra social <span class="obra-nombre" id="nombre-obra-cortada"></span> está actualmente <span class="estado-cortada" id="estado-obra-cortada">sin convenio</span>.
                 </p>
             </div>
             <div class="modal-footer">
@@ -863,11 +863,11 @@
 
             function selectOption(option) {
                 if (isObraSocial) {
-                    // Verificar si la obra está cortada
+                    // Verificar si la obra está sin convenio o suspendida
                     const estado = option.getAttribute('data-estado');
-                    if (estado === 'cortada') {
-                        // Mostrar popup de obra cortada
-                        mostrarPopupObraCortada(option.textContent);
+                    if (estado === 'sin_convenio' || estado === 'suspendida') {
+                        // Mostrar popup de obra no vigente
+                        mostrarPopupObraNoVigente(option.textContent, estado);
                         // No establecer el valor ni continuar con la selección
                         hideDropdown();
                         return;
@@ -890,15 +890,17 @@
             }
         }
 
-        // Función para mostrar popup de obra cortada
-        function mostrarPopupObraCortada(nombreObra) {
+        // Función para mostrar popup de obra no vigente
+        function mostrarPopupObraNoVigente(nombreObra, estado) {
             document.getElementById('nombre-obra-cortada').textContent = nombreObra;
+            const estadoTexto = estado === 'sin_convenio' ? 'Sin Convenio' : 'Suspendida';
+            document.getElementById('estado-obra-cortada').textContent = estadoTexto.toLowerCase();
             const modal = document.getElementById('modal-obra-cortada');
             modal.style.display = 'block';
             modal.classList.add('show');
         }
 
-        // Función para cerrar modal de obra cortada y limpiar campo
+        // Función para cerrar modal de obra no vigente y limpiar campo
         function cerrarModalObraCortada() {
             const modal = document.getElementById('modal-obra-cortada');
             modal.style.display = 'none';

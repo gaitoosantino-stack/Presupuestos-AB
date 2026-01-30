@@ -414,6 +414,16 @@
             color: #991b1b;
         }
 
+        .badge-sin-convenio {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-suspendida {
+            background: #fce7f3;
+            color: #9f1239;
+        }
+
         .precio-cortada {
             color: #991b1b;
             font-style: italic;
@@ -450,7 +460,7 @@
         <div class="section">
             <h2>Aranceles</h2>
             <p style="margin-bottom: 15px; color: #64748b; font-size: 0.95em;">
-                Consulta el estado actual de todas las obras sociales (vigentes y cortadas) con sus precios.
+                Consulta el estado actual de todas las obras sociales (vigentes, sin convenio y suspendidas) con sus precios.
             </p>
             <a href="{{ url_for('admin_estado_obras') }}" class="btn btn-primary" style="font-size: 14px; text-decoration: none; display: inline-block;">
                  Ver Aranceles
@@ -596,17 +606,23 @@
                             data.cambios.forEach(cambio => {
                                 const esNuevo = cambio.cambio === 'nuevo';
                                 const esModificado = cambio.cambio === 'modificado';
-                                const esCortada = cambio.cambio === 'cortada';
+                                const esSinConvenio = cambio.cambio === 'sin_convenio';
+                                const esSuspendida = cambio.cambio === 'suspendida';
                                 
                                 let badgeClass, badgeText, precioActualClass, precioNuevoClass, precioActualText, precioNuevoText;
                                 
-                                if (esCortada) {
-                                    badgeClass = 'badge-cortada';
-                                    badgeText = 'Cortada';
-                                    precioActualClass = cambio.precio_actual === 'Ya estaba cortada' ? 'precio-na' : 'precio-anterior';
+                                if (esSinConvenio || esSuspendida) {
+                                    badgeClass = esSinConvenio ? 'badge-sin-convenio' : 'badge-suspendida';
+                                    badgeText = esSinConvenio ? 'Sin Convenio' : 'Suspendida';
+                                    precioActualClass = 'precio-anterior';
                                     precioNuevoClass = 'precio-cortada';
-                                    precioActualText = cambio.precio_actual === 'Ya estaba cortada' ? '<em>' + cambio.precio_actual + '</em>' : '$' + cambio.precio_actual;
-                                    precioNuevoText = cambio.precio_nuevo.startsWith('Cortada') ? '<em>' + cambio.precio_nuevo + '</em>' : (cambio.precio_nuevo.startsWith('$') ? cambio.precio_nuevo : '$' + cambio.precio_nuevo);
+                                    precioActualText = '$' + cambio.precio_actual;
+                                    const precioNuevoStr = cambio.precio_nuevo;
+                                    if (precioNuevoStr.includes('Sin Convenio') || precioNuevoStr.includes('Suspendida')) {
+                                        precioNuevoText = '<em>' + precioNuevoStr + '</em>';
+                                    } else {
+                                        precioNuevoText = precioNuevoStr.startsWith('$') ? precioNuevoStr : '$' + precioNuevoStr;
+                                    }
                                 } else if (esNuevo) {
                                     badgeClass = 'badge-nuevo';
                                     badgeText = 'Nueva';

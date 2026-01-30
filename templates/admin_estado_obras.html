@@ -217,6 +217,16 @@
             color: #991b1b;
         }
 
+        .badge-sin-convenio {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-suspendida {
+            background: #fce7f3;
+            color: #9f1239;
+        }
+
         .precio {
             font-weight: 600;
             color: #1e293b;
@@ -261,8 +271,12 @@
                 <p class="value">{{ estado_data.obras_vigentes or 0 }}</p>
             </div>
             <div class="stat-card cortadas">
-                <h3>Obras Cortadas</h3>
-                <p class="value">{{ estado_data.obras_cortadas or 0 }}</p>
+                <h3>Sin Convenio</h3>
+                <p class="value">{{ estado_data.obras_sin_convenio or 0 }}</p>
+            </div>
+            <div class="stat-card cortadas">
+                <h3>Suspendidas</h3>
+                <p class="value">{{ estado_data.obras_suspendidas or 0 }}</p>
             </div>
         </div>
 
@@ -272,7 +286,8 @@
                 <select id="filter-estado" onchange="filterTable()">
                     <option value="all">Todas</option>
                     <option value="vigente">Solo Vigentes</option>
-                    <option value="cortada">Solo Cortadas</option>
+                    <option value="sin_convenio">Sin Convenio</option>
+                    <option value="suspendida">Suspendidas</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -296,7 +311,7 @@
                     <tr data-estado="{{ obra.estado }}" data-nombre="{{ obra.nombre.lower() }}">
                         <td><strong>{{ obra.nombre }}</strong></td>
                         <td class="precio">
-                            {% if obra.estado == 'cortada' %}
+                            {% if obra.estado in ['sin_convenio', 'suspendida'] %}
                                 <em style="color: #cbd5e1;">—</em>
                             {% elif obra.precio and obra.precio != 'None' and obra.precio != 'N/A' %}
                                 ${{ obra.precio }}
@@ -307,8 +322,12 @@
                         <td>
                             {% if obra.estado == 'vigente' %}
                                 <span class="badge badge-vigente">Vigente</span>
+                            {% elif obra.estado == 'sin_convenio' %}
+                                <span class="badge badge-sin-convenio">Sin Convenio</span>
+                            {% elif obra.estado == 'suspendida' %}
+                                <span class="badge badge-suspendida">Suspendida</span>
                             {% else %}
-                                <span class="badge badge-cortada">Cortada</span>
+                                <span class="badge badge-sin-convenio">Sin Convenio</span>
                             {% endif %}
                         </td>
                     </tr>
