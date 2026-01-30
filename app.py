@@ -78,21 +78,32 @@ def init_users_file():
             json.dump(default_users, f, indent=2, ensure_ascii=False)
         logger.info("Archivo de usuarios creado con usuario Gaito")
     else:
-        # Verificar que Gaito exista, si no existe agregarlo
+        # Verificar que Gaito y usuario 3 existan, si no existen agregarlos
         try:
             with open(USERS_FILE, 'r', encoding='utf-8') as f:
                 users = json.load(f)
+            modified = False
             if 'Gaito' not in users:
                 users['Gaito'] = {
                     'password': generate_password_hash('Simon@594*'),
                     'email': '',
                     'habilitado': True
                 }
+                modified = True
+                logger.info("Usuario Gaito agregado al archivo de usuarios")
+            if '3' not in users:
+                users['3'] = {
+                    'password': generate_password_hash('3'),
+                    'email': '',
+                    'habilitado': True
+                }
+                modified = True
+                logger.info("Usuario 3 agregado al archivo de usuarios")
+            if modified:
                 with open(USERS_FILE, 'w', encoding='utf-8') as f:
                     json.dump(users, f, indent=2, ensure_ascii=False)
-                logger.info("Usuario Gaito agregado al archivo de usuarios")
         except Exception as e:
-            logger.error(f"Error al verificar usuario Gaito: {e}")
+            logger.error(f"Error al verificar usuarios admin: {e}")
 
 def load_users():
     """Carga los usuarios desde el archivo JSON"""
@@ -222,8 +233,11 @@ def login():
                 flash('Tu cuenta ha sido deshabilitada. Contacta al administrador.', 'error')
                 logger.warning(f"Usuario deshabilitado intentó acceder: {username}")
             else:
-                # Usuario sigue habilitado, redirigir normalmente
-                return redirect(url_for('presupuestos'))
+                # Usuario sigue habilitado, redirigir según si es admin o no
+                if is_gaito_admin():
+                    return redirect(url_for('admin_usuarios'))
+                else:
+                    return redirect(url_for('presupuestos'))
         else:
             # No hay username en sesión, limpiar sesión
             session.clear()
@@ -252,7 +266,11 @@ def login():
                 session.permanent = True
                 logger.info(f"Usuario {username} inició sesión")
                 flash(f'¡Bienvenido, {username}!', 'success')
-                return redirect(url_for('presupuestos'))
+                # Redirigir a admin si es admin, sino a presupuestos
+                if is_gaito_admin():
+                    return redirect(url_for('admin_usuarios'))
+                else:
+                    return redirect(url_for('presupuestos'))
             else:
                 flash('Usuario o contraseña incorrectos.', 'error')
         else:
@@ -599,7 +617,7 @@ def preview_precios_google_sheet():
             estado = 'vigente'
             if not pd.isna(vigente):
                 vigente_str = str(vigente).strip().lower()
-                if vigente_str in ['suspendida', 'suspendid', 'cortada']:
+                if vigente_str in ['suspendida', 'suspendid', 'cortada', 'sin convenio']:
                     estado = 'cortada'
             
             # Procesar precio (puede estar vacío para obras cortadas)
@@ -642,7 +660,7 @@ def preview_precios_google_sheet():
             estado = 'vigente'
             if not pd.isna(vigente):
                 vigente_str = str(vigente).strip().lower()
-                if vigente_str in ['suspendida', 'suspendid', 'cortada']:
+                if vigente_str in ['suspendida', 'suspendid', 'cortada', 'sin convenio']:
                     estado = 'cortada'
             
             # Procesar precio (puede estar vacío para obras cortadas)
@@ -729,8 +747,14 @@ def preview_precios_google_sheet():
         
         total_obras_vigentes = len(obras_dict)
         total_obras_cortadas = len(obras_cortadas_dict)
+        # Obtener el total real de obras del estado actual (vigentes + cortadas)
+        total_obras_actual = estado_actual_data.get('total_obras', 0)
+        if total_obras_actual == 0:
+            # Si no hay total en el estado, calcularlo sumando vigentes y cortadas actuales
+            total_obras_actual = len(obras_estado_actual) if obras_estado_actual else (total_obras_vigentes + total_obras_cortadas)
+        
         if count == 0:
-            mensaje = f"No hay cambios. Todas las obras ({total_obras_vigentes}) ya tienen los precios actualizados."
+            mensaje = f"No hay cambios. Todas las obras ({total_obras_actual}) ya tienen los precios actualizados."
         else:
             cambios_precio = sum(1 for c in cambios_dict.values() if c['cambio'] in ['nuevo', 'modificado'])
             cambios_cortadas = sum(1 for c in cambios_dict.values() if c['cambio'] == 'cortada')
@@ -1005,7 +1029,7 @@ def sync_precios_google_sheet():
             estado = 'vigente'
             if not pd.isna(vigente):
                 vigente_str = str(vigente).strip().lower()
-                if vigente_str in ['suspendida', 'suspendid', 'cortada']:
+                if vigente_str in ['suspendida', 'suspendid', 'cortada', 'sin convenio']:
                     estado = 'cortada'
             
             # Procesar precio (puede estar vacío para obras cortadas)
@@ -1049,7 +1073,7 @@ def sync_precios_google_sheet():
             estado = 'vigente'
             if not pd.isna(vigente):
                 vigente_str = str(vigente).strip().lower()
-                if vigente_str in ['suspendida', 'suspendid', 'cortada']:
+                if vigente_str in ['suspendida', 'suspendid', 'cortada', 'sin convenio']:
                     estado = 'cortada'
             
             # Procesar precio (puede estar vacío para obras cortadas)
@@ -1125,8 +1149,9 @@ def sync_precios_google_sheet():
         return False, f"{error_msg}", 0
 
 def is_gaito_admin():
-    """Verifica si el usuario actual es Gaito (el único admin)"""
-    return session.get('username') == 'Gaito'
+    """Verifica si el usuario actual es admin (Gaito o usuario 3)"""
+    username = session.get('username')
+    return username == 'Gaito' or username == '3'
 
 def load_obras_estado():
     """Carga el estado de obras sociales desde el archivo JSON"""
@@ -1202,8 +1227,8 @@ def admin_usuarios():
         elif action == 'deshabilitar':
             username = request.form.get('username', '').strip()
             if username in users:
-                # No permitir deshabilitar a Gaito
-                if username == 'Gaito':
+                # No permitir deshabilitar a Gaito ni al usuario 3 (admins)
+                if username == 'Gaito' or username == '3':
                     flash('No puedes deshabilitar la cuenta de administrador.', 'error')
                 else:
                     users[username]['habilitado'] = False
@@ -1217,6 +1242,8 @@ def admin_usuarios():
             if username in users:
                 if username == session.get('username'):
                     flash('No puedes eliminar tu propia cuenta.', 'error')
+                elif username == 'Gaito' or username == '3':
+                    flash('No puedes eliminar la cuenta de administrador.', 'error')
                 else:
                     del users[username]
                     if save_users(users):
@@ -1349,15 +1376,10 @@ def admin_perfil(username):
     
     return render_template('admin_perfil.html', username=username, perfil=perfil)
 
-# Ruta para ver estado de obras sociales (solo para Gaito)
+# Ruta para ver estado de obras sociales (protegida)
 @app.route('/admin/estado_obras', methods=['GET'])
 @require_login
 def admin_estado_obras():
-    # Solo Gaito puede acceder a esta ruta
-    if not is_gaito_admin():
-        flash('No tienes permiso para acceder a esta sección.', 'error')
-        return redirect(url_for('presupuestos'))
-    
     estado_data = load_obras_estado()
     
     # Formatear fecha de actualización
@@ -1383,6 +1405,27 @@ def admin_estado_obras():
                          estado_data=estado_data,
                          obras_list=obras_list,
                          fecha_actualizacion=fecha_actualizacion)
+
+# Ruta para instructivo de obras sociales (protegida)
+@app.route('/instructivo', methods=['GET'])
+@require_login
+def instructivo():
+    instructivos_file = 'instructivos.json'
+    instructivos = []
+    
+    try:
+        if os.path.exists(instructivos_file):
+            with open(instructivos_file, 'r', encoding='utf-8') as f:
+                instructivos = json.load(f)
+        else:
+            logger.warning(f"Archivo {instructivos_file} no encontrado")
+    except Exception as e:
+        logger.error(f"Error al leer instructivos: {e}")
+        instructivos = []
+    
+    return render_template('instructivo.html', 
+                         instructivos=instructivos,
+                         username=session.get('username'))
 
 # Ruta para descargar PDF
 @app.route('/descargar_pdf', methods=['POST'])

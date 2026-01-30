@@ -7105,3 +7105,458 @@ RecursionError: maximum recursion depth exceeded while calling a Python object
 2026-01-06 18:58:43,903 - werkzeug - INFO - 127.0.0.1 - - [06/Jan/2026 18:58:43] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
 2026-01-06 18:58:47,499 - werkzeug - INFO - 127.0.0.1 - - [06/Jan/2026 18:58:47] "GET /admin/usuarios HTTP/1.1" 200 -
 2026-01-06 18:58:47,685 - werkzeug - INFO - 127.0.0.1 - - [06/Jan/2026 18:58:47] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:00:29,885 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-15 03:00:29,893 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-15 03:00:38,747 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:00:38] "GET / HTTP/1.1" 200 -
+2026-01-15 03:00:39,829 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:00:39] "GET /static/styles.css HTTP/1.1" 200 -
+2026-01-15 03:00:41,528 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:00:41] "GET /static/images/favicon.png HTTP/1.1" 200 -
+2026-01-15 03:00:46,367 - __main__ - INFO - Usuario Gaito inició sesión
+2026-01-15 03:00:46,374 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:00:46] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-15 03:00:46,536 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:00:46] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 03:00:46,662 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:00:46] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:00:48,343 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:00:48] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-15 03:00:48,438 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:00:48] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:00:52,618 - __main__ - INFO - Obteniendo preview desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g
+2026-01-15 03:00:52,636 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-15 03:00:52,638 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g&download=1
+2026-01-15 03:00:52,643 - __main__ - INFO - URL de OneDrive detectada, intentando descarga con requests primero...
+2026-01-15 03:00:53,110 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-15 03:00:54,225 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-01-15 03:00:54,896 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-01-15 03:00:54,915 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:00:54] "GET /admin/sync_precios/preview HTTP/1.1" 200 -
+2026-01-15 03:01:12,673 - __main__ - INFO - Leyendo archivo desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g
+2026-01-15 03:01:12,676 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-15 03:01:12,676 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g&download=1
+2026-01-15 03:01:15,221 - __main__ - WARNING - No se pudo leer directamente con pandas: HTTP Error 401: Unauthorized
+2026-01-15 03:01:15,221 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-15 03:01:16,294 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-01-15 03:01:16,396 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-01-15 03:01:16,473 - __main__ - INFO - Sincronización completada: 64 obras activas, 78 total (incluyendo 14 cortadas)
+2026-01-15 03:01:16,473 - __main__ - INFO - Precios sincronizados por Gaito: 64 obras sociales
+2026-01-15 03:01:16,475 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:01:16] "[32mPOST /admin/sync_precios HTTP/1.1[0m" 302 -
+2026-01-15 03:01:16,692 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:01:16] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-15 03:01:16,830 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:01:16] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:01:19,203 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:01:19] "GET /admin/estado_obras HTTP/1.1" 200 -
+2026-01-15 03:01:19,683 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:01:19] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:09:09,246 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-15 03:09:09,249 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-15 03:09:09,398 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:09:09] "[32mGET /admin/estado_obras HTTP/1.1[0m" 302 -
+2026-01-15 03:09:09,438 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:09:09] "GET /login HTTP/1.1" 200 -
+2026-01-15 03:09:09,938 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:09:09] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:09:11,070 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:09:11] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-15 03:09:14,305 - __main__ - INFO - Usuario 3 inició sesión
+2026-01-15 03:09:14,306 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:09:14] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-15 03:09:14,448 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:09:14] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 03:09:14,565 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:09:14] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:10:22,395 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:10:22] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 03:10:22,514 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:10:22] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:10:23,630 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:10:23] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-15 03:11:58,284 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-15 03:11:58,285 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-15 03:11:58,510 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:11:58] "[32mGET /presupuestos HTTP/1.1[0m" 302 -
+2026-01-15 03:11:58,776 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:11:58] "GET /login HTTP/1.1" 200 -
+2026-01-15 03:11:59,222 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:11:59] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:11:59,643 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:11:59] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-15 03:12:01,280 - __main__ - INFO - Usuario 3 inició sesión
+2026-01-15 03:12:01,284 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:12:01] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-15 03:12:01,486 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:12:01] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 03:12:01,599 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:12:01] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:12:02,969 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:12:02] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-15 03:12:03,062 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:12:03] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:12:05,628 - __main__ - INFO - Obteniendo preview desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g
+2026-01-15 03:12:05,628 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-15 03:12:05,629 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g&download=1
+2026-01-15 03:12:05,630 - __main__ - INFO - URL de OneDrive detectada, intentando descarga con requests primero...
+2026-01-15 03:12:05,931 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-15 03:12:06,871 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-01-15 03:12:07,176 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-01-15 03:12:07,194 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:12:07] "GET /admin/sync_precios/preview HTTP/1.1" 200 -
+2026-01-15 03:12:12,020 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:12:12] "GET /admin/estado_obras HTTP/1.1" 200 -
+2026-01-15 03:12:12,129 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:12:12] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:12:14,658 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:12:14] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-15 03:12:14,767 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:12:14] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:12:54,914 - __main__ - INFO - Obteniendo preview desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g
+2026-01-15 03:12:54,920 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-15 03:12:54,921 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g&download=1
+2026-01-15 03:12:54,924 - __main__ - INFO - URL de OneDrive detectada, intentando descarga con requests primero...
+2026-01-15 03:12:54,926 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-15 03:12:55,862 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-01-15 03:12:55,919 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-01-15 03:12:55,940 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:12:55] "GET /admin/sync_precios/preview HTTP/1.1" 200 -
+2026-01-15 03:15:33,732 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:15:33] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-15 03:15:33,978 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:15:33] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:15:39,335 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:15:39] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-15 03:15:52,198 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-15 03:15:52,201 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-15 03:15:53,102 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:15:53] "[32mGET /admin/usuarios HTTP/1.1[0m" 302 -
+2026-01-15 03:15:53,267 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:15:53] "GET /login HTTP/1.1" 200 -
+2026-01-15 03:15:55,075 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:15:55] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:15:56,456 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:15:56] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-15 03:15:57,067 - __main__ - INFO - Usuario 3 inició sesión
+2026-01-15 03:15:57,069 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:15:57] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-15 03:15:57,304 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:15:57] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 03:15:57,420 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:15:57] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:15:58,204 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:15:58] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-15 03:15:58,472 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:15:58] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:16:04,304 - __main__ - INFO - Obteniendo preview desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g
+2026-01-15 03:16:04,311 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-15 03:16:04,323 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g&download=1
+2026-01-15 03:16:04,392 - __main__ - INFO - URL de OneDrive detectada, intentando descarga con requests primero...
+2026-01-15 03:16:04,655 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-15 03:16:05,586 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-01-15 03:16:05,939 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-01-15 03:16:05,961 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:16:05] "GET /admin/sync_precios/preview HTTP/1.1" 200 -
+2026-01-15 03:16:09,267 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:16:09] "GET /admin/estado_obras HTTP/1.1" 200 -
+2026-01-15 03:16:09,379 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:16:09] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:16:55,417 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:16:55] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-15 03:16:55,525 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:16:55] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:20:38,845 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-15 03:20:38,847 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-15 03:20:39,632 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:20:39] "[32mGET /admin/usuarios HTTP/1.1[0m" 302 -
+2026-01-15 03:20:39,702 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:20:39] "GET /login HTTP/1.1" 200 -
+2026-01-15 03:20:40,852 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:20:40] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:20:42,247 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:20:42] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-15 03:20:43,466 - __main__ - INFO - Usuario 3 inició sesión
+2026-01-15 03:20:43,468 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:20:43] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-15 03:20:43,546 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:20:43] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-15 03:20:43,898 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:20:43] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:20:48,338 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:20:48] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 03:20:48,491 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:20:48] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:20:50,803 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:20:50] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-15 03:20:50,926 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:20:50] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:40:01,680 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-15 03:40:01,681 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-15 03:40:03,617 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:03] "[32mGET /admin/usuarios HTTP/1.1[0m" 302 -
+2026-01-15 03:40:03,656 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:03] "GET /login HTTP/1.1" 200 -
+2026-01-15 03:40:04,010 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:04] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:40:05,082 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:05] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-15 03:40:06,124 - __main__ - INFO - Usuario 1 inició sesión
+2026-01-15 03:40:06,126 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:06] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-15 03:40:06,258 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:06] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 03:40:06,385 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:06] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:40:08,623 - __main__ - INFO - Usuario 1 cerró sesión
+2026-01-15 03:40:08,624 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:08] "[32mGET /logout HTTP/1.1[0m" 302 -
+2026-01-15 03:40:08,650 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:08] "GET /login HTTP/1.1" 200 -
+2026-01-15 03:40:08,809 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:08] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:40:10,860 - __main__ - INFO - Usuario 3 inició sesión
+2026-01-15 03:40:10,861 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:10] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-15 03:40:10,943 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:10] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-15 03:40:11,053 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:11] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:40:15,427 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:15] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 03:40:15,526 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:15] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:40:18,244 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:18] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-15 03:40:18,343 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:18] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:40:22,612 - __main__ - INFO - Usuario 3 cerró sesión
+2026-01-15 03:40:22,613 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:22] "[32mGET /logout HTTP/1.1[0m" 302 -
+2026-01-15 03:40:22,645 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:22] "GET /login HTTP/1.1" 200 -
+2026-01-15 03:40:22,813 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:22] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:40:24,279 - __main__ - INFO - Usuario 1 inició sesión
+2026-01-15 03:40:24,280 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:24] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-15 03:40:24,359 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:24] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 03:40:24,490 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:24] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:40:55,170 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:40:55] "POST /descargar_pdf HTTP/1.1" 200 -
+2026-01-15 03:44:11,455 - __main__ - INFO - Usuario 1 cerró sesión
+2026-01-15 03:44:11,458 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:44:11] "[32mGET /logout HTTP/1.1[0m" 302 -
+2026-01-15 03:44:11,794 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:44:11] "GET /login HTTP/1.1" 200 -
+2026-01-15 03:44:11,918 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:44:11] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:44:13,487 - __main__ - INFO - Usuario 3 inició sesión
+2026-01-15 03:44:13,488 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:44:13] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-15 03:44:13,516 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:44:13] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-15 03:44:13,660 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:44:13] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:44:15,587 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:44:15] "GET /admin/estado_obras HTTP/1.1" 200 -
+2026-01-15 03:44:15,684 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:44:15] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:52:54,719 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:52:54] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 03:52:54,865 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:52:54] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:52:56,072 - __main__ - INFO - Usuario 3 cerró sesión
+2026-01-15 03:52:56,082 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:52:56] "[32mGET /logout HTTP/1.1[0m" 302 -
+2026-01-15 03:52:56,118 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:52:56] "GET /login HTTP/1.1" 200 -
+2026-01-15 03:52:57,687 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:52:57] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 03:53:00,285 - __main__ - INFO - Usuario 1 inició sesión
+2026-01-15 03:53:00,288 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:53:00] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-15 03:53:00,365 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:53:00] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 03:53:00,546 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 03:53:00] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 04:06:26,657 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-15 04:06:26,669 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-15 04:06:26,700 - __main__ - INFO - Usuario Usuario cerró sesión
+2026-01-15 04:06:26,702 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:06:26] "[32mGET /logout HTTP/1.1[0m" 302 -
+2026-01-15 04:06:26,964 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:06:26] "GET /login HTTP/1.1" 200 -
+2026-01-15 04:06:28,238 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:06:28] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 04:06:30,286 - __main__ - INFO - Usuario 1 inició sesión
+2026-01-15 04:06:30,288 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:06:30] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-15 04:06:30,407 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:06:30] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 04:06:30,535 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:06:30] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 04:06:31,953 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:06:31] "GET /admin/estado_obras HTTP/1.1" 200 -
+2026-01-15 04:06:32,097 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:06:32] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 04:09:26,689 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-15 04:09:26,695 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-15 04:09:29,463 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:29] "[32mGET /admin/estado_obras HTTP/1.1[0m" 302 -
+2026-01-15 04:09:29,537 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:29] "GET /login HTTP/1.1" 200 -
+2026-01-15 04:09:29,935 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:29] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 04:09:30,454 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:30] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-15 04:09:32,685 - __main__ - INFO - Usuario 1 inició sesión
+2026-01-15 04:09:32,688 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:32] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-15 04:09:32,953 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:32] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 04:09:33,079 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:33] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 04:09:34,147 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:34] "GET /admin/estado_obras HTTP/1.1" 200 -
+2026-01-15 04:09:34,437 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:34] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 04:09:46,958 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:46] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 04:09:47,059 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:47] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 04:09:48,477 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:48] "GET /admin/estado_obras HTTP/1.1" 200 -
+2026-01-15 04:09:48,591 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:48] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-15 04:09:53,681 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:53] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-15 04:09:53,793 - werkzeug - INFO - 127.0.0.1 - - [15/Jan/2026 04:09:53] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:07:23,380 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-22 17:07:23,381 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-22 17:10:42,610 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:42] "GET / HTTP/1.1" 200 -
+2026-01-22 17:10:44,437 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:44] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:10:45,666 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:45] "GET /static/images/favicon.png HTTP/1.1" 200 -
+2026-01-22 17:10:47,527 - __main__ - INFO - Usuario 3 inició sesión
+2026-01-22 17:10:47,529 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:47] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-22 17:10:47,599 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:47] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-22 17:10:47,734 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:47] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:10:51,901 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:51] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-22 17:10:52,020 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:52] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:10:54,844 - __main__ - INFO - Usuario 3 cerró sesión
+2026-01-22 17:10:54,848 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:54] "[32mGET /logout HTTP/1.1[0m" 302 -
+2026-01-22 17:10:54,876 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:54] "GET /login HTTP/1.1" 200 -
+2026-01-22 17:10:55,008 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:55] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:10:56,405 - __main__ - INFO - Usuario 1 inició sesión
+2026-01-22 17:10:56,406 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:56] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-22 17:10:56,460 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:56] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-22 17:10:56,625 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:56] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:10:57,652 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:57] "GET /admin/estado_obras HTTP/1.1" 200 -
+2026-01-22 17:10:57,770 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:10:57] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:11:07,108 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:11:07] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-22 17:11:07,224 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:11:07] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:11:09,995 - __main__ - INFO - Usuario 1 cerró sesión
+2026-01-22 17:11:09,996 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:11:09] "[32mGET /logout HTTP/1.1[0m" 302 -
+2026-01-22 17:11:10,014 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:11:10] "GET /login HTTP/1.1" 200 -
+2026-01-22 17:11:10,158 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:11:10] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:11:11,424 - __main__ - INFO - Usuario 3 inició sesión
+2026-01-22 17:11:11,427 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:11:11] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-22 17:11:11,491 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:11:11] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-22 17:11:11,686 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:11:11] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:11:12,671 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:11:12] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-22 17:11:12,787 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:11:12] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:11:13,559 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:11:13] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-22 17:11:13,702 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:11:13] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:11:14,433 - __main__ - INFO - Obteniendo preview desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g
+2026-01-22 17:11:14,434 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-22 17:11:14,434 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g&download=1
+2026-01-22 17:11:14,438 - __main__ - INFO - URL de OneDrive detectada, intentando descarga con requests primero...
+2026-01-22 17:11:14,794 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-22 17:11:16,032 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-01-22 17:11:16,612 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-01-22 17:11:16,627 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:11:16] "GET /admin/sync_precios/preview HTTP/1.1" 200 -
+2026-01-22 17:12:27,813 - __main__ - INFO - Leyendo archivo desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g
+2026-01-22 17:12:27,814 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-22 17:12:27,814 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g&download=1
+2026-01-22 17:12:30,504 - __main__ - WARNING - No se pudo leer directamente con pandas: HTTP Error 401: Unauthorized
+2026-01-22 17:12:30,505 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-22 17:12:31,430 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-01-22 17:12:31,479 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-01-22 17:12:31,533 - __main__ - INFO - Sincronización completada: 64 obras activas, 78 total (incluyendo 14 cortadas)
+2026-01-22 17:12:31,533 - __main__ - INFO - Precios sincronizados por 3: 64 obras sociales
+2026-01-22 17:12:31,535 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:12:31] "[32mPOST /admin/sync_precios HTTP/1.1[0m" 302 -
+2026-01-22 17:12:31,566 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:12:31] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-22 17:12:31,721 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:12:31] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:12:48,162 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:12:48] "GET /admin/estado_obras HTTP/1.1" 200 -
+2026-01-22 17:12:48,289 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:12:48] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:13:02,526 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:13:02] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-22 17:13:02,659 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:13:02] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:37:35,175 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-22 17:37:35,180 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-22 17:37:35,313 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:37:35] "[32mGET /presupuestos HTTP/1.1[0m" 302 -
+2026-01-22 17:37:35,561 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:37:35] "GET /login HTTP/1.1" 200 -
+2026-01-22 17:37:35,895 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:37:35] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:37:36,783 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:37:36] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-22 17:37:38,020 - __main__ - INFO - Usuario 1 inició sesión
+2026-01-22 17:37:38,021 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:37:38] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-22 17:37:38,197 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:37:38] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-22 17:37:38,336 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:37:38] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:37:40,521 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:37:40] "GET /instructivo HTTP/1.1" 200 -
+2026-01-22 17:37:40,679 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:37:40] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:43:03,535 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-22 17:43:03,538 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-22 17:43:04,523 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:43:04] "[32mGET /instructivo HTTP/1.1[0m" 302 -
+2026-01-22 17:43:04,594 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:43:04] "GET /login HTTP/1.1" 200 -
+2026-01-22 17:43:04,944 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:43:04] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:43:05,391 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:43:05] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-22 17:43:06,932 - __main__ - INFO - Usuario 1 inició sesión
+2026-01-22 17:43:06,934 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:43:06] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-22 17:43:07,060 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:43:07] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-22 17:43:07,186 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:43:07] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:43:11,803 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:43:11] "GET /instructivo HTTP/1.1" 200 -
+2026-01-22 17:43:11,915 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:43:11] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:45:26,010 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:45:26] "GET /instructivo HTTP/1.1" 200 -
+2026-01-22 17:45:26,139 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:45:26] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:45:26,804 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:45:26] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-22 17:45:34,412 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-22 17:45:34,414 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-22 17:45:34,474 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:45:34] "[32mGET /instructivo HTTP/1.1[0m" 302 -
+2026-01-22 17:45:34,516 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:45:34] "GET /login HTTP/1.1" 200 -
+2026-01-22 17:45:34,870 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:45:34] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:45:35,169 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:45:35] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-22 17:45:36,454 - __main__ - INFO - Usuario 1 inició sesión
+2026-01-22 17:45:36,455 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:45:36] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-22 17:45:36,639 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:45:36] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-22 17:45:36,762 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:45:36] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:45:37,558 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:45:37] "GET /instructivo HTTP/1.1" 200 -
+2026-01-22 17:45:37,671 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:45:37] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:47:59,404 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-22 17:47:59,406 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-22 17:47:59,598 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:47:59] "[32mGET /instructivo HTTP/1.1[0m" 302 -
+2026-01-22 17:47:59,637 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:47:59] "GET /login HTTP/1.1" 200 -
+2026-01-22 17:47:59,994 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:47:59] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:48:00,899 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:48:00] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-22 17:48:01,928 - __main__ - INFO - Usuario 1 inició sesión
+2026-01-22 17:48:01,930 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:48:01] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-22 17:48:02,097 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:48:02] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-22 17:48:02,223 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:48:02] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:48:03,026 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:48:03] "GET /instructivo HTTP/1.1" 200 -
+2026-01-22 17:48:03,153 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:48:03] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:51:19,758 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-22 17:51:19,760 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-22 17:51:20,456 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:51:20] "[32mGET /instructivo HTTP/1.1[0m" 302 -
+2026-01-22 17:51:20,503 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:51:20] "GET /login HTTP/1.1" 200 -
+2026-01-22 17:51:20,801 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:51:20] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:51:21,880 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:51:21] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-22 17:51:25,724 - __main__ - INFO - Usuario 1 inició sesión
+2026-01-22 17:51:25,725 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:51:25] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-22 17:51:25,852 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:51:25] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-22 17:51:25,987 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:51:25] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 17:51:27,022 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:51:27] "GET /instructivo HTTP/1.1" 200 -
+2026-01-22 17:51:27,133 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 17:51:27] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 18:26:33,973 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 18:26:33] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-22 18:26:34,082 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 18:26:34] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 18:32:18,860 - app - ERROR - Exception on /instructivo [GET]
+Traceback (most recent call last):
+  File "C:\Users\SANTINO\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SANTINO\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SANTINO\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SANTINO\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\PROYECTO PRESU\app.py", line 197, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\PROYECTO PRESU\app.py", line 1426, in instructivo
+    return render_template('instructivo.html',
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SANTINO\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SANTINO\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SANTINO\AppData\Local\Programs\Python\Python311\Lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "C:\Users\SANTINO\AppData\Local\Programs\Python\Python311\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "D:\Desktop\PROYECTO PRESU\templates\instructivo.html", line 261, in top-level template code
+    data-nombre="{{ instructivo.nombre.lower() }}"
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SANTINO\AppData\Local\Programs\Python\Python311\Lib\site-packages\jinja2\environment.py", line 490, in getattr
+    return getattr(obj, attribute)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'dict object' has no attribute 'nombre'
+2026-01-22 18:32:18,881 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 18:32:18] "[35m[1mGET /instructivo HTTP/1.1[0m" 500 -
+2026-01-22 18:32:19,917 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 18:32:19] "GET /favicon.ico HTTP/1.1" 200 -
+2026-01-22 18:33:06,264 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-22 18:33:06,266 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-22 18:33:10,118 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 18:33:10] "[32mGET /instructivo HTTP/1.1[0m" 302 -
+2026-01-22 18:33:10,156 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 18:33:10] "GET /login HTTP/1.1" 200 -
+2026-01-22 18:33:10,567 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 18:33:10] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 18:33:14,727 - __main__ - INFO - Usuario 1 inició sesión
+2026-01-22 18:33:14,728 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 18:33:14] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-22 18:33:14,885 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 18:33:14] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-22 18:33:15,010 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 18:33:15] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-22 18:33:16,662 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 18:33:16] "GET /instructivo HTTP/1.1" 200 -
+2026-01-22 18:33:16,786 - werkzeug - INFO - 127.0.0.1 - - [22/Jan/2026 18:33:16] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-30 09:49:13,670 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-01-30 09:49:13,671 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-30 09:49:21,978 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 09:49:21] "GET / HTTP/1.1" 200 -
+2026-01-30 09:49:23,459 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 09:49:23] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-30 09:49:24,845 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 09:49:24] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-01-30 09:49:29,385 - __main__ - INFO - Usuario 3 inició sesión
+2026-01-30 09:49:29,409 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 09:49:29] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-30 09:49:29,498 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 09:49:29] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-30 09:49:29,655 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 09:49:29] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-30 09:49:33,963 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 09:49:33] "GET /presupuestos HTTP/1.1" 200 -
+2026-01-30 09:49:34,126 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 09:49:34] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-30 09:49:42,429 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 09:49:42] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-30 09:49:42,550 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 09:49:42] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-01-30 09:49:44,249 - __main__ - INFO - Obteniendo preview desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g
+2026-01-30 09:49:44,250 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-30 09:49:44,251 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g&download=1
+2026-01-30 09:49:44,252 - __main__ - INFO - URL de OneDrive detectada, intentando descarga con requests primero...
+2026-01-30 09:49:44,706 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-30 09:49:46,020 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-01-30 09:49:46,793 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-01-30 09:49:46,809 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 09:49:46] "GET /admin/sync_precios/preview HTTP/1.1" 200 -
+2026-01-30 09:49:49,205 - __main__ - INFO - Leyendo archivo desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g
+2026-01-30 09:49:49,206 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-30 09:49:49,206 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g&download=1
+2026-01-30 09:49:51,682 - __main__ - WARNING - No se pudo leer directamente con pandas: HTTP Error 401: Unauthorized
+2026-01-30 09:49:51,683 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-01-30 09:49:52,666 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-01-30 09:49:52,727 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-01-30 09:49:52,761 - __main__ - INFO - Sincronización completada: 64 obras activas, 78 total (incluyendo 14 cortadas)
+2026-01-30 09:49:52,764 - __main__ - INFO - Precios sincronizados por 3: 64 obras sociales
+2026-01-30 09:49:52,768 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 09:49:52] "[32mPOST /admin/sync_precios HTTP/1.1[0m" 302 -
+2026-01-30 09:49:52,790 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 09:49:52] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-01-30 09:49:52,937 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 09:49:52] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -

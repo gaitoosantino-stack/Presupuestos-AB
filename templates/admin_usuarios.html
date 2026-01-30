@@ -448,12 +448,12 @@
 
         <!-- Sincronizar precios desde Google Sheet -->
         <div class="section">
-            <h2>Estado de Obras Sociales</h2>
+            <h2>Aranceles</h2>
             <p style="margin-bottom: 15px; color: #64748b; font-size: 0.95em;">
                 Consulta el estado actual de todas las obras sociales (vigentes y cortadas) con sus precios.
             </p>
             <a href="{{ url_for('admin_estado_obras') }}" class="btn btn-primary" style="font-size: 14px; text-decoration: none; display: inline-block;">
-                 Ver Estado de Obras Sociales
+                 Ver Aranceles
             </a>
         </div>
 
@@ -510,8 +510,10 @@
                             {% endif %}
                         </td>
                         <td>
+                            {% if username != 'Gaito' and username != '3' %}
                             <a href="{{ url_for('admin_perfil', username=username) }}" class="btn btn-primary btn-small" style="text-decoration: none; display: inline-block; margin-right: 5px;">Editar Perfil PDF</a>
-                            {% if username != 'Gaito' %}
+                            {% endif %}
+                            {% if username != 'Gaito' and username != '3' %}
                                 {% if user_data.get('habilitado', False) %}
                                     <form method="POST" action="{{ url_for('admin_usuarios') }}" style="display: inline;">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

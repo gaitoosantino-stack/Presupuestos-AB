@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Estado de Obras Sociales</title>
+    <title>Aranceles</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
@@ -239,10 +239,9 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Estado de Obras Sociales</h1>
+            <h1>Aranceles</h1>
             <div class="nav-links">
-                <a href="{{ url_for('admin_usuarios') }}">Volver a Gestión</a>
-                <a href="{{ url_for('presupuestos') }}">Presupuestos</a>
+                <a href="{{ url_for('presupuestos') }}">Volver a Presupuestos</a>
             </div>
         </div>
 
@@ -297,7 +296,9 @@
                     <tr data-estado="{{ obra.estado }}" data-nombre="{{ obra.nombre.lower() }}">
                         <td><strong>{{ obra.nombre }}</strong></td>
                         <td class="precio">
-                            {% if obra.precio and obra.precio != 'None' and obra.precio != 'N/A' %}
+                            {% if obra.estado == 'cortada' %}
+                                <em style="color: #cbd5e1;">—</em>
+                            {% elif obra.precio and obra.precio != 'None' and obra.precio != 'N/A' %}
                                 ${{ obra.precio }}
                             {% else %}
                                 <em style="color: #94a3b8;">Sin precio</em>

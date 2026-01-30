@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Instructivo de Obras Sociales</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            background: #f5f7fa;
+            font-family: 'Segoe UI', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 36px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .header h1 {
+            color: #1e293b;
+            font-size: 1.95em;
+            margin: 0;
+            font-weight: 600;
+            letter-spacing: -0.4px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-links a {
+            padding: 8px 16px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            background: #1d4ed8;
+        }
+
+        .search-container {
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background: #ffffff;
+            color: #1e293b;
+            box-sizing: border-box;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: #94a3b8;
+        }
+
+        .results-count {
+            margin-top: 15px;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .instructivos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+            margin-top: 30px;
+        }
+
+        .instructivo-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 24px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .instructivo-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            border-color: #2563eb;
+        }
+
+        .instructivo-card.hidden {
+            display: none;
+        }
+
+        .card-header {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .card-title {
+            color: #1e293b;
+            font-size: 1.3em;
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: -0.3px;
+        }
+
+        .card-content {
+            color: #475569;
+            line-height: 1.6;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .card-contact {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .contact-item {
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .contact-item strong {
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .card-notes {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 4px;
+            border-left: 3px solid #2563eb;
+        }
+
+        .card-notes strong {
+            color: #1e293b;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-notes p {
+            margin: 0;
+            color: #475569;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .no-results-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .no-results h3 {
+            color: #475569;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .no-results p {
+            font-size: 1em;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .instructivos-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .search-input {
+                font-size: 14px;
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Instructivo de Obras Sociales</h1>
+            <div class="nav-links">
+                <a href="{{ url_for('presupuestos') }}">Volver a Presupuestos</a>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <input 
+                type="text" 
+                id="search-input" 
+                class="search-input" 
+                placeholder="Buscar Obra Social... (ej: PAMI, OSDE, SEROS)"
+                autocomplete="off"
+            >
+            <div class="results-count" id="results-count"></div>
+        </div>
+
+        <div class="instructivos-grid" id="instructivos-grid">
+            {% if instructivos %}
+                {% for instructivo in instructivos %}
+                <div class="instructivo-card" data-nombre="{{ instructivo.nombre.lower() }}" data-contenido="{{ (instructivo.contenido + ' ' + (instructivo.contacto or '') + ' ' + (instructivo.telefonos or '') + ' ' + (instructivo.notas_especiales or '')).lower() }}">
+                    <div class="card-header">
+                        <h2 class="card-title">{{ instructivo.nombre }}</h2>
+                    </div>
+                    <div class="card-content">
+                        {{ instructivo.contenido }}
+                    </div>
+                    {% if instructivo.contacto or instructivo.telefonos %}
+                    <div class="card-contact">
+                        {% if instructivo.contacto %}
+                        <div class="contact-item">
+                            <strong>Dirección:</strong> {{ instructivo.contacto }}
+                        </div>
+                        {% endif %}
+                        {% if instructivo.telefonos %}
+                        <div class="contact-item">
+                            <strong>Teléfono:</strong> {{ instructivo.telefonos }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% if instructivo.notas_especiales %}
+                    <div class="card-notes">
+                        <strong>Notas Especiales:</strong>
+                        <p>{{ instructivo.notas_especiales }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-results">
+                    <div class="no-results-icon">📋</div>
+                    <h3>No hay instructivos disponibles</h3>
+                    <p>No se encontraron datos de instructivos de obras sociales.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if instructivos %}
+        <div class="no-results hidden" id="no-results-message">
+            <div class="no-results-icon">🔍</div>
+            <h3>No se encontraron resultados</h3>
+            <p>Intenta con otro término de búsqueda.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('search-input');
+        const instructivosGrid = document.getElementById('instructivos-grid');
+        const cards = document.querySelectorAll('.instructivo-card');
+        const resultsCount = document.getElementById('results-count');
+        const noResultsMessage = document.getElementById('no-results-message');
+
+        function updateResults() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const nombre = card.getAttribute('data-nombre');
+                const contenido = card.getAttribute('data-contenido');
+                
+                if (searchTerm === '' || 
+                    nombre.includes(searchTerm) || 
+                    contenido.includes(searchTerm)) {
+                    card.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            // Actualizar contador de resultados
+            if (searchTerm === '') {
+                resultsCount.textContent = `Mostrando ${visibleCount} obra${visibleCount !== 1 ? 's' : ''} social${visibleCount !== 1 ? 'es' : ''}`;
+            } else {
+                resultsCount.textContent = `${visibleCount} resultado${visibleCount !== 1 ? 's' : ''} encontrado${visibleCount !== 1 ? 's' : ''} para "${searchInput.value}"`;
+            }
+
+            // Mostrar/ocultar mensaje de "no resultados"
+            if (visibleCount === 0 && searchTerm !== '') {
+                if (noResultsMessage) {
+                    noResultsMessage.classList.remove('hidden');
+                }
+            } else {
+                if (noResultsMessage) {
+                    noResultsMessage.classList.add('hidden');
+                }
+            }
+        }
+
+        // Búsqueda en tiempo real
+        searchInput.addEventListener('input', updateResults);
+
+        // Inicializar contador
+        updateResults();
+
+        // Focus en el input al cargar la página
+        searchInput.focus();
+    </script>
+</body>
+</html>
+
