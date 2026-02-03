@@ -306,6 +306,15 @@
         /* Autocomplete Styles */
         .autocomplete-container {
             position: relative;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        /* Indicador visual cuando obra social está seleccionada */
+        #obra-social.obra-seleccionada {
+            border-color: #22c55e;
+            border-left-width: 4px;
+            background-color: rgba(34, 197, 94, 0.08);
+            box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.25);
         }
 
         .autocomplete-dropdown {
@@ -931,9 +940,30 @@
             let currentFocus = -1;
             let isDropdownVisible = false;
 
-            // Mostrar dropdown al hacer foco
+            // Mostrar dropdown al hacer foco (respetar filtro si ya hay texto)
             input.addEventListener('focus', function() {
-                showAllOptions();
+                const filter = this.value.trim().toLowerCase();
+                if (filter) {
+                    let visibleOptions = [];
+                    options.forEach(option => {
+                        const text = option.textContent.toLowerCase();
+                        if (text.includes(filter)) {
+                            option.style.display = 'block';
+                            visibleOptions.push(option);
+                        } else {
+                            option.style.display = 'none';
+                        }
+                    });
+                    visibleOptions.sort((a, b) => a.textContent.localeCompare(b.textContent));
+                    visibleOptions.forEach(option => dropdown.appendChild(option));
+                    if (visibleOptions.length > 0) {
+                        showDropdown();
+                    } else {
+                        hideDropdown();
+                    }
+                } else {
+                    showAllOptions();
+                }
             });
 
             // Ocultar dropdown al perder foco (con delay para permitir clicks)
@@ -1120,6 +1150,7 @@
                 if (isObraSocial) {
                     precioObraSocial = parseFloat(option.getAttribute('data-precio'));
                     nombreObraSocialActual = option.textContent;
+                    actualizarIndicadorObraSocial();
                     // Actualizar total y precios en la lista cuando se selecciona obra social
                     actualizarTotal();
                     // Mostrar/ocultar campo personalizado
@@ -1129,6 +1160,16 @@
                         document.getElementById('personalizado-container').style.display = 'none';
                     }
                 }
+            }
+        }
+
+        // Actualizar indicador visual de obra social seleccionada
+        function actualizarIndicadorObraSocial() {
+            const input = document.getElementById('obra-social');
+            if (nombreObraSocialActual && nombreObraSocialActual.trim() !== '') {
+                input.classList.add('obra-seleccionada');
+            } else {
+                input.classList.remove('obra-seleccionada');
             }
         }
 
@@ -1149,6 +1190,9 @@
             modal.classList.remove('show');
             // Limpiar el campo de obra social
             document.getElementById('obra-social').value = '';
+            nombreObraSocialActual = '';
+            precioObraSocial = 0;
+            actualizarIndicadorObraSocial();
         }
 
         // Cerrar modal de obra cortada al hacer clic en OK
@@ -1167,16 +1211,61 @@
         initAutocomplete('obra-social', 'obras-dropdown', true);
         initAutocomplete('estudio', 'estudios-dropdown', false);
 
+        // Si el usuario borra manualmente el campo obra social, actualizar estado
+        document.getElementById('obra-social').addEventListener('input', function() {
+            if (this.value.trim() === '') {
+                nombreObraSocialActual = '';
+                precioObraSocial = 0;
+                actualizarIndicadorObraSocial();
+                actualizarTotal();
+                document.getElementById('personalizado-container').style.display = 'none';
+            }
+        });
+
+        // Al salir del campo: validar que el texto coincida con una obra social válida
+        document.getElementById('obra-social').addEventListener('blur', function() {
+            const valor = this.value.trim();
+            if (!valor) {
+                nombreObraSocialActual = '';
+                precioObraSocial = 0;
+                actualizarIndicadorObraSocial();
+                document.getElementById('personalizado-container').style.display = 'none';
+                return;
+            }
+            const opciones = document.querySelectorAll('#obras-dropdown .autocomplete-option');
+            const coincide = Array.from(opciones).find(opt => opt.textContent.trim() === valor);
+            if (coincide) {
+                nombreObraSocialActual = coincide.textContent.trim();
+                if (valor !== 'Personalizado') {
+                    precioObraSocial = parseFloat(coincide.getAttribute('data-precio'));
+                }
+                if (valor === 'Personalizado') {
+                    document.getElementById('personalizado-container').style.display = 'block';
+                } else {
+                    document.getElementById('personalizado-container').style.display = 'none';
+                }
+                actualizarTotal();
+            } else {
+                nombreObraSocialActual = '';
+                precioObraSocial = 0;
+                document.getElementById('personalizado-container').style.display = 'none';
+                actualizarTotal();
+            }
+            actualizarIndicadorObraSocial();
+        });
+
         // Evento para el input de valor personalizado
         document.getElementById('valor-personalizado').addEventListener('input', function() {
             const valor = parseFloat(this.value);
             if (!isNaN(valor) && valor >= 0) {
                 precioObraSocial = valor;
                 nombreObraSocialActual = 'Personalizado';
+                actualizarIndicadorObraSocial();
                 actualizarTotal();
             } else {
                 precioObraSocial = 0;
                 nombreObraSocialActual = '';
+                actualizarIndicadorObraSocial();
                 actualizarTotal();
             }
         });
@@ -1348,6 +1437,7 @@
 
             // Limpiar input obra social
             document.getElementById('obra-social').value = '';
+            actualizarIndicadorObraSocial();
 
             // Ocultar input personalizado
             document.getElementById('personalizado-container').style.display = 'none';

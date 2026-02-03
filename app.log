@@ -139,3 +139,73 @@
 2026-02-03 07:07:50,641 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
 2026-02-03 07:07:50,689 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
 2026-02-03 07:07:50,704 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 07:07:50] "GET /admin/sync_precios/preview HTTP/1.1" 200 -
+2026-02-03 08:51:49,962 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-02-03 08:51:49,963 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-02-03 08:52:01,099 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:52:01] "[32mGET /admin/usuarios HTTP/1.1[0m" 302 -
+2026-02-03 08:52:01,147 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:52:01] "GET /login HTTP/1.1" 200 -
+2026-02-03 08:52:01,592 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:52:01] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-02-03 08:52:02,592 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:52:02] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-02-03 08:52:06,559 - __main__ - INFO - Usuario 1 inició sesión
+2026-02-03 08:52:06,561 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:52:06] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-03 08:52:06,647 - __main__ - INFO - Cargados 58 códigos de anexo
+2026-02-03 08:52:06,696 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:52:06] "GET /presupuestos HTTP/1.1" 200 -
+2026-02-03 08:52:06,936 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:52:06] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-02-03 08:52:47,257 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-02-03 08:52:47,275 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-02-03 08:52:53,858 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:52:53] "[32mGET /presupuestos HTTP/1.1[0m" 302 -
+2026-02-03 08:52:53,900 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:52:53] "GET /login HTTP/1.1" 200 -
+2026-02-03 08:52:54,314 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:52:54] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-02-03 08:52:54,732 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:52:54] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-02-03 08:52:57,628 - __main__ - INFO - Usuario 1 inició sesión
+2026-02-03 08:52:57,629 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:52:57] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-03 08:52:57,712 - __main__ - INFO - Cargados 58 códigos de anexo
+2026-02-03 08:52:57,774 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:52:57] "GET /presupuestos HTTP/1.1" 200 -
+2026-02-03 08:52:57,946 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:52:57] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-02-03 08:54:40,328 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-02-03 08:54:40,330 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-02-03 08:54:48,153 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:54:48] "[32mGET /presupuestos HTTP/1.1[0m" 302 -
+2026-02-03 08:54:48,194 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:54:48] "GET /login HTTP/1.1" 200 -
+2026-02-03 08:54:48,566 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:54:48] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-02-03 08:54:48,964 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:54:48] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-02-03 08:54:51,499 - __main__ - INFO - Usuario 1 inició sesión
+2026-02-03 08:54:51,500 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:54:51] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-03 08:54:51,582 - __main__ - INFO - Cargados 58 códigos de anexo
+2026-02-03 08:54:51,640 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:54:51] "GET /presupuestos HTTP/1.1" 200 -
+2026-02-03 08:54:51,776 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:54:51] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-02-03 08:57:45,857 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-02-03 08:57:45,857 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-02-03 08:57:46,787 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:57:46] "[32mGET /presupuestos HTTP/1.1[0m" 302 -
+2026-02-03 08:57:46,828 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:57:46] "GET /login HTTP/1.1" 200 -
+2026-02-03 08:57:47,261 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:57:47] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-02-03 08:57:48,011 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:57:48] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-02-03 08:57:52,077 - __main__ - INFO - Usuario 1 inició sesión
+2026-02-03 08:57:52,078 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:57:52] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-03 08:57:52,171 - __main__ - INFO - Cargados 58 códigos de anexo
+2026-02-03 08:57:52,295 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:57:52] "GET /presupuestos HTTP/1.1" 200 -
+2026-02-03 08:57:52,694 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 08:57:52] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-02-03 09:00:40,133 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-02-03 09:00:40,135 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-02-03 09:00:42,573 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 09:00:42] "[32mGET /presupuestos HTTP/1.1[0m" 302 -
+2026-02-03 09:00:42,609 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 09:00:42] "GET /login HTTP/1.1" 200 -
+2026-02-03 09:00:43,034 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 09:00:43] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-02-03 09:00:44,216 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 09:00:44] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-02-03 09:00:45,899 - __main__ - INFO - Usuario 1 inició sesión
+2026-02-03 09:00:45,900 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 09:00:45] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-03 09:00:45,977 - __main__ - INFO - Cargados 58 códigos de anexo
+2026-02-03 09:00:46,039 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 09:00:46] "GET /presupuestos HTTP/1.1" 200 -
+2026-02-03 09:00:46,190 - werkzeug - INFO - 127.0.0.1 - - [03/Feb/2026 09:00:46] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
