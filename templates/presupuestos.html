@@ -160,17 +160,119 @@
             border-color: #cbd5e1;
         }
 
+        .estudio-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .estudio-codigo-nombre {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .estudio-codigo-nombre strong {
+            color: #1e293b;
+            font-size: 0.95em;
+        }
+        
+        .estudio-detalles {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .estudio-ub {
+            color: #64748b;
+            font-size: 0.9em;
+            background: #e2e8f0;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .estudio-precio {
+            color: #059669;
+            font-size: 1em;
+            font-weight: 600;
+            background: #d1fae5;
+            padding: 4px 12px;
+            border-radius: 4px;
+        }
+        
+        .badge-anexo {
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 0.75em;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            cursor: help;
+        }
+        
+        .badge-anexo:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 12px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fef3c7;
+            color: #92400e;
+            padding: 16px 20px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 500;
+            line-height: 1.6;
+            z-index: 1000;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            border: 2px solid #fde68a;
+            text-transform: none;
+            letter-spacing: 0.3px;
+            min-width: 320px;
+            max-width: 450px;
+            white-space: normal;
+            text-align: center;
+            word-wrap: break-word;
+            pointer-events: none;
+        }
+        
+        .badge-anexo:hover::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 2px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 10px solid transparent;
+            border-top-color: #fef3c7;
+            z-index: 1001;
+            pointer-events: none;
+        }
+        
         .eliminar-estudio {
             background: #dc2626;
             color: white;
             border: none;
-            padding: 6px 14px;
+            padding: 8px 16px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 13px;
             font-weight: 500;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.2s ease, transform 0.1s ease;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+        }
+        
+        .eliminar-estudio:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
         }
 
         .eliminar-estudio:hover {
@@ -672,10 +774,73 @@
     </div>
 
     <script>
+        // Configuración de anexo desde el servidor
+        const obrasSinCoberturaAnexo = {{ obras_sin_cobertura_anexo | tojson }};
+        const codigosAnexo = {{ codigos_anexo | tojson }};
+        
         let estudiosAgregados = [];
         let estudiosManuales = [];
         let precioObraSocial = 0;
+        let nombreObraSocialActual = '';
         let contadorId = 0; // Contador para IDs únicos
+        
+        // Función para obtener el precio actual de Particular dinámicamente
+        function obtenerPrecioParticular() {
+            try {
+                const obrasDropdown = document.getElementById('obras-dropdown');
+                if (obrasDropdown) {
+                    const opcionParticular = Array.from(obrasDropdown.querySelectorAll('.autocomplete-option'))
+                        .find(option => option.textContent.trim() === 'PARTICULAR');
+                    if (opcionParticular) {
+                        const precioStr = opcionParticular.getAttribute('data-precio');
+                        if (precioStr && precioStr !== 'None' && precioStr !== 'null') {
+                            // Convertir formato argentino a float
+                            // El precio puede venir como "3.000,00" o "3000.00" o "3000"
+                            let precioLimpio = precioStr.toString().trim();
+                            // Si tiene punto y coma, es formato argentino (ej: "3.000,00")
+                            if (precioLimpio.includes('.') && precioLimpio.includes(',')) {
+                                precioLimpio = precioLimpio.replace(/\./g, '').replace(',', '.');
+                            } else if (precioLimpio.includes(',')) {
+                                // Solo tiene coma, reemplazar por punto
+                                precioLimpio = precioLimpio.replace(',', '.');
+                            }
+                            const precio = parseFloat(precioLimpio);
+                            if (!isNaN(precio) && precio > 0) {
+                                return precio;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('Error al obtener precio de Particular:', e);
+            }
+            // Valor por defecto si no se encuentra
+            return 3000.0;
+        }
+        
+        // Función para verificar si un código es de anexo
+        function esCodigoAnexo(codigo) {
+            return codigosAnexo.includes(codigo);
+        }
+        
+        // Función para verificar si la obra social actual no cubre anexo
+        function obraNoCubreAnexo() {
+            return obrasSinCoberturaAnexo.includes(nombreObraSocialActual);
+        }
+        
+        // Función para obtener el precio a usar para un estudio
+        function obtenerPrecioParaEstudio(codigo, ub) {
+            // Si es código de anexo y la obra social no cubre anexo, usar precio Particular (obtenido dinámicamente)
+            if (esCodigoAnexo(codigo) && obraNoCubreAnexo()) {
+                return obtenerPrecioParticular();
+            }
+            // Si no hay obra social seleccionada, retornar 0
+            if (precioObraSocial === 0) {
+                return 0;
+            }
+            // Usar precio normal de la obra social
+            return precioObraSocial;
+        }
 
         // Función para formatear números al estilo argentino (puntos para miles, coma para decimales)
         function formatearNumeroArgentino(num) {
@@ -697,16 +862,65 @@
             }, 500);
         }
 
+        // Función para actualizar los precios mostrados en la lista de estudios
+        function actualizarPreciosEnLista() {
+            const listaItems = document.querySelectorAll('#lista-estudios li');
+            listaItems.forEach((li, index) => {
+                // Obtener el ID único del estudio desde el botón de eliminar
+                const btnEliminar = li.querySelector('.eliminar-estudio');
+                if (btnEliminar) {
+                    const idUnico = btnEliminar.getAttribute('data-id');
+                    const estudio = estudiosAgregados.find(e => e.id === idUnico);
+                    
+                    if (estudio) {
+                        const precioAUsar = obtenerPrecioParaEstudio(estudio.codigo, estudio.ub);
+                        const precioCalculado = parseFloat(estudio.ub) * precioAUsar;
+                        const precioFormateado = formatearNumeroArgentino(precioCalculado);
+                        
+                        // Verificar si es código de anexo y la obra no cubre anexo
+                        const esAnexo = esCodigoAnexo(estudio.codigo);
+                        const usaParticular = obraNoCubreAnexo() && esAnexo;
+                        
+                        // Crear badge de anexo con tooltip si aplica
+                        let badgeAnexo = '';
+                        if (usaParticular) {
+                            const precioParticularActual = obtenerPrecioParticular();
+                            const precioParticularFormateado = formatearNumeroArgentino(precioParticularActual);
+                            const tooltipText = `Esta Práctica es cobrada a NBU: ARS$ ${precioParticularFormateado} ya que ${nombreObraSocialActual} no cubre prácticas del anexo`;
+                            badgeAnexo = `<span class="badge-anexo" data-tooltip="${tooltipText}">Anexo</span>`;
+                        }
+                        li.innerHTML = `
+                            <div class="estudio-info">
+                                <div class="estudio-codigo-nombre">
+                                    <strong>${estudio.codigo}</strong> - ${estudio.nombre}
+                                    ${badgeAnexo}
+                                </div>
+                                <div class="estudio-detalles">
+                                    <span class="estudio-ub">UB: ${estudio.ub}</span>
+                                    <span class="estudio-precio">ARS$ ${precioFormateado}</span>
+                                </div>
+                            </div>
+                            <button class="eliminar-estudio" data-id="${idUnico}">Eliminar</button>
+                        `;
+                    }
+                }
+            });
+        }
+        
         // Función para actualizar el total
         function actualizarTotal() {
             let total = 0;
             estudiosAgregados.forEach(estudio => {
-                total += parseFloat(estudio.ub) * precioObraSocial;
+                const precioAUsar = obtenerPrecioParaEstudio(estudio.codigo, estudio.ub);
+                total += parseFloat(estudio.ub) * precioAUsar;
             });
             estudiosManuales.forEach(estudio => {
                 total += parseFloat(estudio.precio);
             });
             document.getElementById('total').textContent = formatearNumeroArgentino(total);
+            
+            // Actualizar también los precios en la lista
+            actualizarPreciosEnLista();
         }
 
         // Función para inicializar autocomplete
@@ -808,9 +1022,35 @@
                         
                         const idUnico = `estudio_${contadorId++}`;
                         estudiosAgregados.push({ id: idUnico, codigo, nombre, ub });
-                        const precio = formatearNumeroArgentino(ub * precioObraSocial);
+                        const precioAUsar = obtenerPrecioParaEstudio(codigo, ub);
+                        const precioCalculado = parseFloat(ub) * precioAUsar;
+                        const precio = formatearNumeroArgentino(precioCalculado);
+                        
+                        // Verificar si es código de anexo y la obra no cubre anexo
+                        const esAnexo = esCodigoAnexo(codigo);
+                        const usaParticular = obraNoCubreAnexo() && esAnexo;
+                        let badgeAnexo = '';
+                        if (usaParticular) {
+                            const precioParticularActual = obtenerPrecioParticular();
+                            const precioParticularFormateado = formatearNumeroArgentino(precioParticularActual);
+                            const tooltipText = `Esta Práctica es cobrada a NBU: ARS$ ${precioParticularFormateado} ya que ${nombreObraSocialActual} no cubre prácticas del anexo`;
+                            badgeAnexo = `<span class="badge-anexo" data-tooltip="${tooltipText}">Anexo</span>`;
+                        }
+                        
                         const li = document.createElement('li');
-                        li.innerHTML = `${codigo} - ${nombre} (Precio: ARS$${precio}) (UB: ${ub}) <button class="eliminar-estudio" data-id="${idUnico}">Eliminar</button>`;
+                        li.innerHTML = `
+                            <div class="estudio-info">
+                                <div class="estudio-codigo-nombre">
+                                    <strong>${codigo}</strong> - ${nombre}
+                                    ${badgeAnexo}
+                                </div>
+                                <div class="estudio-detalles">
+                                    <span class="estudio-ub">UB: ${ub}</span>
+                                    <span class="estudio-precio">ARS$ ${precio}</span>
+                                </div>
+                            </div>
+                            <button class="eliminar-estudio" data-id="${idUnico}">Eliminar</button>
+                        `;
                         agregarEstudioALista(li);
                         input.value = '';
                         actualizarTotal();
@@ -879,6 +1119,8 @@
 
                 if (isObraSocial) {
                     precioObraSocial = parseFloat(option.getAttribute('data-precio'));
+                    nombreObraSocialActual = option.textContent;
+                    // Actualizar total y precios en la lista cuando se selecciona obra social
                     actualizarTotal();
                     // Mostrar/ocultar campo personalizado
                     if (option.textContent === 'Personalizado') {
@@ -930,9 +1172,11 @@
             const valor = parseFloat(this.value);
             if (!isNaN(valor) && valor >= 0) {
                 precioObraSocial = valor;
+                nombreObraSocialActual = 'Personalizado';
                 actualizarTotal();
             } else {
                 precioObraSocial = 0;
+                nombreObraSocialActual = '';
                 actualizarTotal();
             }
         });
@@ -967,9 +1211,35 @@
                 estudiosAgregados.push({ id: idUnico, codigo, nombre, ub });
 
                 // Agregar a la lista visual
-                const precio = formatearNumeroArgentino(ub * precioObraSocial);
+                const precioAUsar = obtenerPrecioParaEstudio(codigo, ub);
+                const precioCalculado = parseFloat(ub) * precioAUsar;
+                const precio = formatearNumeroArgentino(precioCalculado);
+                
+                // Verificar si es código de anexo y la obra no cubre anexo
+                const esAnexo = esCodigoAnexo(codigo);
+                const usaParticular = obraNoCubreAnexo() && esAnexo;
+                let badgeAnexo = '';
+                if (usaParticular) {
+                    const precioParticularActual = obtenerPrecioParticular();
+                    const precioParticularFormateado = formatearNumeroArgentino(precioParticularActual);
+                    const tooltipText = `Esta Práctica es cobrada a NBU: ARS$ ${precioParticularFormateado} ya que ${nombreObraSocialActual} no cubre prácticas del anexo`;
+                    badgeAnexo = `<span class="badge-anexo" data-tooltip="${tooltipText}">Anexo</span>`;
+                }
+                
                 const li = document.createElement('li');
-                li.innerHTML = `${codigo} - ${nombre} (Precio: ARS$${precio}) (UB: ${ub}) <button class="eliminar-estudio" data-id="${idUnico}">Eliminar</button>`;
+                li.innerHTML = `
+                    <div class="estudio-info">
+                        <div class="estudio-codigo-nombre">
+                            <strong>${codigo}</strong> - ${nombre}
+                            ${badgeAnexo}
+                        </div>
+                        <div class="estudio-detalles">
+                            <span class="estudio-ub">UB: ${ub}</span>
+                            <span class="estudio-precio">ARS$ ${precio}</span>
+                        </div>
+                    </div>
+                    <button class="eliminar-estudio" data-id="${idUnico}">Eliminar</button>
+                `;
                 agregarEstudioALista(li);
 
                 estudioInput.value = '';
@@ -1026,7 +1296,17 @@
 
             // Agregar a la lista visual
             const li = document.createElement('li');
-            li.innerHTML = `${nombreEstudio} (Precio: ARS$${formatearNumeroArgentino(precioEstudio)}) <button class="eliminar-estudio" data-id="${idUnico}">Eliminar</button>`;
+            li.innerHTML = `
+                <div class="estudio-info">
+                    <div class="estudio-codigo-nombre">
+                        <strong>Manual</strong> - ${nombreEstudio}
+                    </div>
+                    <div class="estudio-detalles">
+                        <span class="estudio-precio">ARS$ ${formatearNumeroArgentino(precioEstudio)}</span>
+                    </div>
+                </div>
+                <button class="eliminar-estudio" data-id="${idUnico}">Eliminar</button>
+            `;
             agregarEstudioALista(li);
 
             // Limpiar campos y ocultar sección
@@ -1064,6 +1344,7 @@
 
             // Resetear precio obra social
             precioObraSocial = 0;
+            nombreObraSocialActual = '';
 
             // Limpiar input obra social
             document.getElementById('obra-social').value = '';
@@ -1151,7 +1432,8 @@
             
             // Agregar estudios con UB
             estudiosAgregados.forEach(estudio => {
-                const valor = parseFloat(estudio.ub) * precioObraSocial;
+                const precioAUsar = obtenerPrecioParaEstudio(estudio.codigo, estudio.ub);
+                const valor = parseFloat(estudio.ub) * precioAUsar;
                 estudiosParaPDF.push({
                     codigo: estudio.codigo,
                     nombre: estudio.nombre,
