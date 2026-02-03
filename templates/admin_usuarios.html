@@ -163,6 +163,76 @@
             font-size: 12px;
         }
 
+        /* Gestión de Anexo (minimal) */
+        .anexo-section .anexo-desc {
+            margin-bottom: 16px;
+            color: #64748b;
+            font-size: 0.9em;
+        }
+        .anexo-list-header {
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            color: #64748b;
+        }
+        .anexo-list-header .anexo-count { font-weight: 500; color: #475569; }
+        #anexo-obras-list {
+            padding: 12px 0;
+            min-height: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        #anexo-obras-list p { margin: 0; font-size: 0.9em; color: #94a3b8; }
+        .anexo-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #334155;
+        }
+        .anexo-chip .btn-remove-anexo {
+            padding: 0;
+            margin: 0;
+            width: 18px;
+            height: 18px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+        }
+        .anexo-chip .btn-remove-anexo:hover { color: #64748b; }
+        .anexo-add-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .anexo-add-row .form-group {
+            flex: 1;
+            min-width: 180px;
+            margin-bottom: 0;
+        }
+        .anexo-add-row .form-group label {
+            margin-bottom: 4px;
+            font-size: 0.9em;
+        }
+        .anexo-add-row select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 14px;
+            background: #fff;
+        }
+        .anexo-add-row .btn { flex-shrink: 0; white-space: nowrap; }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -458,16 +528,6 @@
 
         <!-- Sincronizar precios desde Google Sheet -->
         <div class="section">
-            <h2>Aranceles</h2>
-            <p style="margin-bottom: 15px; color: #64748b; font-size: 0.95em;">
-                Consulta el estado actual de todas las obras sociales (vigentes, sin convenio y suspendidas) con sus precios.
-            </p>
-            <a href="{{ url_for('admin_estado_obras') }}" class="btn btn-primary" style="font-size: 14px; text-decoration: none; display: inline-block;">
-                 Ver Aranceles
-            </a>
-        </div>
-
-        <div class="section">
             <h2>Sincronizar Precios</h2>
             <p style="margin-bottom: 15px; color: #64748b; font-size: 0.95em;">
                 Actualiza los precios de obras sociales desde el Google Sheet externo.
@@ -478,40 +538,38 @@
         </div>
 
         <!-- Gestión de Anexo -->
-        <div class="section">
+        <div class="section anexo-section">
             <h2>Gestión de Anexo</h2>
-            <p style="margin-bottom: 15px; color: #64748b; font-size: 0.95em;">
-                Configura qué obras sociales no cubren los estudios del anexo. Cuando una obra social no cubre anexo y se calcula un estudio del anexo, se usará el precio de Particular (actualmente ${{ "%.2f"|format(precio_particular) }}).
-            </p>
-            <div style="margin-bottom: 20px;">
-                <h3 style="font-size: 1.1em; margin-bottom: 10px; color: #1e293b;">Obras Sociales que NO cubren Anexo:</h3>
-                <div id="anexo-obras-list" style="background: #f8fafc; padding: 15px; border-radius: 4px; border: 1px solid #e2e8f0; min-height: 50px;">
-                    {% if obras_sin_cobertura_anexo %}
-                        {% for obra in obras_sin_cobertura_anexo %}
-                        <div style="display: inline-block; margin: 5px; padding: 8px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 4px; position: relative;">
-                            <span>{{ obra }}</span>
-                            <button type="button" class="btn-remove-anexo" data-obra="{{ obra }}" style="margin-left: 8px; padding: 2px 8px; background: #ef4444; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">×</button>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <p style="color: #94a3b8; font-style: italic; margin: 0;">No hay obras sociales configuradas. Agrega obras sociales que no cubren anexo.</p>
-                    {% endif %}
-                </div>
+            <p class="anexo-desc">Obras en esta lista usan precio Particular (${{ "%.2f"|format(precio_particular) }}) en estudios de anexo.</p>
+            <div class="anexo-list-header">
+                No cubren anexo <span class="anexo-count">({{ obras_sin_cobertura_anexo|length }})</span>
             </div>
-            <div style="margin-bottom: 15px;">
-                <label for="select-obra-anexo" style="display: block; margin-bottom: 8px; font-weight: 500; color: #1e293b;">Agregar Obra Social:</label>
-                <select id="select-obra-anexo" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; background: white;">
-                    <option value="">Selecciona una obra social...</option>
-                    {% for obra in todas_las_obras %}
-                        {% if obra not in obras_sin_cobertura_anexo %}
-                        <option value="{{ obra }}">{{ obra }}</option>
-                        {% endif %}
+            <div id="anexo-obras-list">
+                {% if obras_sin_cobertura_anexo %}
+                    {% for obra in obras_sin_cobertura_anexo %}
+                    <div class="anexo-chip">
+                        <span>{{ obra }}</span>
+                        <button type="button" class="btn-remove-anexo" data-obra="{{ obra }}" title="Quitar">×</button>
+                    </div>
                     {% endfor %}
-                </select>
+                {% else %}
+                    <p>Ninguna</p>
+                {% endif %}
             </div>
-            <button type="button" id="btn-agregar-anexo" class="btn btn-primary" style="font-size: 14px;">
-                Agregar Obra Social
-            </button>
+            <div class="anexo-add-row">
+                <div class="form-group">
+                    <label for="select-obra-anexo">Agregar</label>
+                    <select id="select-obra-anexo">
+                        <option value="">Elegir obra...</option>
+                        {% for obra in todas_las_obras %}
+                            {% if obra not in obras_sin_cobertura_anexo %}
+                            <option value="{{ obra }}">{{ obra }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="button" id="btn-agregar-anexo" class="btn btn-primary">Agregar</button>
+            </div>
         </div>
 
         <!-- Agregar nuevo usuario -->
