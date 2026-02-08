@@ -43,6 +43,8 @@ csrf = CSRFProtect(app)
 
 # Archivo para almacenar usuarios habilitados
 USERS_FILE = 'usuarios_habilitados.json'
+# Log de accesos de Daniel (solo fecha y hora)
+DANIEL_LOG_FILE = 'log_daniel.txt'
 # Archivo para almacenar perfiles de laboratorios
 PERFILES_FILE = 'perfiles.json'
 # Carpeta para logos
@@ -282,6 +284,12 @@ def login():
                 session['username'] = username
                 session.permanent = True
                 logger.info(f"Usuario {username} inició sesión")
+                if username == 'DanielABNECH':
+                    try:
+                        with open(DANIEL_LOG_FILE, 'a', encoding='utf-8') as f:
+                            f.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '\n')
+                    except OSError:
+                        pass
                 flash(f'¡Bienvenido, {username}!', 'success')
                 # Redirigir a admin si es admin, sino a presupuestos
                 if is_gaito_admin():
