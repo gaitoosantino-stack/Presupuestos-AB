@@ -40,6 +40,13 @@
                 <button type="button" id="btn-preview-sync" class="admin-btn admin-btn-primary">Sincronizar con OneDrive</button>
             </div>
 
+            {% if current_user == 'Gaito' and daniel_log_lines is defined %}
+            <div class="admin-card">
+                <h2>Log Daniel</h2>
+                <pre style="margin:0; font-size:0.85rem; max-height:200px; overflow:auto;">{% for line in daniel_log_lines %}{{ line }}{{ '\n' }}{% endfor %}{% if not daniel_log_lines %}— vacío —{% endif %}</pre>
+            </div>
+            {% endif %}
+
             <div class="admin-card">
                 <h2>Gestión de anexo</h2>
                 <p class="admin-card-desc">Configura qué obras sociales no cubren los estudios del anexo.</p>
