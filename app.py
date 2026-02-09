@@ -38,9 +38,23 @@ app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24).hex()
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+# El token CSRF no expira por tiempo; así el formulario de login no falla si se deja la página abierta
+app.config['WTF_CSRF_TIME_LIMIT'] = None
 
 # Habilitar protección CSRF
 csrf = CSRFProtect(app)
+
+
+@app.errorhandler(400)
+def bad_request_csrf(e):
+    """Si el 400 viene del login (CSRF expirado), redirigir con mensaje amigable."""
+    if request.method == 'POST' and request.path.rstrip('/') in ('', '/login'):
+        flash('El formulario expiró. Volvé a intentar iniciar sesión.', 'error')
+        return redirect(url_for('login'))
+    if e.description:
+        return e.description, 400
+    return 'Bad Request', 400
+
 
 # Archivo para almacenar usuarios habilitados
 USERS_FILE = 'usuarios_habilitados.json'
