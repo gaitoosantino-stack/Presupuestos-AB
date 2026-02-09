@@ -4,6 +4,7 @@ import os
 import json
 import logging
 from datetime import timedelta, datetime
+from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
@@ -287,7 +288,8 @@ def login():
                 if username == 'DanielABNECH':
                     try:
                         with open(DANIEL_LOG_FILE, 'a', encoding='utf-8') as f:
-                            f.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '\n')
+                            ahora_argentina = datetime.now(ZoneInfo('America/Argentina/Buenos_Aires'))
+                            f.write(ahora_argentina.strftime('%Y-%m-%d %H:%M:%S') + '\n')
                     except OSError:
                         pass
                 flash(f'¡Bienvenido, {username}!', 'success')
