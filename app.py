@@ -1437,12 +1437,22 @@ def admin_usuarios():
     # Obtener precio de Particular para mostrar en el template
     precio_particular = get_precio_particular()
     
+    # Log Daniel (solo para ver desde el panel, temporal)
+    daniel_log_lines = []
+    if os.path.isfile(DANIEL_LOG_FILE):
+        try:
+            with open(DANIEL_LOG_FILE, 'r', encoding='utf-8') as f:
+                daniel_log_lines = f.read().strip().split('\n')[-50:]  # últimas 50
+        except OSError:
+            pass
+    
     return render_template('admin_usuarios.html', 
                          users=users, 
                          current_user=session.get('username'),
                          obras_sin_cobertura_anexo=anexo_config.get('obras_sin_cobertura', []),
                          todas_las_obras=todas_las_obras,
-                         precio_particular=precio_particular)
+                         precio_particular=precio_particular,
+                         daniel_log_lines=daniel_log_lines)
 
 # Ruta para obtener preview de precios antes de sincronizar (solo para Gaito)
 @app.route('/admin/sync_precios/preview', methods=['GET'])
