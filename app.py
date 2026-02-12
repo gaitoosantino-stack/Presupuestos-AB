@@ -828,22 +828,20 @@ def preview_precios_google_sheet():
                     'estado': estado_nuevo
                 }
         
-        # También detectar obras que están actualmente vigentes pero no están en el nuevo Excel (se cambiaron de estado)
+        # También detectar obras que están en la base pero ya NO están en el Excel/OneDrive (borradas del archivo)
         nombres_nuevos = set(obras_dict.keys()) | set(obras_cortadas_dict.keys())
         for nombre_actual, precio_actual in obras_actuales.items():
             if nombre_actual not in nombres_nuevos:
-                # Verificar si realmente estaba vigente (no si ya estaba no vigente)
+                # No está en el archivo de OneDrive: es un borrado, no "sin convenio"
                 obra_estado_actual = obras_estado_actual.get(nombre_actual, {})
                 estado_anterior = obra_estado_actual.get('estado', 'vigente')
-                
-                # Solo incluir si estaba vigente (no si ya estaba no vigente)
-                if estado_anterior == 'vigente':
-                    cambios_dict[nombre_actual] = {
-                        'precio_actual': precio_actual,
-                        'precio_nuevo': 'Sin Convenio (no está en el Excel)',
-                        'cambio': 'sin_convenio',
-                        'estado': 'sin_convenio'
-                    }
+                # Incluir siempre que exista en nuestra base (vigente o no), para informar que fue borrada del archivo
+                cambios_dict[nombre_actual] = {
+                    'precio_actual': precio_actual if estado_anterior == 'vigente' else (estado_anterior == 'suspendida' and 'Suspendida' or 'Sin convenio'),
+                    'precio_nuevo': 'No está en el archivo de OneDrive',
+                    'cambio': 'borrado',
+                    'estado': 'borrado'
+                }
         
         count = len(cambios_dict)
         cambios_ordenados = dict(sorted(cambios_dict.items()))
@@ -862,8 +860,14 @@ def preview_precios_google_sheet():
             cambios_precio = sum(1 for c in cambios_dict.values() if c['cambio'] in ['nuevo', 'modificado', 'a_vigente'])
             cambios_sin_convenio = sum(1 for c in cambios_dict.values() if c['cambio'] == 'sin_convenio')
             cambios_suspendidas = sum(1 for c in cambios_dict.values() if c['cambio'] == 'suspendida')
+            cambios_borrados = sum(1 for c in cambios_dict.values() if c['cambio'] == 'borrado')
             cambios_no_vigentes = cambios_sin_convenio + cambios_suspendidas
-            mensaje = f"Se encontraron {count} cambio(s): {cambios_precio} precio(s) modificado(s) y {cambios_no_vigentes} obra(s) no vigente(s) ({cambios_sin_convenio} sin convenio, {cambios_suspendidas} suspendidas)."
+            partes = [f"{cambios_precio} precio(s) modificado(s)"]
+            if cambios_no_vigentes:
+                partes.append(f"{cambios_no_vigentes} no vigente(s) ({cambios_sin_convenio} sin convenio, {cambios_suspendidas} suspendidas)")
+            if cambios_borrados:
+                partes.append(f"{cambios_borrados} borrada(s) del archivo (ya no están en OneDrive)")
+            mensaje = f"Se encontraron {count} cambio(s): " + ", ".join(partes) + "."
         
         return True, mensaje, cambios_ordenados, count
             

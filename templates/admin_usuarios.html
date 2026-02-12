@@ -213,17 +213,20 @@
                         if (data.cambios && data.cambios.length > 0) {
                             html += '<div style="max-height:360px;overflow-y:auto;"><table class="admin-preview-table"><thead><tr><th>Obra Social</th><th>Precio actual</th><th>Precio nuevo</th><th>Estado</th></tr></thead><tbody>';
                             data.cambios.forEach(function(c) {
-                                var badge = c.cambio === 'nuevo' || c.cambio === 'a_vigente' ? 'admin-badge-ok' : (c.cambio === 'sin_convenio' ? 'admin-badge-warn' : (c.cambio === 'suspendida' ? 'admin-badge-info' : 'admin-badge-warn'));
-                                var badgeText = c.cambio === 'nuevo' ? 'Nueva' : (c.cambio === 'a_vigente' ? 'Vigente' : (c.cambio === 'sin_convenio' ? 'Sin convenio' : (c.cambio === 'suspendida' ? 'Suspendida' : 'Modificado')));
+                                var badge = c.cambio === 'nuevo' || c.cambio === 'a_vigente' ? 'admin-badge-ok' : (c.cambio === 'borrado' ? 'admin-badge-off' : (c.cambio === 'sin_convenio' ? 'admin-badge-warn' : (c.cambio === 'suspendida' ? 'admin-badge-info' : 'admin-badge-warn')));
+                                var badgeText = c.cambio === 'nuevo' ? 'Nueva' : (c.cambio === 'a_vigente' ? 'Vigente' : (c.cambio === 'borrado' ? 'Borrado del archivo' : (c.cambio === 'sin_convenio' ? 'Sin convenio' : (c.cambio === 'suspendida' ? 'Suspendida' : 'Modificado'))));
                                 var prev, next;
-                                if (c.cambio === 'suspendida' || c.cambio === 'sin_convenio') {
+                                if (c.cambio === 'borrado') {
+                                    prev = !c.precio_actual || c.precio_actual === 'N/A' ? '—' : (c.precio_actual === 'Suspendida' || c.precio_actual === 'Sin convenio' ? c.precio_actual : '$' + c.precio_actual);
+                                    next = '<em>No está en OneDrive</em>';
+                                } else if (c.cambio === 'suspendida' || c.cambio === 'sin_convenio') {
                                     prev = '';
                                     next = '';
                                 } else {
                                     if (!c.precio_actual) prev = '<em>Nueva</em>';
                                     else if (c.precio_actual === 'Suspendida' || c.precio_actual === 'Sin convenio') prev = c.precio_actual;
                                     else prev = '$' + c.precio_actual;
-                                    next = c.precio_nuevo && !String(c.precio_nuevo).match(/Sin Convenio|Suspendida/) ? ('$' + c.precio_nuevo) : '<em>' + (c.precio_nuevo || '—') + '</em>';
+                                    next = c.precio_nuevo && !String(c.precio_nuevo).match(/Sin Convenio|Suspendida|OneDrive/) ? ('$' + c.precio_nuevo) : '<em>' + (c.precio_nuevo || '—') + '</em>';
                                 }
                                 html += '<tr><td><strong>' + c.nombre + '</strong></td><td class="precio-anterior">' + prev + '</td><td class="precio-nuevo">' + next + '</td><td><span class="admin-badge ' + badge + '">' + badgeText + '</span></td></tr>';
                             });

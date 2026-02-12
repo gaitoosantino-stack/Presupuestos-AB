@@ -4,7 +4,6 @@ ART Experta:1758,22
 ART Federacion Patronal:2.537,00
 ART Galeno:1722,9
 ART La Segunda:2.480,00
-ART Prevencion Salud:1567,99
 ART Provincia:1451,76
 ART SANCOR Seguros:1567,32
 Bancarios:2.395,00
@@ -44,6 +43,7 @@ OSUTHGRA - Gastronomicos:2163,63
 PAMI:816,94
 PARTICULAR:3.000,00
 PERSONAL DE MAESTRANZA:1439,3
+PREVENCION ART:1567,99
 Patrones de Cabotaje:1.418,00
 Poder Judicial:1760,01
 Prevencion Salud:1602,8

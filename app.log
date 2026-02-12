@@ -1881,3 +1881,74 @@
 2026-02-12 10:24:58,128 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 10:24:58] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
 2026-02-12 10:25:13,812 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 10:25:13] "POST /descargar_pdf HTTP/1.1" 200 -
 2026-02-12 10:25:17,161 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 10:25:17] "POST /descargar_pdf HTTP/1.1" 200 -
+2026-02-12 18:22:47,782 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-02-12 18:22:47,799 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-02-12 18:22:47,995 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:22:47] "GET / HTTP/1.1" 200 -
+2026-02-12 18:22:49,135 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:22:49] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-02-12 18:23:02,156 - __main__ - INFO - Usuario 3 inició sesión
+2026-02-12 18:23:02,157 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:23:02] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-12 18:23:02,291 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:23:02] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-02-12 18:23:02,446 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:23:02] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-02-12 18:23:02,465 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:23:02] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-02-12 18:23:03,423 - __main__ - INFO - Obteniendo preview desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g
+2026-02-12 18:23:03,425 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-02-12 18:23:03,426 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g&download=1
+2026-02-12 18:23:03,431 - __main__ - INFO - URL de OneDrive detectada, intentando descarga con requests primero...
+2026-02-12 18:23:03,858 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-02-12 18:23:05,085 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-02-12 18:23:05,828 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-02-12 18:23:05,854 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:23:05] "GET /admin/sync_precios/preview HTTP/1.1" 200 -
+2026-02-12 18:23:08,850 - __main__ - INFO - Obteniendo preview desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g
+2026-02-12 18:23:08,853 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-02-12 18:23:08,855 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g&download=1
+2026-02-12 18:23:08,856 - __main__ - INFO - URL de OneDrive detectada, intentando descarga con requests primero...
+2026-02-12 18:23:08,856 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-02-12 18:23:09,912 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-02-12 18:23:09,986 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-02-12 18:23:10,010 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:23:10] "GET /admin/sync_precios/preview HTTP/1.1" 200 -
+2026-02-12 18:24:08,496 - __main__ - INFO - Obteniendo preview desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g
+2026-02-12 18:24:08,497 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-02-12 18:24:08,498 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g&download=1
+2026-02-12 18:24:08,500 - __main__ - INFO - URL de OneDrive detectada, intentando descarga con requests primero...
+2026-02-12 18:24:08,501 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-02-12 18:24:09,494 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-02-12 18:24:09,563 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-02-12 18:24:09,590 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:24:09] "GET /admin/sync_precios/preview HTTP/1.1" 200 -
+2026-02-12 18:29:12,806 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.33:5000
+2026-02-12 18:29:12,809 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-02-12 18:29:18,709 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:29:18] "[32mGET /admin/usuarios HTTP/1.1[0m" 302 -
+2026-02-12 18:29:18,788 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:29:18] "GET /login HTTP/1.1" 200 -
+2026-02-12 18:29:19,179 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:29:19] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-02-12 18:29:20,241 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:29:20] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-02-12 18:29:21,623 - __main__ - INFO - Usuario 3 inició sesión
+2026-02-12 18:29:21,626 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:29:21] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-12 18:29:21,740 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:29:21] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-02-12 18:29:21,896 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:29:21] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-02-12 18:29:21,910 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:29:21] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-02-12 18:29:22,784 - __main__ - INFO - Obteniendo preview desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g
+2026-02-12 18:29:22,786 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-02-12 18:29:22,795 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g&download=1
+2026-02-12 18:29:22,797 - __main__ - INFO - URL de OneDrive detectada, intentando descarga con requests primero...
+2026-02-12 18:29:23,135 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-02-12 18:29:24,491 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-02-12 18:29:25,006 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-02-12 18:29:25,029 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:29:25] "GET /admin/sync_precios/preview HTTP/1.1" 200 -
+2026-02-12 18:29:39,831 - __main__ - INFO - Leyendo archivo desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g
+2026-02-12 18:29:39,833 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-02-12 18:29:39,834 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBbcBbFfE6VxrdwBR4ByfAvkIQw?resid=4296EB0072506AFB!s18be67c58e4e4ca280395084484c05b7&ithint=file%2Cxlsx&e=6RQ06elsx&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0VjVm52aGhPanFKTWdEbFFoRWhNQmJjQmJGZkU2VnhyZHdCUjRCeWZBdmtJUXc_ZT02UlEwNmVsc3g&download=1
+2026-02-12 18:29:41,825 - __main__ - WARNING - No se pudo leer directamente con pandas: HTTP Error 401: Unauthorized
+2026-02-12 18:29:41,833 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296EB0072506AFB/EcVnvhhOjqJMgDlQhEhMBb...
+2026-02-12 18:29:42,996 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-02-12 18:29:43,089 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-02-12 18:29:43,141 - __main__ - INFO - Sincronización completada: 59 obras activas, 78 total (incluyendo 10 sin convenio, 9 suspendidas)
+2026-02-12 18:29:43,141 - __main__ - INFO - Precios sincronizados por 3: 59 obras sociales
+2026-02-12 18:29:43,143 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:29:43] "[32mPOST /admin/sync_precios HTTP/1.1[0m" 302 -
+2026-02-12 18:29:43,174 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:29:43] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-02-12 18:29:43,387 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:29:43] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-02-12 18:29:43,407 - werkzeug - INFO - 127.0.0.1 - - [12/Feb/2026 18:29:43] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
