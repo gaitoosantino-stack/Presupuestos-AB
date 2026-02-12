@@ -284,9 +284,9 @@
             margin-top: 35px;
             text-align: center;
             background: white;
-            padding: 28px;
-            border-radius: 4px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+            padding: 28px 32px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             border: 1px solid #e2e8f0;
         }
 
@@ -302,6 +302,78 @@
             font-size: inherit;
             font-weight: 600;
             color: #059669;
+        }
+
+        /* IVA incluido — toggle estético (debajo del total, compacto) */
+        .iva-toggle-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 14px;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .iva-toggle-wrap:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        .iva-toggle-wrap:has(#iva-incluido:checked) {
+            border-color: #2563eb;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
+        }
+        .iva-toggle {
+            position: relative;
+            width: 32px;
+            height: 18px;
+            flex-shrink: 0;
+            background: #cbd5e1;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: background 0.25s ease;
+        }
+        .iva-toggle:hover {
+            background: #94a3b8;
+        }
+        #iva-incluido {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .iva-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            transition: transform 0.25s ease;
+        }
+        #iva-incluido:checked + .iva-toggle {
+            background: #2563eb;
+        }
+        #iva-incluido:checked + .iva-toggle:hover {
+            background: #1d4ed8;
+        }
+        #iva-incluido:checked + .iva-toggle::after {
+            transform: translateX(14px);
+        }
+        .iva-label {
+            font-size: 0.8em;
+            font-weight: 500;
+            color: #475569;
+            cursor: pointer;
+            user-select: none;
+        }
+        .iva-toggle-wrap:has(#iva-incluido:checked) .iva-label {
+            color: #1e40af;
         }
 
         /* Autocomplete Styles */
@@ -776,6 +848,11 @@
 
                 <div id="total-container">
                     <h3>Total: ARS$<span id="total">0,00</span></h3>
+                    <label class="iva-toggle-wrap" for="iva-incluido">
+                        <input type="checkbox" id="iva-incluido" name="iva_incluido" value="1">
+                        <span class="iva-toggle" aria-hidden="true"></span>
+                        <span class="iva-label">Incluir IVA (21%)</span>
+                    </label>
                 </div>
 
                 <div style="margin-top: 30px; text-align: center;">
@@ -985,6 +1062,10 @@
             estudiosManuales.forEach(estudio => {
                 total += parseFloat(estudio.precio);
             });
+            const ivaIncluido = document.getElementById('iva-incluido').checked;
+            if (ivaIncluido) {
+                total = total * 1.21;
+            }
             document.getElementById('total').textContent = formatearNumeroArgentino(total);
             
             // Actualizar también los precios en la lista
@@ -1484,6 +1565,11 @@
             }
         });
 
+        // Evento para IVA incluido: actualizar total al marcar/desmarcar
+        document.getElementById('iva-incluido').addEventListener('change', function() {
+            actualizarTotal();
+        });
+
         // Evento para borrar todo
         document.getElementById('borrar-todo').addEventListener('click', function() {
             // Limpiar arrays
@@ -1672,6 +1758,13 @@
             estudiosInput.name = 'estudios_json';
             estudiosInput.value = JSON.stringify(estudiosParaPDF);
             form.appendChild(estudiosInput);
+            
+            // IVA incluido (21%)
+            const ivaInput = document.createElement('input');
+            ivaInput.type = 'hidden';
+            ivaInput.name = 'iva_incluido';
+            ivaInput.value = document.getElementById('iva-incluido').checked ? '1' : '0';
+            form.appendChild(ivaInput);
             
             // Cerrar modal
             const modal = document.getElementById('modal-pdf');

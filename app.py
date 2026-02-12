@@ -1713,6 +1713,7 @@ def descargar_pdf():
         numero_afiliado = request.form.get('numero_afiliado', '').strip()
         fecha_presupuesto_str = request.form.get('fecha_presupuesto', '')
         estudios_json = request.form.get('estudios_json', '[]')
+        iva_incluido = request.form.get('iva_incluido') == '1'
         
         # Procesar fecha (si viene del formulario, usarla; si no, usar fecha actual)
         if fecha_presupuesto_str:
@@ -2000,7 +2001,9 @@ def descargar_pdf():
                 pdf.cell(w_nbu, 8, nbu_str, border=1, align='C')
                 pdf.cell(w_valor, 8, valor_str, border=1, align='R', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         
-        # Total - fila destacada (alineada a la izquierda)
+        # Total - fila destacada (alineada a la izquierda). Aplicar IVA 21% si corresponde
+        if iva_incluido:
+            total = total * 1.21
         pdf.set_x(pdf.l_margin)  # Alinear desde el margen izquierdo
         pdf.set_font('Helvetica', 'B', 11)
         pdf.set_fill_color(250, 250, 250)  # Gris muy claro para el total
@@ -2008,6 +2011,11 @@ def descargar_pdf():
         pdf.cell(w_codigo + w_analisis + w_nbu, 9, '', border=0, fill=True)
         pdf.cell(w_valor, 9, total_str, border=1, align='R', fill=True, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.set_fill_color(255, 255, 255)  # Restaurar color blanco
+        if iva_incluido:
+            pdf.set_font('Helvetica', '', 9)
+            pdf.set_text_color(100, 100, 100)
+            pdf.cell(w_codigo + w_analisis + w_nbu + w_valor, 6, '(IVA Incluido)', align='R', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+            pdf.set_text_color(0, 0, 0)
         
         pdf.ln(15)  # Espacio después de la tabla (mejor respiración visual)
         
