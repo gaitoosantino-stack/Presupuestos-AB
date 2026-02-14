@@ -87,7 +87,7 @@
                             <tr data-estado="{{ obra.estado }}" data-nombre="{{ obra.nombre.lower() }}">
                                 <td><strong>{{ obra.nombre }}</strong></td>
                                 <td>
-                                    {% if obra.estado in ['sin_convenio', 'suspendida'] %}
+                                    {% if obra.estado == 'sin_convenio' %}
                                         <span class="admin-muted">—</span>
                                     {% elif obra.precio and obra.precio != 'None' and obra.precio != 'N/A' %}
                                         ${{ obra.precio }}

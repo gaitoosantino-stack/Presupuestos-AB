@@ -58,8 +58,18 @@ def bad_request_csrf(e):
 
 # Archivo para almacenar usuarios habilitados
 USERS_FILE = 'usuarios_habilitados.json'
-# Log de accesos de Daniel (solo fecha y hora)
+# Log de accesos de Daniel (solo para Gaito: login y cada entrada a una sección)
 DANIEL_LOG_FILE = 'log_daniel.txt'
+
+
+def append_daniel_log(accion):
+    """Escribe una línea en el log de Daniel (solo visible para Gaito)."""
+    try:
+        ahora = datetime.now(ZoneInfo('America/Argentina/Buenos_Aires'))
+        with open(DANIEL_LOG_FILE, 'a', encoding='utf-8') as f:
+            f.write(ahora.strftime('%Y-%m-%d %H:%M:%S') + ' ' + accion + '\n')
+    except OSError:
+        pass
 # Archivo para almacenar perfiles de laboratorios
 PERFILES_FILE = 'perfiles.json'
 # Carpeta para logos
@@ -235,6 +245,25 @@ def require_login(f):
 init_users_file()
 init_perfiles_file()
 
+
+@app.before_request
+def log_daniel_navigation():
+    """Registra cada vez que Daniel entra a una sección de la app (para que lo vea Gaito)."""
+    if session.get('username') != 'DanielABNECH':
+        return
+    # Solo registrar peticiones GET a rutas de contenido (no estáticos ni favicon)
+    if request.method != 'GET':
+        return
+    path = request.path or ''
+    if path.startswith('/static') or path == '/favicon.ico':
+        return
+    # Descripción legible de la ruta para el log
+    if path in ('', '/') or path.startswith('/login'):
+        accion = 'Entrada: /login'
+    else:
+        accion = 'Entrada: ' + path
+    append_daniel_log(accion)
+
 # Crear carpeta de logos si no existe
 os.makedirs(LOGO_FOLDER, exist_ok=True)
 
@@ -300,12 +329,7 @@ def login():
                 session.permanent = True
                 logger.info(f"Usuario {username} inició sesión")
                 if username == 'DanielABNECH':
-                    try:
-                        with open(DANIEL_LOG_FILE, 'a', encoding='utf-8') as f:
-                            ahora_argentina = datetime.now(ZoneInfo('America/Argentina/Buenos_Aires'))
-                            f.write(ahora_argentina.strftime('%Y-%m-%d %H:%M:%S') + '\n')
-                    except OSError:
-                        pass
+                    append_daniel_log('Login')
                 flash(f'¡Bienvenido, {username}!', 'success')
                 # Redirigir a admin si es admin, sino a presupuestos
                 if is_gaito_admin():
@@ -359,9 +383,8 @@ def presupuestos():
             for line in f:
                 if ':' in line:
                     obra, precio = line.strip().split(':', 1)
-                    # Convertir formato argentino: 1.740,88 -> 1740.88
-                    precio = precio.replace('.', '').replace(',', '.')
-                    obras[obra] = precio
+                    p = precio_str_a_float(precio)
+                    obras[obra] = str(p) if p is not None else '0'
                     obras_estado[obra] = 'vigente'
     except FileNotFoundError:
         logger.error("Archivo obras_entero.txt no encontrado")
@@ -378,10 +401,8 @@ def presupuestos():
                     # Agregar obra sin convenio/suspendida (con precio si existe, o None)
                     precio_cortada = info_obra.get('precio')
                     if precio_cortada:
-                        # Convertir a formato numérico si es string
-                        if isinstance(precio_cortada, str):
-                            precio_cortada = precio_cortada.replace('.', '').replace(',', '.')
-                        obras[nombre_obra] = str(precio_cortada)
+                        p = precio_str_a_float(precio_cortada)
+                        obras[nombre_obra] = str(p) if p is not None else str(precio_cortada)
                     else:
                         obras[nombre_obra] = None
                     obras_estado[nombre_obra] = estado_obra
@@ -542,6 +563,28 @@ def load_current_obras():
     except Exception as e:
         logger.error(f"Error al leer obras actuales: {e}")
     return obras
+
+def precio_str_a_float(precio_str):
+    """
+    Convierte precio (formato argentino o US) a float.
+    Formato argentino: "1.253,28" o "1253,28" (punto=miles, coma=decimal).
+    IMPORTANTE: si tiene coma, primero quitar puntos, luego coma->punto.
+    Orden inverso convertiría "1.253,28" en 125328 en vez de 1253.28.
+    """
+    if precio_str is None or precio_str == '':
+        return None
+    s = str(precio_str).strip().replace(' ', '').replace('$', '').replace('€', '')
+    if not s or s.lower() == 'nan':
+        return None
+    if ',' in s:
+        s = s.replace('.', '').replace(',', '.')
+    try:
+        val = float(s)
+        if val > 3000:
+            logger.warning(f"Precio fuera de rango habitual (1000-3000): {val} origen={precio_str}")
+        return val
+    except (ValueError, TypeError):
+        return None
 
 def es_precio_real(precio):
     """Devuelve True si el precio es un número mayor que 0 (no None, 0, '-', vacío)."""
@@ -817,16 +860,28 @@ def preview_precios_google_sheet():
             obra_estado_actual = obras_estado_actual.get(nombre, {})
             estado_anterior = obra_estado_actual.get('estado', 'vigente')  # Si no existe, asumimos que estaba vigente
             
-            # Solo incluir si cambió de vigente a no vigente (no si ya estaba no vigente)
             if estado_anterior == 'vigente':
+                # Vigente → suspendida/sin convenio: incluir precio del Excel (se guardará al importar)
                 estado_nuevo = datos_no_vigente.get('estado', 'sin_convenio')
-                # Vigente → suspendida/sin convenio: no mostrar precios (el precio no cambia, solo el estado)
+                precio_excel = datos_no_vigente.get('precio')
+                precio_actual = obras_actuales.get(nombre) or obra_estado_actual.get('precio')
                 cambios_dict[nombre] = {
-                    'precio_actual': None,
-                    'precio_nuevo': None,
+                    'precio_actual': precio_actual,
+                    'precio_nuevo': precio_excel,
                     'cambio': estado_nuevo,
                     'estado': estado_nuevo
                 }
+            elif estado_anterior in ['suspendida', 'sin_convenio']:
+                # Ya estaba suspendida/sin convenio: incluir si el precio del Excel cambió (se actualizará al importar)
+                precio_excel = datos_no_vigente.get('precio')
+                precio_actual = obra_estado_actual.get('precio')
+                if precio_excel is not None and comparar_precios(precio_actual, precio_excel):
+                    cambios_dict[nombre] = {
+                        'precio_actual': precio_actual,
+                        'precio_nuevo': precio_excel,
+                        'cambio': 'modificado',
+                        'estado': datos_no_vigente.get('estado', estado_anterior)
+                    }
         
         # También detectar obras que están en la base pero ya NO están en el Excel/OneDrive (borradas del archivo)
         nombres_nuevos = set(obras_dict.keys()) | set(obras_cortadas_dict.keys())
@@ -1113,6 +1168,23 @@ def sync_precios_google_sheet():
         obras_dict = {}  # Para obras_entero.txt (solo activas)
         obras_estado_dict = {}  # Para obras_estado.json (todas con estado)
         
+        # Cargar estado previo para preservar precios de suspendidas cuando el Excel viene vacío
+        estado_previo = load_obras_estado()
+        obras_previas = estado_previo.get('obras', {})
+        obras_entero_previas = load_current_obras()
+        
+        def precio_final(nombre, estado, precio_normalizado, ya_en_dict=None):
+            """Para suspendidas/sin convenio: si Excel no tiene precio, conservar el previo."""
+            if precio_normalizado is not None and es_precio_real(precio_normalizado):
+                return precio_normalizado
+            if estado in ['suspendida', 'sin_convenio']:
+                # Usar precio ya cargado en este sync (ej. del otro bloque) o del estado anterior
+                prev = (ya_en_dict or obras_previas.get(nombre, {}).get('precio') or 
+                        obras_entero_previas.get(nombre))
+                if prev and es_precio_real(prev):
+                    return prev
+            return precio_normalizado
+        
         # Bloque 1: Columna B (índice 1) = Nombre, Columna F (índice 5) = Precio
         # Bloque 2: Columna K (índice 10) = Nombre, Columna O (índice 14) = Precio
         # Los datos empiezan en la fila 3 (índice 2), después de los encabezados
@@ -1149,9 +1221,12 @@ def sync_precios_google_sheet():
                 precio_str = str(precio).strip()
                 precio_normalizado = normalizar_precio_argentino(precio_str)
             
+            # Para suspendidas/sin convenio: conservar precio previo si Excel viene vacío
+            precio_a_guardar = precio_final(nombre, estado, precio_normalizado)
+            
             # Guardar en obras_estado_dict (todas las obras con su estado, incluso sin precio)
             obras_estado_dict[nombre] = {
-                'precio': precio_normalizado if precio_normalizado else None,
+                'precio': precio_a_guardar,
                 'estado': estado,
                 'ultima_actualizacion': datetime.now().isoformat()
             }
@@ -1195,9 +1270,13 @@ def sync_precios_google_sheet():
                 precio_str = str(precio).strip()
                 precio_normalizado = normalizar_precio_argentino(precio_str)
             
+            # Para suspendidas/sin convenio: conservar precio previo si Excel viene vacío (o del Bloque 1)
+            precio_existente = obras_estado_dict.get(nombre, {}).get('precio') if nombre in obras_estado_dict else None
+            precio_a_guardar = precio_final(nombre, estado, precio_normalizado, ya_en_dict=precio_existente)
+            
             # Guardar en obras_estado_dict (todas las obras con su estado, incluso sin precio)
             obras_estado_dict[nombre] = {
-                'precio': precio_normalizado if precio_normalizado else None,
+                'precio': precio_a_guardar,
                 'estado': estado,
                 'ultima_actualizacion': datetime.now().isoformat()
             }
@@ -1345,24 +1424,23 @@ def load_anexo_codigos():
 def get_precio_particular():
     """Obtiene el precio de Particular desde obras_estado.json o obras_entero.txt"""
     try:
-        # Primero intentar desde obras_estado.json
         estado_data = load_obras_estado()
         if 'obras' in estado_data and 'PARTICULAR' in estado_data['obras']:
             precio_str = estado_data['obras']['PARTICULAR'].get('precio', '3000,00')
-            # Convertir formato argentino a float
-            precio = precio_str.replace('.', '').replace(',', '.')
-            return float(precio)
+            precio = precio_str_a_float(precio_str)
+            if precio is not None:
+                return precio
     except Exception as e:
         logger.warning(f"Error al obtener precio de Particular desde obras_estado.json: {e}")
     
-    # Si falla, intentar desde obras_entero.txt
     try:
         with open(OBRAS_FILE, 'r', encoding='utf-8') as f:
             for line in f:
                 if line.startswith('PARTICULAR:'):
                     precio_str = line.split(':', 1)[1].strip()
-                    precio = precio_str.replace('.', '').replace(',', '.')
-                    return float(precio)
+                    precio = precio_str_a_float(precio_str)
+                    if precio is not None:
+                        return precio
     except Exception as e:
         logger.warning(f"Error al obtener precio de Particular desde obras_entero.txt: {e}")
     
@@ -1473,6 +1551,37 @@ def admin_usuarios():
                          todas_las_obras=todas_las_obras,
                          precio_particular=precio_particular,
                          daniel_log_lines=daniel_log_lines)
+
+
+@app.route('/admin/daniel_log', methods=['GET'])
+@require_login
+def admin_daniel_log_content():
+    """Devuelve las últimas líneas del log de Daniel (solo Gaito). Para actualización en vivo."""
+    if not is_gaito_admin():
+        return jsonify({'success': False, 'lines': []}), 403
+    lines = []
+    if os.path.isfile(DANIEL_LOG_FILE):
+        try:
+            with open(DANIEL_LOG_FILE, 'r', encoding='utf-8') as f:
+                lines = f.read().strip().split('\n')[-50:]
+        except OSError:
+            pass
+    return jsonify({'success': True, 'lines': lines})
+
+
+@app.route('/admin/daniel_log/clear', methods=['POST'])
+@require_login
+def admin_daniel_log_clear():
+    """Vacía el log de Daniel. Solo Gaito."""
+    if not is_gaito_admin():
+        return jsonify({'success': False, 'message': 'Sin permiso.'}), 403
+    try:
+        with open(DANIEL_LOG_FILE, 'w', encoding='utf-8') as f:
+            f.write('')
+        return jsonify({'success': True})
+    except OSError:
+        return jsonify({'success': False, 'message': 'No se pudo vaciar el archivo.'}), 500
+
 
 # Ruta para obtener preview de precios antes de sincronizar (solo para Gaito)
 @app.route('/admin/sync_precios/preview', methods=['GET'])

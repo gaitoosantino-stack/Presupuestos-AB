@@ -649,89 +649,126 @@
             background: #475569;
         }
 
-        /* Estilos específicos para modal de obra cortada */
-        #modal-obra-cortada .modal-content {
-            max-width: 450px !important;
-            padding: 40px 32px 32px 32px !important;
+        /* Modal obra cortada - armonizado con la paleta de la página */
+        .modal-obra-cortada-overlay {
+            backdrop-filter: blur(6px);
+            background-color: rgba(44, 62, 80, 0.35) !important;
+        }
+
+        #modal-obra-cortada .modal-obra-cortada-content {
+            max-width: 440px !important;
+            padding: 40px 36px 32px !important;
             text-align: center;
-            border: 2px solid #fecaca !important;
-            box-shadow: 0 8px 24px rgba(220, 38, 38, 0.15) !important;
+            background: white !important;
+            border-radius: 12px !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 20px 40px rgba(30, 41, 59, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06) !important;
         }
 
         #modal-obra-cortada .modal-header {
-            margin-bottom: 20px;
-        }
-
-        #modal-obra-cortada .modal-header h2 {
-            color: #dc2626;
-            font-size: 1.6em;
+            margin-bottom: 24px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin: 0;
+            gap: 16px;
         }
 
-        #modal-obra-cortada .icon-warning {
-            width: 32px;
-            height: 32px;
-            background: #fef2f2;
+        #modal-obra-cortada .modal-obra-cortada-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(37, 99, 235, 0.1);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            color: #dc2626;
-            flex-shrink: 0;
+            color: #2563eb;
+        }
+
+        #modal-obra-cortada .modal-header h2 {
+            color: #1e293b;
+            font-size: 1.5em;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.02em;
         }
 
         #modal-obra-cortada .modal-body {
             padding: 0;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         #modal-obra-cortada .modal-body p {
-            color: #1e293b;
-            font-size: 16px;
+            color: #64748b;
+            font-size: 15px;
             line-height: 1.7;
             margin: 0;
-            padding: 0 8px;
+            font-weight: 400;
         }
 
         #modal-obra-cortada .modal-body .obra-nombre {
-            color: #1e293b;
+            color: #1a365d;
             font-weight: 600;
-            background: #f8fafc;
-            padding: 4px 10px;
-            border-radius: 4px;
+            background: #f1f5f9;
+            padding: 4px 12px;
+            border-radius: 6px;
             display: inline-block;
             margin: 0 4px;
+            border: 1px solid #e2e8f0;
         }
 
         #modal-obra-cortada .modal-body .estado-cortada {
-            color: #dc2626;
-            font-weight: 700;
-            font-size: 1.05em;
+            color: #475569;
+            font-weight: 600;
+            font-size: 1em;
         }
 
         #modal-obra-cortada .modal-footer {
             justify-content: center;
-            margin-top: 28px;
+            gap: 16px;
+            margin-top: 32px;
             padding-top: 0;
         }
 
-        #modal-obra-cortada .btn-modal-primary {
+        #modal-obra-cortada .btn-modal-cerrar {
+            background: transparent;
+            color: #64748b;
+            border: 1.5px solid #cbd5e1;
             min-width: 120px;
-            padding: 12px 32px;
-            font-size: 16px;
+            padding: 12px 24px;
+            font-size: 15px;
             font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        #modal-obra-cortada .btn-modal-cerrar:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+            color: #475569;
         }
 
-        /* Animación mejorada para el modal de obra cortada */
+        #modal-obra-cortada .btn-modal-utilizar {
+            background: #2563eb;
+            color: white;
+            border: none;
+            min-width: 180px;
+            padding: 12px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        #modal-obra-cortada .btn-modal-utilizar:hover {
+            background: #1d4ed8;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+        }
+
         @keyframes modalObraCortadaFadeIn {
             from {
                 opacity: 0;
-                transform: scale(0.95) translateY(-10px);
+                transform: scale(0.96) translateY(-12px);
             }
             to {
                 opacity: 1;
@@ -739,7 +776,7 @@
             }
         }
 
-        #modal-obra-cortada.show .modal-content {
+        #modal-obra-cortada.show .modal-obra-cortada-content {
             animation: modalObraCortadaFadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
     </style>
@@ -900,20 +937,22 @@
     </div>
 
     <!-- Modal para obra social no vigente -->
-    <div id="modal-obra-cortada" class="modal">
-        <div class="modal-content">
+    <div id="modal-obra-cortada" class="modal modal-obra-cortada-overlay">
+        <div class="modal-content modal-obra-cortada-content">
             <div class="modal-header">
-                <h2>
-                    Obra Social No Vigente
-                </h2>
+                <div class="modal-obra-cortada-icon" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h2 id="titulo-modal-obra-cortada">Obra Social</h2>
             </div>
             <div class="modal-body">
-                <p>
-                    La obra social <span class="obra-nombre" id="nombre-obra-cortada"></span> está actualmente <span class="estado-cortada" id="estado-obra-cortada">sin convenio</span>.
-                </p>
+                <p>La obra social <span class="obra-nombre" id="nombre-obra-cortada"></span> está actualmente <span class="estado-cortada" id="estado-obra-cortada">sin convenio</span>.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" id="modal-obra-cortada-ok" class="btn-modal btn-modal-primary">Entendido</button>
+                <button type="button" id="modal-obra-cortada-ok" class="btn-modal btn-modal-cerrar">Cerrar</button>
+                <button type="button" id="modal-obra-cortada-utilizar" class="btn-modal btn-modal-utilizar" style="display: none;">Utilizar de todas formas</button>
             </div>
         </div>
     </div>
@@ -929,6 +968,30 @@
         let nombreObraSocialActual = '';
         let contadorId = 0; // Contador para IDs únicos
         
+        /**
+         * Convierte precio a número. Acepta:
+         * - Formato argentino: "1.253,28" o "1253,28" (punto=miles, coma=decimal)
+         * - Formato US: "1253.28" (punto=decimal)
+         * IMPORTANTE: en argentino, primero quitar puntos (miles), luego coma->punto.
+         * Orden inverso convertiría "1.253,28" en 125328 en vez de 1253.28.
+         */
+        function parsePrecioArgentino(str) {
+            if (str === null || str === undefined || str === '' || str === 'None' || str === 'null') return 0;
+            let s = String(str).trim().replace(/\s/g, '').replace(/[$€]/g, '');
+            if (!s || !/^[\d.,]+$/.test(s)) return 0;
+            if (s.indexOf(',') !== -1) {
+                // Formato argentino: punto=miles, coma=decimal. Primero quitar puntos, luego coma->punto
+                s = s.replace(/\./g, '').replace(',', '.');
+            }
+            const num = parseFloat(s);
+            if (isNaN(num) || num < 0) return 0;
+            if (num > 3000) {
+                console.warn('Precio fuera de rango esperado (1000-3000):', num, 'origen:', str);
+                alert('Atención: precio ' + num + ' supera el rango habitual (1000-3000). Verifica que sea correcto.');
+            }
+            return num;
+        }
+        
         // Función para obtener el precio actual de Particular dinámicamente
         function obtenerPrecioParticular() {
             try {
@@ -938,22 +1001,8 @@
                         .find(option => option.textContent.trim() === 'PARTICULAR');
                     if (opcionParticular) {
                         const precioStr = opcionParticular.getAttribute('data-precio');
-                        if (precioStr && precioStr !== 'None' && precioStr !== 'null') {
-                            // Convertir formato argentino a float
-                            // El precio puede venir como "3.000,00" o "3000.00" o "3000"
-                            let precioLimpio = precioStr.toString().trim();
-                            // Si tiene punto y coma, es formato argentino (ej: "3.000,00")
-                            if (precioLimpio.includes('.') && precioLimpio.includes(',')) {
-                                precioLimpio = precioLimpio.replace(/\./g, '').replace(',', '.');
-                            } else if (precioLimpio.includes(',')) {
-                                // Solo tiene coma, reemplazar por punto
-                                precioLimpio = precioLimpio.replace(',', '.');
-                            }
-                            const precio = parseFloat(precioLimpio);
-                            if (!isNaN(precio) && precio > 0) {
-                                return precio;
-                            }
-                        }
+                        const precio = parsePrecioArgentino(precioStr);
+                        if (precio > 0) return precio;
                     }
                 }
             } catch (e) {
@@ -1276,8 +1325,8 @@
                     // Verificar si la obra está sin convenio o suspendida
                     const estado = option.getAttribute('data-estado');
                     if (estado === 'sin_convenio' || estado === 'suspendida') {
-                        // Mostrar popup de obra no vigente
-                        mostrarPopupObraNoVigente(option.textContent, estado);
+                        // Mostrar popup de obra no vigente (pasar option para "Utilizar de todas formas")
+                        mostrarPopupObraNoVigente(option.textContent.trim(), estado, estado === 'suspendida' ? option : null);
                         // No establecer el valor ni continuar con la selección
                         hideDropdown();
                         return;
@@ -1288,7 +1337,7 @@
                 hideDropdown();
 
                 if (isObraSocial) {
-                    precioObraSocial = parseFloat(option.getAttribute('data-precio'));
+                    precioObraSocial = parsePrecioArgentino(option.getAttribute('data-precio'));
                     nombreObraSocialActual = option.textContent;
                     actualizarIndicadorObraSocial();
                     // Actualizar total y precios en la lista cuando se selecciona obra social
@@ -1314,10 +1363,15 @@
         }
 
         // Función para mostrar popup de obra no vigente
-        function mostrarPopupObraNoVigente(nombreObra, estado) {
+        // optionSuspendida: la opción del dropdown (solo cuando estado es 'suspendida') para poder aplicar "Utilizar de todas formas"
+        function mostrarPopupObraNoVigente(nombreObra, estado, optionSuspendida) {
             document.getElementById('nombre-obra-cortada').textContent = nombreObra;
             const estadoTexto = estado === 'sin_convenio' ? 'Sin Convenio' : 'Suspendida';
+            document.getElementById('titulo-modal-obra-cortada').textContent = 'Obra Social ' + estadoTexto;
             document.getElementById('estado-obra-cortada').textContent = estadoTexto.toLowerCase();
+            const btnUtilizar = document.getElementById('modal-obra-cortada-utilizar');
+            btnUtilizar.style.display = optionSuspendida ? 'inline-block' : 'none';
+            btnUtilizar._optionSuspendida = optionSuspendida; // guardar para el click
             const modal = document.getElementById('modal-obra-cortada');
             modal.style.display = 'block';
             modal.classList.add('show');
@@ -1338,6 +1392,27 @@
         // Cerrar modal de obra cortada al hacer clic en OK
         document.getElementById('modal-obra-cortada-ok').addEventListener('click', function() {
             cerrarModalObraCortada();
+        });
+
+        // Botón "UTILIZAR DE TODAS FORMAS" (solo para suspendidas): aplicar selección y cerrar modal
+        document.getElementById('modal-obra-cortada-utilizar').addEventListener('click', function() {
+            const option = this._optionSuspendida;
+            if (option) {
+                const input = document.getElementById('obra-social');
+                input.value = option.textContent.trim();
+                precioObraSocial = parsePrecioArgentino(option.getAttribute('data-precio'));
+                nombreObraSocialActual = option.textContent.trim();
+                actualizarIndicadorObraSocial();
+                actualizarTotal();
+                if (option.textContent.trim() === 'Personalizado') {
+                    document.getElementById('personalizado-container').style.display = 'block';
+                } else {
+                    document.getElementById('personalizado-container').style.display = 'none';
+                }
+            }
+            const modal = document.getElementById('modal-obra-cortada');
+            modal.style.display = 'none';
+            modal.classList.remove('show');
         });
 
         // Cerrar modal de obra cortada al hacer clic fuera del contenido
@@ -1377,7 +1452,7 @@
             if (coincide) {
                 nombreObraSocialActual = coincide.textContent.trim();
                 if (valor !== 'Personalizado') {
-                    precioObraSocial = parseFloat(coincide.getAttribute('data-precio'));
+                    precioObraSocial = parsePrecioArgentino(coincide.getAttribute('data-precio'));
                 }
                 if (valor === 'Personalizado') {
                     document.getElementById('personalizado-container').style.display = 'block';
@@ -1498,11 +1573,7 @@
         // Evento para agregar estudio manual
         document.getElementById('agregar-estudio-manual').addEventListener('click', function() {
             const nombreEstudio = document.getElementById('estudio-manual').value.trim();
-            // Convertir formato argentino a formato numérico estándar
-            // Remover puntos (separadores de miles) y convertir coma a punto (decimal)
-            let precioTexto = document.getElementById('precio-manual').value.trim();
-            precioTexto = precioTexto.replace(/\./g, '').replace(',', '.');
-            const precioEstudio = parseFloat(precioTexto);
+            const precioEstudio = parsePrecioArgentino(document.getElementById('precio-manual').value);
 
             if (!nombreEstudio) {
                 alert('Por favor ingresa el nombre del estudio.');
