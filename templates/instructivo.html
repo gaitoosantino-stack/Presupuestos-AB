@@ -8,437 +8,478 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
     <style>
-        /* Misma estructura que presupuestos para que el header se vea igual */
         body.instructivo-page {
             background: #f5f7fa;
             font-family: 'Segoe UI', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
             color: #2c3e50;
             padding-top: 0;
+            margin: 0;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 40px;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
+        .instructivo-master-detail {
+            display: flex;
+            min-height: calc(100vh - 70px);
+            background: #fff;
+            margin: 0;
         }
 
-        .page-title {
-            margin-bottom: 36px;
-            padding-bottom: 20px;
+        /* Columna izquierda: lista de obras */
+        .instructivo-master {
+            width: 320px;
+            min-width: 280px;
+            flex-shrink: 0;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            background: #fafbfc;
+        }
+
+        .instructivo-search-wrap {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            padding: 16px;
+            background: #fafbfc;
             border-bottom: 1px solid #e2e8f0;
         }
 
-        .page-title h1 {
-            color: #1e293b;
-            font-size: 1.95em;
-            margin: 0;
-            font-weight: 600;
-            letter-spacing: -0.4px;
-        }
-
-        .search-container {
-            margin-bottom: 30px;
-        }
-
-        .search-input {
+        .instructivo-search {
             width: 100%;
-            padding: 14px 18px;
-            border: 2px solid #cbd5e1;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
             border-radius: 6px;
-            font-size: 16px;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            background: #ffffff;
-            color: #1e293b;
+            font-size: 15px;
             box-sizing: border-box;
+            background: #fff;
         }
 
-        .search-input:focus {
+        .instructivo-search:focus {
             outline: none;
             border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
         }
 
-        .search-input::placeholder {
+        .instructivo-search::placeholder {
             color: #94a3b8;
         }
 
-        .results-count {
-            margin-top: 15px;
-            color: #64748b;
-            font-size: 14px;
-            font-weight: 500;
+        .instructivo-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
         }
 
-        .instructivos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 24px;
-            margin-top: 30px;
+        .instructivo-list-item {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            text-align: left;
+            font-size: 15px;
+            color: #334155;
+            cursor: pointer;
+            font-family: inherit;
+            border-left: 3px solid transparent;
+            transition: background 0.15s ease, border-color 0.15s ease;
+            box-sizing: border-box;
         }
 
-        .instructivo-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 24px;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        .instructivo-list-item:hover {
+            background: #f1f5f9;
+            color: #1e293b;
         }
 
-        .instructivo-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-            border-color: #2563eb;
+        .instructivo-list-item.active {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-left-color: #2563eb;
+            font-weight: 600;
         }
 
-        .instructivo-card.hidden {
+        .instructivo-list-item.hidden {
             display: none;
         }
 
-        .card-header {
-            margin-bottom: 16px;
-            padding-bottom: 12px;
+        .instructivo-list-empty {
+            padding: 24px 16px;
+            color: #64748b;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* Columna derecha: detalle */
+        .instructivo-detail {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .instructivo-detail-inner {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px 40px 48px;
+        }
+
+        .instructivo-detail-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 320px;
+            color: #94a3b8;
+            font-size: 16px;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .instructivo-detail-placeholder.hidden {
+            display: none;
+        }
+
+        .instructivo-detail-content.hidden {
+            display: none;
+        }
+
+        .instructivo-detail-title {
+            margin: 0 0 24px 0;
+            font-size: 1.75em;
+            font-weight: 700;
+            color: #1e293b;
+            letter-spacing: -0.02em;
+            padding-bottom: 16px;
             border-bottom: 2px solid #e2e8f0;
         }
 
-        .card-title {
-            color: #1e293b;
-            font-size: 1.3em;
-            font-weight: 600;
-            margin: 0;
-            letter-spacing: -0.3px;
-        }
-
-        .card-content {
-            color: #475569;
-            line-height: 1.6;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
-
-        .card-contact {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        .contact-item {
-            margin-bottom: 8px;
-            font-size: 13px;
-            color: #64748b;
-        }
-
-        .contact-item strong {
+        .instructivo-detail-body {
             color: #334155;
+            font-size: 15px;
+            line-height: 1.7;
+            max-width: 100%;
+        }
+
+        /* Contenido en HTML: estilos con !important para anular reset global (* { margin:0; padding:0 }) */
+        .instructivo-contenido-richtext {
+            word-wrap: break-word;
+            margin-bottom: 24px !important;
+            font-size: 15px;
+        }
+        .instructivo-contenido-richtext p,
+        .instructivo-contenido-richtext div {
+            display: block !important;
+            margin: 0.6em 0 !important;
+            font-size: 15px;
+        }
+        .instructivo-contenido-richtext li {
+            font-size: 15px;
+        }
+        .instructivo-contenido-richtext > p:first-child,
+        .instructivo-contenido-richtext > div:first-child {
+            margin-top: 0 !important;
+        }
+        .instructivo-contenido-richtext > p:last-child,
+        .instructivo-contenido-richtext > div:last-child {
+            margin-bottom: 0 !important;
+        }
+        /* No añadir margen extra a divs/ps que están dentro de listas */
+        .instructivo-contenido-richtext li p,
+        .instructivo-contenido-richtext li div {
+            margin: 0 !important;
+        }
+        .instructivo-contenido-richtext b,
+        .instructivo-contenido-richtext strong {
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .instructivo-contenido-richtext i,
+        .instructivo-contenido-richtext em {
+            font-style: italic;
+        }
+        .instructivo-contenido-richtext u {
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .instructivo-contenido-richtext a {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+        .instructivo-contenido-richtext a:hover {
+            color: #1d4ed8;
+        }
+        .instructivo-contenido-richtext h2 {
+            display: block !important;
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 1em 0 0.5em !important;
+        }
+        .instructivo-contenido-richtext h3 {
+            display: block !important;
+            font-size: 15px;
             font-weight: 600;
-        }
-
-        .card-notes {
-            margin-top: 12px;
-            padding: 12px;
-            background: #f8fafc;
-            border-radius: 4px;
-            border-left: 3px solid #2563eb;
-        }
-
-        .card-notes strong {
             color: #1e293b;
+            margin: 0.85em 0 0.4em !important;
+        }
+        /* Listas: forzar bloque, viñetas/números visibles y sangría clara */
+        .instructivo-contenido-richtext ul,
+        .instructivo-contenido-richtext ol {
+            display: block !important;
+            margin: 0.6em 0 !important;
+            padding-left: 2em !important;
+            padding-right: 0 !important;
+            list-style-position: outside !important;
+        }
+        .instructivo-contenido-richtext ul {
+            list-style-type: disc !important;
+        }
+        .instructivo-contenido-richtext ol {
+            list-style-type: decimal !important;
+        }
+        .instructivo-contenido-richtext li {
+            display: list-item !important;
+            margin: 0.35em 0 !important;
+            padding-left: 0.25em !important;
+        }
+        .instructivo-contenido-richtext br {
+            display: block !important;
+        }
+
+        .instructivo-detail-body .contacto-block {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 15px;
+        }
+
+        .instructivo-detail-body .contacto-block .label {
             font-weight: 600;
-            display: block;
-            margin-bottom: 6px;
-            font-size: 12px;
+            color: #475569;
+            font-size: 15px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
         }
 
-        .card-notes p {
-            margin: 0;
-            color: #475569;
-            font-size: 13px;
-            line-height: 1.5;
+        .instructivo-detail-body .contacto-item {
+            margin-bottom: 6px;
+            font-size: 15px;
         }
 
-        .no-results {
-            text-align: center;
-            padding: 60px 20px;
-            color: #64748b;
+        .instructivo-detail-body .notas-block {
+            margin-top: 24px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #2563eb;
+            font-size: 15px;
         }
 
-        .no-results-icon {
-            font-size: 4em;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-
-        .no-results h3 {
-            color: #475569;
-            font-size: 1.3em;
+        .instructivo-detail-body .notas-block .label {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
             margin-bottom: 10px;
         }
 
-        .no-results p {
-            font-size: 1em;
-            margin: 0;
-        }
-
-        .wip-banner {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border: 2px solid #f59e0b;
-            border-radius: 8px;
-            padding: 20px 24px;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
-        }
-
-        .wip-banner-icon {
-            font-size: 2.5em;
-            flex-shrink: 0;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            50% {
-                transform: scale(1.1);
-                opacity: 0.8;
-            }
-        }
-
-        .wip-banner-content {
-            flex: 1;
-        }
-
-        .wip-banner-content h2 {
-            margin: 0 0 8px 0;
-            color: #92400e;
-            font-size: 1.3em;
+        .instructivo-detail-body .notas-block .notas-texto {
             font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .wip-badge {
-            display: inline-block;
-            background: #f59e0b;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.7em;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .wip-banner-content p {
+            font-size: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #1e293b;
             margin: 0;
-            color: #78350f;
-            font-size: 0.95em;
-            line-height: 1.5;
-        }
-
-        /* Solo mostrar el cartel "En desarrollo"; ocultar el resto del contenido */
-        .instructivo-page .container .page-title,
-        .instructivo-page .container .search-container,
-        .instructivo-page .container .instructivos-grid,
-        .instructivo-page .container #no-results-message {
-            display: none !important;
         }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-
-
-            .instructivos-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .search-input {
-                font-size: 14px;
-                padding: 12px 16px;
-            }
-
-            .wip-banner {
+            .instructivo-master-detail {
                 flex-direction: column;
-                text-align: center;
-                padding: 16px;
             }
 
-            .wip-banner-icon {
-                font-size: 2em;
+            .instructivo-master {
+                width: 100%;
+                min-width: 0;
+                max-height: 40vh;
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
             }
 
-            .wip-banner-content h2 {
-                justify-content: center;
-                flex-wrap: wrap;
+            .instructivo-detail-inner {
+                padding: 24px 20px 40px;
             }
         }
     </style>
 </head>
 <body class="instructivo-page">
-    <!-- Header unificado (igual que en presupuestos) -->
     <header class="app-header">
         <div class="app-header-inner">
             <div class="app-header-user"><strong>Usuario:</strong> {{ username }}</div>
             <nav class="app-header-nav">
                 <a href="{{ url_for('presupuestos') }}" class="calc">Calculadora</a>
                 <a href="{{ url_for('aranceles') }}" class="aranceles">Aranceles</a>
+                <a href="{{ url_for('instructivo') }}" class="instructivo nav-active">Instructivo</a>
                 {% if username == 'Gaito' or username == '3' or username == 'DanielABNECH' %}
                 <a href="{{ url_for('admin_usuarios') }}" class="usuarios">Panel</a>
                 {% endif %}
-                <a href="{{ url_for('instructivo') }}" class="instructivo nav-active">Instructivo</a>
                 <a href="{{ url_for('logout') }}" class="logout">Cerrar Sesión</a>
             </nav>
         </div>
     </header>
 
-    <!-- Contenido Principal (misma estructura que presupuestos) -->
-    <section style="padding: 28px 20px 40px; min-height: calc(100vh - 80px); background-color: #f5f7fa;">
-    <div class="container">
-        <div class="page-title">
-            <h1>Instructivo de Obras Sociales</h1>
-        </div>
-
-        <div class="wip-banner">
-            <div class="wip-banner-icon" aria-hidden="true">📋</div>
-            <div class="wip-banner-content">
-                <h2>
-                    <span class="wip-badge">En desarrollo</span>
-                    Sección en construcción
-                </h2>
-                <p>Estamos ampliando y actualizando el contenido de los instructivos de obras sociales. Agradecemos su comprensión.</p>
+    <div class="instructivo-master-detail">
+        <!-- Columna izquierda: buscador + lista -->
+        <aside class="instructivo-master">
+            <div class="instructivo-search-wrap">
+                <input type="text" id="instructivo-search" class="instructivo-search" placeholder="Buscar obra social..." autocomplete="off">
             </div>
-        </div>
+            <div class="instructivo-list" id="instructivo-list">
+                {% if instructivos %}
+                    {% for inv in instructivos %}
+                    <button type="button" class="instructivo-list-item" data-index="{{ loop.index0 }}" data-nombre="{{ inv.nombre|lower }}" data-search="{{ (inv.nombre + ' ' + (inv.contenido or '') + ' ' + (inv.contacto or '') + ' ' + (inv.telefonos or '') + ' ' + (inv.notas_especiales or ''))|lower }}">
+                        {{ inv.nombre }}
+                    </button>
+                    {% endfor %}
+                {% else %}
+                    <div class="instructivo-list-empty">No hay instructivos cargados.</div>
+                {% endif %}
+            </div>
+        </aside>
 
-        <div class="search-container">
-            <input 
-                type="text" 
-                id="search-input" 
-                class="search-input" 
-                placeholder="Buscar Obra Social... (ej: PAMI, OSDE, SEROS)"
-                autocomplete="off"
-            >
-            <div class="results-count" id="results-count"></div>
-        </div>
-
-        <div class="instructivos-grid" id="instructivos-grid">
-            {% if instructivos %}
-                {% for instructivo in instructivos %}
-                <div class="instructivo-card" data-nombre="{{ instructivo.nombre.lower() }}" data-contenido="{{ (instructivo.contenido + ' ' + (instructivo.contacto or '') + ' ' + (instructivo.telefonos or '') + ' ' + (instructivo.notas_especiales or '')).lower() }}">
-                    <div class="card-header">
-                        <h2 class="card-title">{{ instructivo.nombre }}</h2>
-                    </div>
-                    <div class="card-content">
-                        {{ instructivo.contenido }}
-                    </div>
-                    {% if instructivo.contacto or instructivo.telefonos %}
-                    <div class="card-contact">
-                        {% if instructivo.contacto %}
-                        <div class="contact-item">
-                            <strong>Dirección:</strong> {{ instructivo.contacto }}
-                        </div>
-                        {% endif %}
-                        {% if instructivo.telefonos %}
-                        <div class="contact-item">
-                            <strong>Teléfono:</strong> {{ instructivo.telefonos }}
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                    {% if instructivo.notas_especiales %}
-                    <div class="card-notes">
-                        <strong>Notas Especiales:</strong>
-                        <p>{{ instructivo.notas_especiales }}</p>
-                    </div>
-                    {% endif %}
+        <!-- Columna derecha: detalle -->
+        <main class="instructivo-detail">
+            <div class="instructivo-detail-inner">
+                <div class="instructivo-detail-placeholder" id="instructivo-placeholder">
+                    Seleccioná una obra social de la lista para ver su instructivo.
                 </div>
-                {% endfor %}
-            {% else %}
-                <div class="no-results">
-                    <div class="no-results-icon">📋</div>
-                    <h3>No hay instructivos disponibles</h3>
-                    <p>No se encontraron datos de instructivos de obras sociales.</p>
+                <div class="instructivo-detail-content hidden" id="instructivo-detail-content">
+                    <h1 class="instructivo-detail-title" id="instructivo-detail-title"></h1>
+                    <div class="instructivo-detail-body" id="instructivo-detail-body"></div>
                 </div>
-            {% endif %}
-        </div>
-
-        {% if instructivos %}
-        <div class="no-results hidden" id="no-results-message">
-            <div class="no-results-icon">🔍</div>
-            <h3>No se encontraron resultados</h3>
-            <p>Intenta con otro término de búsqueda.</p>
-        </div>
-        {% endif %}
+            </div>
+        </main>
     </div>
 
-    </section>
-
     <script>
-        const searchInput = document.getElementById('search-input');
-        const instructivosGrid = document.getElementById('instructivos-grid');
-        const cards = document.querySelectorAll('.instructivo-card');
-        const resultsCount = document.getElementById('results-count');
-        const noResultsMessage = document.getElementById('no-results-message');
+        (function() {
+            var instructivos = {{ instructivos | tojson | safe }};
+            var searchInput = document.getElementById('instructivo-search');
+            var listEl = document.getElementById('instructivo-list');
+            var items = listEl.querySelectorAll('.instructivo-list-item');
+            var placeholder = document.getElementById('instructivo-placeholder');
+            var contentWrap = document.getElementById('instructivo-detail-content');
+            var titleEl = document.getElementById('instructivo-detail-title');
+            var bodyEl = document.getElementById('instructivo-detail-body');
 
-        function updateResults() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
-            let visibleCount = 0;
+            function escapeHtml(text) {
+                if (!text) return '';
+                var div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
 
-            cards.forEach(card => {
-                const nombre = card.getAttribute('data-nombre');
-                const contenido = card.getAttribute('data-contenido');
-                
-                if (searchTerm === '' || 
-                    nombre.includes(searchTerm) || 
-                    contenido.includes(searchTerm)) {
-                    card.classList.remove('hidden');
-                    visibleCount++;
-                } else {
-                    card.classList.add('hidden');
+            /** Permite solo etiquetas del editor enriquecido (formato, listas, enlaces, encabezados). */
+            function sanitizeRichText(html) {
+                if (!html) return '';
+                var div = document.createElement('div');
+                div.innerHTML = html;
+                var allowed = { B: true, I: true, U: true, P: true, BR: true, STRONG: true, EM: true, SPAN: true, UL: true, OL: true, LI: true, A: true, H2: true, H3: true, DIV: true };
+                var safeProtocol = /^(https?:|mailto:|\/|#)/i;
+                function sanitizeNode(node) {
+                    if (node.nodeType === 3) return node.cloneNode(true);
+                    if (node.nodeType !== 1) return null;
+                    if (!allowed[node.tagName]) return document.createTextNode(node.textContent || '');
+                    var out = document.createElement(node.tagName);
+                    if (node.tagName === 'A' && node.getAttribute('href')) {
+                        var href = node.getAttribute('href').trim();
+                        if (safeProtocol.test(href)) out.setAttribute('href', href);
+                        out.setAttribute('target', '_blank');
+                        out.setAttribute('rel', 'noopener noreferrer');
+                    }
+                    for (var j = 0; j < node.childNodes.length; j++) {
+                        var c = sanitizeNode(node.childNodes[j]);
+                        if (c) out.appendChild(c);
+                    }
+                    return out;
                 }
+                var result = document.createElement('div');
+                for (var i = 0; i < div.childNodes.length; i++) {
+                    var c = sanitizeNode(div.childNodes[i]);
+                    if (c) result.appendChild(c);
+                }
+                return result.innerHTML;
+            }
+
+            function renderDetail(index) {
+                if (!instructivos.length || index < 0 || index >= instructivos.length) {
+                    placeholder.classList.remove('hidden');
+                    contentWrap.classList.add('hidden');
+                    return;
+                }
+                var inv = instructivos[index];
+                placeholder.classList.add('hidden');
+                contentWrap.classList.remove('hidden');
+                titleEl.textContent = inv.nombre || '';
+
+                var contenidoHtml = sanitizeRichText((inv.contenido || '').trim());
+                var contacto = (inv.contacto || '').trim();
+                var telefonos = (inv.telefonos || '').trim();
+                var notas = (inv.notas_especiales || '').trim();
+
+                var html = '';
+                if (contenidoHtml) {
+                    html += '<div class="contenido-texto instructivo-contenido-richtext">' + contenidoHtml + '</div>';
+                }
+                if (contacto || telefonos) {
+                    html += '<div class="contacto-block">';
+                    html += '<div class="label">Contacto</div>';
+                    if (contacto) html += '<div class="contacto-item"><strong>Dirección:</strong> ' + escapeHtml(contacto) + '</div>';
+                    if (telefonos) html += '<div class="contacto-item"><strong>Teléfono:</strong> ' + escapeHtml(telefonos) + '</div>';
+                    html += '</div>';
+                }
+                if (notas) {
+                    html += '<div class="notas-block">';
+                    html += '<div class="label">Observaciones</div>';
+                    html += '<p class="notas-texto">' + escapeHtml(notas) + '</p>';
+                    html += '</div>';
+                }
+                if (!html) html = '<p class="contenido-texto instructivo-contenido-richtext">Sin contenido cargado.</p>';
+                bodyEl.innerHTML = html;
+            }
+
+            function filterList() {
+                var q = (searchInput.value || '').toLowerCase().trim();
+                var visible = 0;
+                items.forEach(function(btn) {
+                    var nombre = btn.getAttribute('data-nombre') || '';
+                    var search = btn.getAttribute('data-search') || '';
+                    var show = !q || nombre.indexOf(q) !== -1 || search.indexOf(q) !== -1;
+                    btn.classList.toggle('hidden', !show);
+                    if (show) visible++;
+                });
+            }
+
+            function selectItem(index) {
+                items.forEach(function(btn) { btn.classList.remove('active'); });
+                var btn = listEl.querySelector('.instructivo-list-item[data-index="' + index + '"]');
+                if (btn) btn.classList.add('active');
+                renderDetail(index);
+            }
+
+            items.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(this.getAttribute('data-index'), 10);
+                    selectItem(idx);
+                });
             });
 
-            // Actualizar contador de resultados
-            if (searchTerm === '') {
-                resultsCount.textContent = `Mostrando ${visibleCount} obra${visibleCount !== 1 ? 's' : ''} social${visibleCount !== 1 ? 'es' : ''}`;
-            } else {
-                resultsCount.textContent = `${visibleCount} resultado${visibleCount !== 1 ? 's' : ''} encontrado${visibleCount !== 1 ? 's' : ''} para "${searchInput.value}"`;
+            searchInput.addEventListener('input', filterList);
+
+            if (instructivos.length > 0) {
+                selectItem(0);
             }
-
-            // Mostrar/ocultar mensaje de "no resultados"
-            if (visibleCount === 0 && searchTerm !== '') {
-                if (noResultsMessage) {
-                    noResultsMessage.classList.remove('hidden');
-                }
-            } else {
-                if (noResultsMessage) {
-                    noResultsMessage.classList.add('hidden');
-                }
-            }
-        }
-
-        // Búsqueda en tiempo real
-        searchInput.addEventListener('input', updateResults);
-
-        // Inicializar contador
-        updateResults();
-
-        // Focus en el input al cargar la página
-        searchInput.focus();
+        })();
     </script>
 </body>
 </html>
-

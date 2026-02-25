@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gestión de Usuarios</title>
+    <title>Panel Administrativo</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
@@ -15,8 +15,8 @@
             <nav class="admin-header-nav">
                 <a href="{{ url_for('presupuestos') }}" class="calc">Calculadora</a>
                 <a href="{{ url_for('aranceles') }}" class="aranceles">Aranceles</a>
-                <a href="{{ url_for('admin_usuarios') }}" class="usuarios nav-active">Panel</a>
                 <a href="{{ url_for('instructivo') }}" class="instructivo">Instructivo</a>
+                <a href="{{ url_for('admin_usuarios') }}" class="usuarios nav-active">Panel</a>
                 <a href="{{ url_for('logout') }}" class="logout">Cerrar Sesión</a>
             </nav>
         </div>
@@ -24,7 +24,7 @@
 
     <section class="admin-section-wrap">
         <div class="admin-container">
-            <h1>Gestión de Usuarios</h1>
+            <h1>Panel Administrativo</h1>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
@@ -35,9 +35,15 @@
             {% endwith %}
 
             <div class="admin-card">
-                <h2>Sincronizar precios</h2>
-                <p class="admin-card-desc">Actualiza los precios de obras sociales desde el archivo OneDrive del ABNECH.</p>
-                <button type="button" id="btn-preview-sync" class="admin-btn admin-btn-primary">Sincronizar con OneDrive</button>
+                <h2>Gestión de Aranceles</h2>
+                <p class="admin-card-desc">Modificá precios, estado y cobertura de anexo por obra social. Podés aplicar cambios de inmediato o programarlos para una fecha futura.</p>
+                <a href="{{ url_for('admin_obras') }}" class="admin-btn admin-btn-primary">Ir a Gestión de Aranceles</a>
+            </div>
+
+            <div class="admin-card">
+                <h2>Instructivo de obras sociales</h2>
+                <p class="admin-card-desc">Editá por obra social el contenido del instructivo: texto, dirección, teléfonos y observaciones.</p>
+                <a href="{{ url_for('admin_instructivos') }}" class="admin-btn admin-btn-primary">Editar instructivos</a>
             </div>
 
             {% if current_user == 'Gaito' and daniel_log_lines is defined %}
@@ -49,53 +55,6 @@
                 <pre id="log-daniel-content" style="margin:0; font-size:0.85rem; max-height:200px; overflow:auto;">{% for line in daniel_log_lines %}{{ line }}{{ '\n' }}{% endfor %}{% if not daniel_log_lines %}— vacío —{% endif %}</pre>
             </div>
             {% endif %}
-
-            <div class="admin-card">
-                <h2>Gestión de anexo</h2>
-                <p class="admin-card-desc">Configura qué obras sociales no cubren los estudios del anexo.</p>
-                <div class="admin-anexo-block">
-                    <div class="admin-anexo-list-header">
-                        <span class="admin-anexo-list-title">Obras sin cobertura de anexo</span>
-                        {% if obras_sin_cobertura_anexo %}
-                        <span class="admin-anexo-count" id="anexo-count">{{ obras_sin_cobertura_anexo|length }}</span>
-                        {% endif %}
-                    </div>
-                    <div class="admin-anexo-list" id="anexo-obras-list">
-                        {% if obras_sin_cobertura_anexo %}
-                            <div class="admin-anexo-list-body">
-                                {% for obra in obras_sin_cobertura_anexo %}
-                                <div class="admin-anexo-chip">
-                                    <span class="admin-anexo-chip-label">{{ obra }}</span>
-                                    <button type="button" class="btn-remove-anexo" data-obra="{{ obra }}" title="Quitar de la lista" aria-label="Quitar {{ obra }}">×</button>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="admin-anexo-empty">
-                                <span class="admin-anexo-empty-icon" aria-hidden="true"></span>
-                                <p class="admin-anexo-empty-text">No hay obras configuradas</p>
-                                <p class="admin-anexo-empty-hint">Agrega obras que no cubren anexo usando el campo de abajo.</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="admin-anexo-row">
-                    <div class="admin-form-group">
-                        <label for="input-obra-anexo">Agregar obra social</label>
-                        <div class="autocomplete-container">
-                            <input type="text" id="input-obra-anexo" placeholder="Escribe el nombre de la obra social" autocomplete="off">
-                            <div class="autocomplete-dropdown" id="anexo-obras-dropdown">
-                                {% for obra in todas_las_obras %}
-                                    {% if obra not in obras_sin_cobertura_anexo %}
-                                    <div class="autocomplete-option" data-value="{{ obra }}">{{ obra }}</div>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                    <button type="button" id="btn-agregar-anexo" class="admin-btn admin-btn-primary">Agregar</button>
-                </div>
-            </div>
 
             <div class="admin-card">
                 <h2>Agregar nuevo usuario</h2>
@@ -178,142 +137,7 @@
         </div>
     </section>
 
-    <div id="modal-sync-preview" class="admin-modal">
-        <div class="admin-modal-content">
-            <div class="admin-modal-header">
-                <h2>Vista previa de sincronización</h2>
-            </div>
-            <div class="admin-modal-body" id="modal-sync-body">
-                <div class="admin-loading"><p>Cargando...</p></div>
-            </div>
-            <div class="admin-modal-footer">
-                <button type="button" id="modal-cancelar-sync" class="admin-btn admin-btn-secondary">Cancelar</button>
-                <form id="form-confirm-sync" method="POST" action="{{ url_for('admin_sync_precios') }}" style="display: inline;">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" id="modal-confirmar-sync" class="admin-btn admin-btn-primary" style="display: none;">Confirmar sincronización</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <script>
-        document.getElementById('btn-preview-sync').addEventListener('click', function() {
-            var modal = document.getElementById('modal-sync-preview');
-            var modalBody = document.getElementById('modal-sync-body');
-            var confirmBtn = document.getElementById('modal-confirmar-sync');
-            modal.classList.add('show');
-            modalBody.innerHTML = '<div class="admin-loading"><p>Cargando...</p></div>';
-            confirmBtn.style.display = 'none';
-            fetch('{{ url_for("admin_sync_precios_preview") }}')
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (data.success) {
-                        var html = '<div class="admin-preview-info"><p><strong>' + data.message + '</strong></p>';
-                        if (data.total_cambios > 0) {
-                            html += '<p style="margin-top:8px;font-size:13px;color:#64748b;">Se actualizará el archivo al confirmar.</p>';
-                        }
-                        html += '</div>';
-                        if (data.cambios && data.cambios.length > 0) {
-                            html += '<div style="max-height:360px;overflow-y:auto;"><table class="admin-preview-table"><thead><tr><th>Obra Social</th><th>Precio actual</th><th>Precio nuevo</th><th>Estado</th></tr></thead><tbody>';
-                            data.cambios.forEach(function(c) {
-                                var badge = c.cambio === 'nuevo' || c.cambio === 'a_vigente' ? 'admin-badge-ok' : (c.cambio === 'borrado' ? 'admin-badge-off' : (c.cambio === 'sin_convenio' ? 'admin-badge-warn' : (c.cambio === 'suspendida' ? 'admin-badge-info' : 'admin-badge-warn')));
-                                var badgeText = c.cambio === 'nuevo' ? 'Nueva' : (c.cambio === 'a_vigente' ? 'Vigente' : (c.cambio === 'borrado' ? 'Borrado del archivo' : (c.cambio === 'sin_convenio' ? 'Sin convenio' : (c.cambio === 'suspendida' ? 'Suspendida' : 'Modificado'))));
-                                var prev, next;
-                                if (c.cambio === 'borrado') {
-                                    prev = !c.precio_actual || c.precio_actual === 'N/A' ? '—' : (c.precio_actual === 'Suspendida' || c.precio_actual === 'Sin convenio' ? c.precio_actual : '$' + c.precio_actual);
-                                    next = '<em>No está en OneDrive</em>';
-                                } else if (c.cambio === 'suspendida' || c.cambio === 'sin_convenio') {
-                                    prev = !c.precio_actual || c.precio_actual === 'N/A' ? '—' : (c.precio_actual === 'Suspendida' || c.precio_actual === 'Sin convenio' ? c.precio_actual : '$' + c.precio_actual);
-                                    next = c.precio_nuevo && !String(c.precio_nuevo).match(/Sin Convenio|Suspendida|OneDrive/) ? ('$' + c.precio_nuevo) : '<em>' + (c.precio_nuevo || '—') + '</em>';
-                                } else {
-                                    if (!c.precio_actual) prev = '<em>Nueva</em>';
-                                    else if (c.precio_actual === 'Suspendida' || c.precio_actual === 'Sin convenio') prev = c.precio_actual;
-                                    else prev = '$' + c.precio_actual;
-                                    next = c.precio_nuevo && !String(c.precio_nuevo).match(/Sin Convenio|Suspendida|OneDrive/) ? ('$' + c.precio_nuevo) : '<em>' + (c.precio_nuevo || '—') + '</em>';
-                                }
-                                html += '<tr><td><strong>' + c.nombre + '</strong></td><td class="precio-anterior">' + prev + '</td><td class="precio-nuevo">' + next + '</td><td><span class="admin-badge ' + badge + '">' + badgeText + '</span></td></tr>';
-                            });
-                            html += '</tbody></table></div>';
-                            if (data.total_cambios > 50) {
-                                html += '<p style="margin-top:12px;font-size:13px;color:#64748b;text-align:center">... y ' + (data.total_cambios - 50) + ' más</p>';
-                            }
-                            confirmBtn.style.display = 'inline-block';
-                        } else {
-                            html += '<div class="admin-no-data"><p>No hay cambios pendientes.</p></div>';
-                        }
-                        modalBody.innerHTML = html;
-                    } else {
-                        modalBody.innerHTML = '<div class="admin-alert admin-alert-error"><strong>Error:</strong> ' + data.message + '</div>';
-                    }
-                })
-                .catch(function() {
-                    modalBody.innerHTML = '<div class="admin-alert admin-alert-error"><p>No se pudo cargar la vista previa.</p></div>';
-                });
-        });
-        document.getElementById('modal-cancelar-sync').addEventListener('click', function() {
-            document.getElementById('modal-sync-preview').classList.remove('show');
-        });
-        document.getElementById('modal-sync-preview').addEventListener('click', function(e) {
-            if (e.target === this) this.classList.remove('show');
-        });
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') document.getElementById('modal-sync-preview').classList.remove('show');
-        });
-        (function() {
-            var inputAnexo = document.getElementById('input-obra-anexo');
-            var dropdownAnexo = document.getElementById('anexo-obras-dropdown');
-            var optionsAnexo = dropdownAnexo ? Array.from(dropdownAnexo.querySelectorAll('.autocomplete-option')) : [];
-            function showAnexoDropdown() { if (dropdownAnexo) dropdownAnexo.style.display = 'block'; }
-            function hideAnexoDropdown() { if (dropdownAnexo) dropdownAnexo.style.display = 'none'; }
-            function filterAnexoOptions(filter) {
-                var term = (filter || '').toLowerCase();
-                optionsAnexo.forEach(function(opt) {
-                    opt.style.display = !term || opt.textContent.toLowerCase().indexOf(term) !== -1 ? 'block' : 'none';
-                });
-                var visible = optionsAnexo.filter(function(o) { return o.style.display !== 'none'; });
-                if (visible.length) showAnexoDropdown(); else hideAnexoDropdown();
-            }
-            if (inputAnexo) {
-                inputAnexo.addEventListener('focus', function() { filterAnexoOptions(this.value); });
-                inputAnexo.addEventListener('input', function() { filterAnexoOptions(this.value); });
-                inputAnexo.addEventListener('blur', function() { setTimeout(hideAnexoDropdown, 150); });
-            }
-            if (dropdownAnexo) {
-                optionsAnexo.forEach(function(opt) {
-                    opt.addEventListener('click', function() {
-                        inputAnexo.value = this.getAttribute('data-value') || this.textContent;
-                        hideAnexoDropdown();
-                    });
-                });
-            }
-        })();
-        document.getElementById('btn-agregar-anexo').addEventListener('click', function() {
-            var input = document.getElementById('input-obra-anexo');
-            var obra = (input && input.value ? input.value : '').trim();
-            if (!obra) { alert('Elige una obra social.'); return; }
-            fetch('{{ url_for("admin_anexo_agregar") }}', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'csrf_token={{ csrf_token() }}&obra=' + encodeURIComponent(obra)
-            }).then(function(r) { return r.json(); }).then(function(d) {
-                if (d.success) location.reload();
-                else alert('Error: ' + (d.message || 'No se pudo agregar'));
-            }).catch(function() { alert('Error de conexión'); });
-        });
-        document.querySelectorAll('.btn-remove-anexo').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                var obra = this.getAttribute('data-obra');
-                if (!confirm('¿Quitar "' + obra + '" de la lista?')) return;
-                fetch('{{ url_for("admin_anexo_eliminar") }}', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'csrf_token={{ csrf_token() }}&obra=' + encodeURIComponent(obra)
-                }).then(function(r) { return r.json(); }).then(function(d) {
-                    if (d.success) location.reload();
-                    else alert('Error: ' + (d.message || 'No se pudo eliminar'));
-                }).catch(function() { alert('Error de conexión'); });
-            });
-        });
         var btnVaciarLog = document.getElementById('btn-vaciar-log-daniel');
         if (btnVaciarLog) {
             btnVaciarLog.addEventListener('click', function() {

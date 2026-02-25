@@ -45,6 +45,17 @@ app.config['WTF_CSRF_TIME_LIMIT'] = None
 csrf = CSRFProtect(app)
 
 
+def strip_html(text):
+    """Quita etiquetas HTML y normaliza espacios. Para mostrar texto plano en tablas/resúmenes."""
+    if not text:
+        return ''
+    s = re.sub(r'<[^>]+>', '', str(text))
+    return re.sub(r'\s+', ' ', s).strip()
+
+
+app.jinja_env.filters['strip_html'] = strip_html
+
+
 @app.errorhandler(400)
 def bad_request_csrf(e):
     """Si el 400 viene del login (CSRF expirado), redirigir con mensaje amigable."""
@@ -89,6 +100,8 @@ OBRAS_ESTADO_FILE = 'obras_estado.json'
 ANEXO_CONFIG_FILE = 'anexo_config.json'
 # Archivo con códigos de anexo
 ANEXO_CODIGOS_FILE = 'Anexo_Codigos.txt'
+# Modificaciones programadas (fecha futura → aplicar cambio por obra)
+MODIFICACIONES_PROGRAMADAS_FILE = 'modificaciones_programadas.json'
 # URL del archivo Excel/CSV para sincronización de precios (configurar aquí o en variable de entorno)
 # Puede ser Google Sheets (CSV) o OneDrive/Excel (.xlsx)
 # Ejemplo OneDrive: https://onedrive.live.com/download?resid=RESID
@@ -373,6 +386,8 @@ def presupuestos():
                 flash('Error inesperado al procesar el presupuesto.', 'error')
         return redirect(url_for('presupuestos'))
 
+    aplicar_modificaciones_programadas()
+
     # Leer obras sociales (vigentes y cortadas)
     obras = {}
     obras_estado = {}  # Para almacenar el estado de cada obra
@@ -466,9 +481,15 @@ def normalizar_precio_argentino(precio_str):
     """
     Normaliza un precio a formato argentino (punto para miles, coma para decimales).
     Maneja formatos: inglés (1335.60), argentino (1.335,60), o sin formato (1335).
+    Acepta también números que vienen de Excel (int/float).
     """
-    if not precio_str or precio_str == '' or precio_str.lower() == 'nan':
+    if precio_str is None or (isinstance(precio_str, str) and (precio_str.strip() == '' or precio_str.strip().lower() == 'nan')):
         return None
+    # Si viene como número de pandas/Excel, convertir a string de forma consistente
+    if isinstance(precio_str, (int, float)):
+        if precio_str != precio_str:  # NaN
+            return None
+        precio_str = str(int(precio_str)) if isinstance(precio_str, float) and precio_str == int(precio_str) else str(precio_str)
     
     # Limpiar espacios y símbolos de moneda
     precio_limpio = str(precio_str).strip().replace(' ', '').replace('$', '').replace('€', '')
@@ -550,8 +571,14 @@ def normalizar_precio_argentino(precio_str):
         
         return precio_limpio
 
+def normalizar_nombre_obra(nombre):
+    """Normaliza nombre de obra: strip y un solo espacio entre palabras (para que coincida Excel vs archivo)."""
+    if nombre is None:
+        return None
+    return re.sub(r'\s+', ' ', str(nombre).strip()) if str(nombre).strip() else None
+
 def load_current_obras():
-    """Carga las obras sociales actuales desde obras_entero.txt"""
+    """Carga las obras sociales actuales desde obras_entero.txt (claves normalizadas para lookup)."""
     obras = {}
     try:
         if os.path.exists(OBRAS_FILE):
@@ -559,7 +586,9 @@ def load_current_obras():
                 for line in f:
                     if ':' in line:
                         obra, precio = line.strip().split(':', 1)
-                        obras[obra] = precio
+                        key = normalizar_nombre_obra(obra)
+                        if key:
+                            obras[key] = precio.strip()
     except Exception as e:
         logger.error(f"Error al leer obras actuales: {e}")
     return obras
@@ -597,6 +626,25 @@ def es_precio_real(precio):
         return float(s) > 0
     except (ValueError, TypeError):
         return False
+
+def estado_desde_vigente_celda(vigente_val):
+    """
+    Determina estado 'vigente', 'sin_convenio' o 'suspendida' según el valor de la celda Vigente del Excel.
+    Acepta variantes: 'sin convenio', 'sinconvenio', 'cortada', con espacios o mayúsculas.
+    """
+    estado = 'vigente'
+    if pd.isna(vigente_val):
+        return estado
+    vigente_str = str(vigente_val).strip().lower()
+    # Normalizar espacios múltiples
+    vigente_str = re.sub(r'\s+', ' ', vigente_str)
+    if not vigente_str:
+        return estado
+    if 'sin convenio' in vigente_str or 'sinconvenio' in vigente_str or 'cortada' in vigente_str:
+        return 'sin_convenio'
+    if 'suspendida' in vigente_str or 'suspendid' in vigente_str:
+        return 'suspendida'
+    return estado
 
 def comparar_precios(precio_actual, precio_nuevo):
     """
@@ -723,10 +771,12 @@ def preview_precios_google_sheet():
         if df is None:
             raise Exception("No se pudo leer el archivo con ningún método")
         
-        obras_dict = {}  # Todas las obras del Excel (vigentes y cortadas)
+        # Cargar precios actuales al inicio para conservar precio cuando Excel trae 0/vacío en vigentes
+        obras_actuales = load_current_obras()
+        obras_dict = {}  # Obras vigentes con precio a importar
         obras_cortadas_dict = {}  # Obras cortadas para el preview
         
-        # Procesar Bloque 1 (Columnas B y F)
+        # Procesar Bloque 1 (Columnas B, D=vigente, F=precio)
         for idx in range(2, len(df)):
             nombre = df.iloc[idx, 1] if len(df.columns) > 1 else None
             precio = df.iloc[idx, 5] if len(df.columns) > 5 else None
@@ -736,19 +786,11 @@ def preview_precios_google_sheet():
             if pd.isna(nombre):
                 continue
             
-            nombre = str(nombre).strip()
-            
-            if not nombre or nombre == '' or nombre.lower() in ['obras sociales', 'obra social', 'nombre']:
+            nombre = normalizar_nombre_obra(nombre)
+            if not nombre or nombre.lower() in ['obras sociales', 'obra social', 'nombre']:
                 continue
             
-            # Determinar estado
-            estado = 'vigente'
-            if not pd.isna(vigente):
-                vigente_str = str(vigente).strip().lower()
-                if vigente_str in ['sin convenio', 'sinconvenio', 'cortada']:
-                    estado = 'sin_convenio'
-                elif vigente_str in ['suspendida', 'suspendid']:
-                    estado = 'suspendida'
+            estado = estado_desde_vigente_celda(vigente)
             
             # Procesar precio (puede estar vacío para obras cortadas)
             precio_normalizado = None
@@ -763,15 +805,19 @@ def preview_precios_google_sheet():
                     'estado': estado
                 }
             
-            # Solo guardar en obras_dict si está vigente Y tiene precio válido
+            # Solo vigentes: precio válido (>0) o conservar precio actual para no mostrar "modificado" a $0
             if estado == 'vigente':
-                if precio_normalizado is not None:
+                if precio_normalizado is not None and es_precio_real(precio_normalizado):
                     obras_dict[nombre] = precio_normalizado
-                # Si está vigente pero no tiene precio válido, la saltamos (no debería pasar)
-                elif not pd.isna(precio):
-                    logger.warning(f"Obra vigente {nombre} tiene precio inválido: {precio}")
+                else:
+                    # Excel trae 0 o vacío: conservar precio actual (evita "Modificado" a $0 en preview)
+                    prev = obras_actuales.get(nombre)
+                    if prev and es_precio_real(prev):
+                        obras_dict[nombre] = prev
+                    elif not pd.isna(precio):
+                        logger.warning(f"Obra vigente {nombre} tiene precio inválido o cero: {precio}")
         
-        # Procesar Bloque 2 (Columnas K y O)
+        # Procesar Bloque 2 (Columnas K, M=vigente, O=precio)
         for idx in range(2, len(df)):
             nombre = df.iloc[idx, 10] if len(df.columns) > 10 else None
             precio = df.iloc[idx, 14] if len(df.columns) > 14 else None
@@ -781,19 +827,11 @@ def preview_precios_google_sheet():
             if pd.isna(nombre):
                 continue
             
-            nombre = str(nombre).strip()
-            
-            if not nombre or nombre == '' or nombre.lower() in ['obras sociales', 'obra social', 'nombre']:
+            nombre = normalizar_nombre_obra(nombre)
+            if not nombre or nombre.lower() in ['obras sociales', 'obra social', 'nombre']:
                 continue
             
-            # Determinar estado
-            estado = 'vigente'
-            if not pd.isna(vigente):
-                vigente_str = str(vigente).strip().lower()
-                if vigente_str in ['sin convenio', 'sinconvenio', 'cortada']:
-                    estado = 'sin_convenio'
-                elif vigente_str in ['suspendida', 'suspendid']:
-                    estado = 'suspendida'
+            estado = estado_desde_vigente_celda(vigente)
             
             # Procesar precio (puede estar vacío para obras cortadas)
             precio_normalizado = None
@@ -808,19 +846,21 @@ def preview_precios_google_sheet():
                     'estado': estado
                 }
             
-            # Solo guardar en obras_dict si está vigente Y tiene precio válido
+            # Solo vigentes: precio válido (>0) o conservar precio actual
             if estado == 'vigente':
-                if precio_normalizado is not None:
+                if precio_normalizado is not None and es_precio_real(precio_normalizado):
                     obras_dict[nombre] = precio_normalizado
-                # Si está vigente pero no tiene precio válido, la saltamos (no debería pasar)
-                elif not pd.isna(precio):
-                    logger.warning(f"Obra vigente {nombre} tiene precio inválido: {precio}")
+                else:
+                    prev = obras_actuales.get(nombre)
+                    if prev and es_precio_real(prev):
+                        obras_dict[nombre] = prev
+                    elif not pd.isna(precio):
+                        logger.warning(f"Obra vigente {nombre} tiene precio inválido o cero: {precio}")
         
         # Comparar con precios actuales y solo incluir cambios
-        obras_actuales = load_current_obras()
-        # Cargar estado actual completo para comparar cambios de estado
+        # Cargar estado actual completo para comparar cambios de estado (claves normalizadas para coincidir con nombre del Excel)
         estado_actual_data = load_obras_estado()
-        obras_estado_actual = estado_actual_data.get('obras', {})
+        obras_estado_actual = {normalizar_nombre_obra(k): v for k, v in (estado_actual_data.get('obras') or {}).items() if normalizar_nombre_obra(k)}
         
         cambios_dict = {}
         
@@ -861,13 +901,16 @@ def preview_precios_google_sheet():
             estado_anterior = obra_estado_actual.get('estado', 'vigente')  # Si no existe, asumimos que estaba vigente
             
             if estado_anterior == 'vigente':
-                # Vigente → suspendida/sin convenio: incluir precio del Excel (se guardará al importar)
+                # Vigente → suspendida/sin convenio: incluir precio del Excel (o conservar actual si Excel vacío/0)
                 estado_nuevo = datos_no_vigente.get('estado', 'sin_convenio')
                 precio_excel = datos_no_vigente.get('precio')
                 precio_actual = obras_actuales.get(nombre) or obra_estado_actual.get('precio')
+                # Si Excel no trae precio real, al importar se conserva el actual; mostrarlo en preview
+                # Mostrar lo que trae OneDrive (incluido 0); solo usar precio_actual si la celda está vacía
+                precio_nuevo_display = precio_excel if precio_excel is not None else precio_actual
                 cambios_dict[nombre] = {
                     'precio_actual': precio_actual,
-                    'precio_nuevo': precio_excel,
+                    'precio_nuevo': precio_nuevo_display,
                     'cambio': estado_nuevo,
                     'estado': estado_nuevo
                 }
@@ -875,13 +918,14 @@ def preview_precios_google_sheet():
                 # Ya estaba suspendida/sin convenio: incluir si el precio del Excel cambió (se actualizará al importar)
                 precio_excel = datos_no_vigente.get('precio')
                 precio_actual = obra_estado_actual.get('precio')
-                if precio_excel is not None and comparar_precios(precio_actual, precio_excel):
+                if precio_excel is not None and es_precio_real(precio_excel) and comparar_precios(precio_actual, precio_excel):
                     cambios_dict[nombre] = {
                         'precio_actual': precio_actual,
                         'precio_nuevo': precio_excel,
                         'cambio': 'modificado',
                         'estado': datos_no_vigente.get('estado', estado_anterior)
                     }
+                # Si Excel no trae precio real, no mostrar como cambio (se conserva el actual)
         
         # También detectar obras que están en la base pero ya NO están en el Excel/OneDrive (borradas del archivo)
         nombres_nuevos = set(obras_dict.keys()) | set(obras_cortadas_dict.keys())
@@ -1168,29 +1212,56 @@ def sync_precios_google_sheet():
         obras_dict = {}  # Para obras_entero.txt (solo activas)
         obras_estado_dict = {}  # Para obras_estado.json (todas con estado)
         
-        # Cargar estado previo para preservar precios de suspendidas cuando el Excel viene vacío
+        # Cargar estado previo para preservar precios de suspendidas/sin convenio cuando el Excel viene vacío
         estado_previo = load_obras_estado()
         obras_previas = estado_previo.get('obras', {})
-        obras_entero_previas = load_current_obras()
+        # Claves normalizadas (y por minúsculas para coincidir aunque el Excel cambie mayúsculas)
+        obras_previas_norm = {}
+        obras_previas_por_lower = {}
+        for k, v in obras_previas.items():
+            n = normalizar_nombre_obra(k)
+            if n:
+                obras_previas_norm[n] = v
+                obras_previas_por_lower[n.lower()] = v
+        obras_entero_previas = load_current_obras()  # claves normalizadas
+        obras_entero_por_lower = {k.lower(): v for k, v in obras_entero_previas.items()}
+        
+        def _obtener_precio_previo(nombre):
+            """Obtiene precio previo por nombre normalizado: exacto y luego por minúsculas (sin convenio)."""
+            # Exacto
+            p = obras_entero_previas.get(nombre)
+            if p and es_precio_real(p):
+                return p
+            datos = obras_previas_norm.get(nombre)
+            if isinstance(datos, dict) and datos.get('precio') and es_precio_real(datos.get('precio')):
+                return datos.get('precio')
+            # Por minúsculas (por si el Excel tiene otro uso de mayúsculas)
+            p = obras_entero_por_lower.get(nombre.lower())
+            if p and es_precio_real(p):
+                return p
+            datos = obras_previas_por_lower.get(nombre.lower())
+            if isinstance(datos, dict) and datos.get('precio') and es_precio_real(datos.get('precio')):
+                return datos.get('precio')
+            return None
         
         def precio_final(nombre, estado, precio_normalizado, ya_en_dict=None):
-            """Para suspendidas/sin convenio: si Excel no tiene precio, conservar el previo."""
-            if precio_normalizado is not None and es_precio_real(precio_normalizado):
+            """Para suspendidas/sin convenio: si OneDrive trae valor (incluso 0), usarlo. Solo conservar previo si la celda está vacía."""
+            # Si Excel trae un valor (incluido 0), ese es el que importamos
+            if precio_normalizado is not None:
                 return precio_normalizado
+            # Solo si la celda está vacía: conservar precio previo
             if estado in ['suspendida', 'sin_convenio']:
-                # Usar precio ya cargado en este sync (ej. del otro bloque) o del estado anterior
-                prev = (ya_en_dict or obras_previas.get(nombre, {}).get('precio') or 
-                        obras_entero_previas.get(nombre))
-                if prev and es_precio_real(prev):
-                    return prev
-            return precio_normalizado
+                prev_precio = (ya_en_dict if ya_en_dict is not None and es_precio_real(ya_en_dict) else None
+                               or _obtener_precio_previo(nombre))
+                if prev_precio and es_precio_real(prev_precio):
+                    return prev_precio
+            return None
         
         # Bloque 1: Columna B (índice 1) = Nombre, Columna F (índice 5) = Precio
         # Bloque 2: Columna K (índice 10) = Nombre, Columna O (índice 14) = Precio
         # Los datos empiezan en la fila 3 (índice 2), después de los encabezados
         
-        # Procesar Bloque 1 (Columnas B y F)
-        # Columna D (índice 3) = Vigente, Columna B (índice 1) = Nombre, Columna F (índice 5) = Precio
+        # Procesar Bloque 1 (Columnas B, D=vigente, F=precio)
         for idx in range(2, len(df)):  # Empezar desde fila 3 (índice 2)
             nombre = df.iloc[idx, 1] if len(df.columns) > 1 else None  # Columna B (índice 1)
             precio = df.iloc[idx, 5] if len(df.columns) > 5 else None  # Columna F (índice 5)
@@ -1200,27 +1271,22 @@ def sync_precios_google_sheet():
             if pd.isna(nombre):
                 continue
             
-            nombre = str(nombre).strip()
-            
-            # Saltar si el nombre está vacío o parece ser un encabezado
-            if not nombre or nombre == '' or nombre.lower() in ['obras sociales', 'obra social', 'nombre']:
+            nombre = normalizar_nombre_obra(nombre)
+            if not nombre or nombre.lower() in ['obras sociales', 'obra social', 'nombre']:
                 continue
             
-            # Determinar estado
-            estado = 'vigente'
-            if not pd.isna(vigente):
-                vigente_str = str(vigente).strip().lower()
-                if vigente_str in ['sin convenio', 'sinconvenio', 'cortada']:
-                    estado = 'sin_convenio'
-                elif vigente_str in ['suspendida', 'suspendid']:
-                    estado = 'suspendida'
+            estado = estado_desde_vigente_celda(vigente)
             
-            # Procesar precio (puede estar vacío para obras cortadas)
+            # Procesar precio (puede estar vacío para obras cortadas; acepta número de Excel)
             precio_normalizado = None
-            if not pd.isna(precio):
-                precio_str = str(precio).strip()
-                precio_normalizado = normalizar_precio_argentino(precio_str)
+            if pd.notna(precio) and precio != '':
+                precio_normalizado = normalizar_precio_argentino(precio)
             
+            # Para vigente con precio 0/vacío: conservar precio previo (no sobrescribir con 0)
+            if estado == 'vigente' and (precio_normalizado is None or not es_precio_real(precio_normalizado)):
+                prev_datos = obras_previas_norm.get(nombre) or {}
+                precio_normalizado = ((prev_datos.get('precio') if isinstance(prev_datos, dict) else None) or
+                                      obras_entero_previas.get(nombre) or precio_normalizado)
             # Para suspendidas/sin convenio: conservar precio previo si Excel viene vacío
             precio_a_guardar = precio_final(nombre, estado, precio_normalizado)
             
@@ -1231,15 +1297,23 @@ def sync_precios_google_sheet():
                 'ultima_actualizacion': datetime.now().isoformat()
             }
             
-            # Solo guardar en obras_dict si está vigente Y tiene precio válido
+            # obras_entero.txt: vigentes con precio; sin convenio/suspendida con precio conservado también (para que el valor se mantenga)
             if estado == 'vigente':
-                if precio_normalizado is not None:
+                if precio_normalizado is not None and es_precio_real(precio_normalizado):
                     obras_dict[nombre] = precio_normalizado
-                elif not pd.isna(precio):
-                    logger.warning(f"Obra vigente {nombre} tiene precio inválido: {precio}")
+                else:
+                    prev = (obras_previas_norm.get(nombre) or {}).get('precio') if isinstance(obras_previas_norm.get(nombre), dict) else None
+                    prev = prev or obras_entero_previas.get(nombre)
+                    if prev and es_precio_real(prev):
+                        obras_dict[nombre] = prev
+                    elif not pd.isna(precio):
+                        logger.warning(f"Obra vigente {nombre} tiene precio inválido o cero: {precio}")
+            elif estado in ['sin_convenio', 'suspendida']:
+                # Solo agregar a obras_entero.txt si tienen precio > 0. Si OneDrive trae 0, no agregar (se muestra 0 desde JSON)
+                if precio_a_guardar and es_precio_real(precio_a_guardar):
+                    obras_dict[nombre] = precio_a_guardar
         
-        # Procesar Bloque 2 (Columnas K y O)
-        # Columna M (índice 12) = Vigente, Columna K (índice 10) = Nombre, Columna O (índice 14) = Precio
+        # Procesar Bloque 2 (Columnas K, M=vigente, O=precio)
         for idx in range(2, len(df)):  # Empezar desde fila 3 (índice 2)
             nombre = df.iloc[idx, 10] if len(df.columns) > 10 else None  # Columna K (índice 10)
             precio = df.iloc[idx, 14] if len(df.columns) > 14 else None  # Columna O (índice 14)
@@ -1249,28 +1323,22 @@ def sync_precios_google_sheet():
             if pd.isna(nombre):
                 continue
             
-            nombre = str(nombre).strip()
-            
-            # Saltar si el nombre está vacío o parece ser un encabezado
-            if not nombre or nombre == '' or nombre.lower() in ['obras sociales', 'obra social', 'nombre']:
+            nombre = normalizar_nombre_obra(nombre)
+            if not nombre or nombre.lower() in ['obras sociales', 'obra social', 'nombre']:
                 continue
             
-            # Determinar estado
-            estado = 'vigente'
-            if not pd.isna(vigente):
-                vigente_str = str(vigente).strip().lower()
-                if vigente_str in ['sin convenio', 'sinconvenio', 'cortada']:
-                    estado = 'sin_convenio'
-                elif vigente_str in ['suspendida', 'suspendid']:
-                    estado = 'suspendida'
+            estado = estado_desde_vigente_celda(vigente)
             
-            # Procesar precio (puede estar vacío para obras cortadas)
+            # Procesar precio (puede estar vacío para obras cortadas; acepta número de Excel)
             precio_normalizado = None
-            if not pd.isna(precio):
-                precio_str = str(precio).strip()
-                precio_normalizado = normalizar_precio_argentino(precio_str)
+            if pd.notna(precio) and precio != '':
+                precio_normalizado = normalizar_precio_argentino(precio)
             
-            # Para suspendidas/sin convenio: conservar precio previo si Excel viene vacío (o del Bloque 1)
+            # Para vigente con precio 0/vacío: conservar precio previo
+            if estado == 'vigente' and (precio_normalizado is None or not es_precio_real(precio_normalizado)):
+                prev_datos = obras_previas_norm.get(nombre)
+                prev_p = (prev_datos.get('precio') if isinstance(prev_datos, dict) else None) or obras_entero_previas.get(nombre)
+                precio_normalizado = obras_estado_dict.get(nombre, {}).get('precio') or prev_p or precio_normalizado
             precio_existente = obras_estado_dict.get(nombre, {}).get('precio') if nombre in obras_estado_dict else None
             precio_a_guardar = precio_final(nombre, estado, precio_normalizado, ya_en_dict=precio_existente)
             
@@ -1281,14 +1349,21 @@ def sync_precios_google_sheet():
                 'ultima_actualizacion': datetime.now().isoformat()
             }
             
-            # Solo guardar en obras_dict si está vigente Y tiene precio válido
+            # obras_entero.txt: vigentes con precio; sin convenio/suspendida con precio conservado también
             if estado == 'vigente':
-                if precio_normalizado is not None:
+                if precio_normalizado is not None and es_precio_real(precio_normalizado):
                     obras_dict[nombre] = precio_normalizado
-                elif not pd.isna(precio):
-                    logger.warning(f"Obra vigente {nombre} tiene precio inválido: {precio}")
+                else:
+                    prev = precio_existente or (obras_previas_norm.get(nombre) or {}).get('precio') or obras_entero_previas.get(nombre)
+                    if prev and es_precio_real(prev):
+                        obras_dict[nombre] = prev
+                    elif not pd.isna(precio):
+                        logger.warning(f"Obra vigente {nombre} tiene precio inválido o cero: {precio}")
+            elif estado in ['sin_convenio', 'suspendida']:
+                if precio_a_guardar and es_precio_real(precio_a_guardar):
+                    obras_dict[nombre] = precio_a_guardar
         
-        # Escribir el archivo obras_entero.txt (solo obras activas)
+        # Escribir el archivo obras_entero.txt (obras con precio > 0: vigentes + sin convenio/suspendida con precio)
         if obras_dict:
             # Ordenar alfabéticamente por nombre
             obras_ordenadas = dict(sorted(obras_dict.items()))
@@ -1376,6 +1451,162 @@ def load_obras_estado():
             'obras': {}
         }
 
+def load_obras_list_para_vista():
+    """
+    Lista de obras para Aranceles y Gestión de obras: misma fuente.
+    Los precios se toman de obras_entero.txt (archivo de texto); el estado y el resto de obras vienen de obras_estado.json.
+    Así ambas vistas comparten precios y van por el archivo de texto.
+    """
+    estado_data = load_obras_estado()
+    precios_txt = load_current_obras()  # nombre normalizado -> precio (desde obras_entero.txt)
+    obras_list = []
+    for nombre, datos in sorted(estado_data.get('obras', {}).items()):
+        # Precio: prioridad al archivo de texto; si no está, al JSON
+        nombre_norm = normalizar_nombre_obra(nombre)
+        precio = (precios_txt.get(nombre_norm) or datos.get('precio') or '').strip() if (precios_txt.get(nombre_norm) or datos.get('precio')) else ''
+        obras_list.append({
+            'nombre': nombre,
+            'precio': precio,
+            'estado': datos.get('estado', 'vigente'),
+            'ultima_actualizacion': datos.get('ultima_actualizacion', ''),
+        })
+    return obras_list, estado_data
+
+def _regenerar_obras_entero(obras_estado_dict):
+    """
+    Escribe obras_entero.txt con todas las obras que tengan precio válido (vigentes, sin convenio, suspendidas).
+    Así Aranceles y Gestión de obras comparten la misma fuente y los precios de sin convenio no se pierden.
+    """
+    con_precio = dict(sorted(
+        (n, str(d.get('precio', '') or '').strip() or '0')
+        for n, d in obras_estado_dict.items()
+        if es_precio_real(d.get('precio'))
+    ))
+    try:
+        with open(OBRAS_FILE, 'w', encoding='utf-8') as f:
+            for nombre, precio in con_precio.items():
+                p = precio_str_a_float(precio)
+                if p is not None and p > 0:
+                    f.write(f"{nombre}:{precio}\n")
+    except Exception as e:
+        logger.error(f"Error al regenerar obras_entero.txt: {e}")
+
+def save_obra_individual(nombre_obra, precio, estado):
+    """
+    Actualiza una sola obra en obras_estado.json y regenera obras_entero.txt.
+    precio: str o número; estado: 'vigente' | 'sin_convenio' | 'suspendida'.
+    Devuelve (True, None) o (False, mensaje_error).
+    """
+    if estado not in ('vigente', 'sin_convenio', 'suspendida'):
+        return False, "Estado inválido."
+    estado_data = load_obras_estado()
+    obras = estado_data.get('obras', {})
+    if nombre_obra not in obras:
+        return False, "Obra no encontrada."
+    precio_str = None
+    if precio is not None and str(precio).strip() != '':
+        p = precio_str_a_float(precio)
+        if p is not None:
+            # Guardar en formato legible (coma decimal)
+            precio_str = str(p).replace('.', ',')
+        else:
+            precio_str = str(precio).strip()
+    # Actualizar la obra
+    obras[nombre_obra] = {
+        'precio': precio_str or obras[nombre_obra].get('precio'),
+        'estado': estado,
+        'ultima_actualizacion': datetime.now().isoformat()
+    }
+    obras_ordenadas = dict(sorted(obras.items()))
+    estado_data['obras'] = obras_ordenadas
+    estado_data['fecha_actualizacion'] = datetime.now().isoformat()
+    estado_data['total_obras'] = len(obras_ordenadas)
+    estado_data['obras_vigentes'] = sum(1 for o in obras_ordenadas.values() if o.get('estado') == 'vigente')
+    estado_data['obras_sin_convenio'] = sum(1 for o in obras_ordenadas.values() if o.get('estado') == 'sin_convenio')
+    estado_data['obras_suspendidas'] = sum(1 for o in obras_ordenadas.values() if o.get('estado') == 'suspendida')
+    try:
+        with open(OBRAS_ESTADO_FILE, 'w', encoding='utf-8') as f:
+            json.dump(estado_data, f, indent=2, ensure_ascii=False)
+        _regenerar_obras_entero(obras_ordenadas)
+        return True, None
+    except Exception as e:
+        logger.error(f"Error al guardar obra individual: {e}")
+        return False, str(e)
+
+def load_modificaciones_programadas():
+    """Carga la lista de modificaciones programadas desde el archivo JSON."""
+    try:
+        if os.path.exists(MODIFICACIONES_PROGRAMADAS_FILE):
+            with open(MODIFICACIONES_PROGRAMADAS_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"Error al cargar modificaciones programadas: {e}")
+    return []
+
+def save_modificaciones_programadas(lista):
+    """Guarda la lista de modificaciones programadas en el archivo JSON."""
+    try:
+        with open(MODIFICACIONES_PROGRAMADAS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(lista, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        logger.error(f"Error al guardar modificaciones programadas: {e}")
+        return False
+
+def aplicar_modificaciones_programadas():
+    """
+    Aplica las modificaciones programadas cuya fecha_aplicar <= hoy.
+    Actualiza obras_estado, obras_entero y anexo_config según cada ítem y elimina los aplicados.
+    """
+    hoy = datetime.now().date()
+    lista = load_modificaciones_programadas()
+    pendientes = []
+    aplicadas = 0
+    for item in lista:
+        fecha_str = item.get('fecha_aplicar')
+        if not fecha_str:
+            pendientes.append(item)
+            continue
+        try:
+            fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        except (ValueError, TypeError):
+            pendientes.append(item)
+            continue
+        if fecha > hoy:
+            pendientes.append(item)
+            continue
+        nombre = item.get('nombre_obra', '').strip()
+        if not nombre:
+            continue
+        estado_data = load_obras_estado()
+        if nombre not in estado_data.get('obras', {}):
+            continue
+        precio = item.get('precio')
+        estado = item.get('estado') or estado_data['obras'][nombre].get('estado', 'vigente')
+        if estado not in ('vigente', 'sin_convenio', 'suspendida'):
+            estado = 'vigente'
+        ok, _ = save_obra_individual(nombre, precio, estado)
+        if not ok:
+            pendientes.append(item)
+            continue
+        no_cubre = item.get('no_cubre_anexo')
+        if no_cubre is not None:
+            anexo_config = load_anexo_config()
+            obras_sin = anexo_config.get('obras_sin_cobertura', [])
+            if no_cubre and nombre not in obras_sin:
+                obras_sin.append(nombre)
+                anexo_config['obras_sin_cobertura'] = obras_sin
+                save_anexo_config(anexo_config)
+            elif not no_cubre and nombre in obras_sin:
+                obras_sin = [o for o in obras_sin if o != nombre]
+                anexo_config['obras_sin_cobertura'] = obras_sin
+                save_anexo_config(anexo_config)
+        aplicadas += 1
+    if aplicadas > 0:
+        save_modificaciones_programadas(pendientes)
+        logger.info(f"Se aplicaron {aplicadas} modificaciones programadas.")
+
 def load_anexo_config():
     """Carga la configuración de anexo desde el archivo JSON"""
     try:
@@ -1455,7 +1686,7 @@ def admin_usuarios():
     if not is_gaito_admin():
         flash('No tienes permiso para acceder a esta sección.', 'error')
         return redirect(url_for('presupuestos'))
-    
+    aplicar_modificaciones_programadas()
     users = load_users()
     
     if request.method == 'POST':
@@ -1544,13 +1775,15 @@ def admin_usuarios():
         except OSError:
             pass
     
+    modificaciones_programadas = load_modificaciones_programadas()
     return render_template('admin_usuarios.html', 
                          users=users, 
                          current_user=session.get('username'),
                          obras_sin_cobertura_anexo=anexo_config.get('obras_sin_cobertura', []),
                          todas_las_obras=todas_las_obras,
                          precio_particular=precio_particular,
-                         daniel_log_lines=daniel_log_lines)
+                         daniel_log_lines=daniel_log_lines,
+                         modificaciones_programadas=modificaciones_programadas)
 
 
 @app.route('/admin/daniel_log', methods=['GET'])
@@ -1635,7 +1868,7 @@ def admin_sync_precios():
         flash(message, 'error')
         logger.error(f"Error al sincronizar precios: {message}")
     
-    return redirect(url_for('admin_usuarios'))
+    return redirect(url_for('admin_obras'))
 
 # Ruta para editar perfil de laboratorio (solo Gaito)
 @app.route('/admin/perfil/<username>', methods=['GET', 'POST'])
@@ -1758,11 +1991,205 @@ def admin_anexo_eliminar():
     else:
         return jsonify({'success': False, 'message': 'Error al guardar la configuración.'}), 500
 
-# Aranceles: cualquier usuario logueado puede ver (no es solo admin)
+# Gestión de obras: vista principal (solo admin). Precios desde obras_entero.txt (misma fuente que Aranceles).
+@app.route('/admin/obras', methods=['GET'])
+@require_login
+def admin_obras():
+    if not is_gaito_admin():
+        flash('No tienes permiso para acceder a esta sección.', 'error')
+        return redirect(url_for('presupuestos'))
+    aplicar_modificaciones_programadas()
+    obras_list, estado_data = load_obras_list_para_vista()
+    anexo_config = load_anexo_config()
+    obras_sin_cobertura = anexo_config.get('obras_sin_cobertura', [])
+    for item in obras_list:
+        item['no_cubre_anexo'] = item['nombre'] in obras_sin_cobertura
+    obras_actuales_dict = {datos['nombre']: {'precio': datos.get('precio') or '', 'estado': datos.get('estado') or 'vigente'} for datos in obras_list}
+    def _estado_label(estado):
+        if estado == 'vigente': return 'Vigente'
+        if estado == 'sin_convenio': return 'Sin convenio'
+        if estado == 'suspendida': return 'Suspendida'
+        return estado or 'Vigente'
+    modificaciones_programadas_raw = load_modificaciones_programadas()
+    modificaciones_programadas = []
+    for p in modificaciones_programadas_raw:
+        pp = dict(p)
+        nombre_obra = p.get('nombre_obra') or ''
+        actual = obras_actuales_dict.get(nombre_obra, {})
+        pp['precio_actual'] = actual.get('precio') or ''
+        pp['estado_actual'] = actual.get('estado') or 'vigente'
+        pp['estado_actual_label'] = _estado_label(pp['estado_actual'])
+        pp['estado_nuevo_label'] = _estado_label(p.get('estado') or 'vigente')
+        pp['cambia_estado'] = (p.get('estado') or 'vigente') != (pp['estado_actual'])
+        fecha = p.get('fecha_aplicar') or ''
+        if len(fecha) >= 10:
+            try:
+                d = datetime.strptime(fecha[:10], '%Y-%m-%d')
+                pp['fecha_display'] = d.strftime('%d/%m/%Y')
+            except ValueError:
+                pp['fecha_display'] = fecha
+        else:
+            pp['fecha_display'] = fecha
+        modificaciones_programadas.append(pp)
+    return render_template('admin_obras.html',
+                         obras_list=obras_list,
+                         obras_sin_cobertura_anexo=obras_sin_cobertura,
+                         modificaciones_programadas=modificaciones_programadas,
+                         current_user=session.get('username'))
+
+# Gestión de obras: actualizar una obra (precio, estado) o programar para fecha futura — solo admin
+@app.route('/admin/obras/actualizar', methods=['POST'])
+@require_login
+def admin_obras_actualizar():
+    if not is_gaito_admin():
+        return jsonify({'success': False, 'message': 'No tienes permiso.'}), 403
+    nombre = (request.form.get('nombre') or request.form.get('nombre_obra') or '').strip()
+    if not nombre:
+        return jsonify({'success': False, 'message': 'Nombre de obra requerido.'}), 400
+    precio = request.form.get('precio')
+    estado = (request.form.get('estado') or 'vigente').strip().lower()
+    if estado not in ('vigente', 'sin_convenio', 'suspendida'):
+        estado = 'vigente'
+    fecha_aplicar = request.form.get('fecha_aplicar', '').strip()
+    no_cubre_anexo = request.form.get('no_cubre_anexo') in ('1', 'true', 'on', 'yes')
+    estado_data = load_obras_estado()
+    if nombre not in estado_data.get('obras', {}):
+        return jsonify({'success': False, 'message': 'Obra no encontrada.'}), 400
+    if fecha_aplicar:
+        try:
+            fecha = datetime.strptime(fecha_aplicar, '%Y-%m-%d').date()
+            hoy = datetime.now().date()
+            if fecha > hoy:
+                lista = load_modificaciones_programadas()
+                lista = [p for p in lista if p.get('nombre_obra') != nombre]
+                lista.append({
+                    'nombre_obra': nombre,
+                    'fecha_aplicar': fecha_aplicar,
+                    'precio': precio,
+                    'estado': estado,
+                    'no_cubre_anexo': no_cubre_anexo
+                })
+                if save_modificaciones_programadas(lista):
+                    return jsonify({'success': True, 'message': f'Modificación programada para el {fecha_aplicar}.'})
+                return jsonify({'success': False, 'message': 'Error al guardar la programación.'}), 500
+        except ValueError:
+            pass
+    ok, err = save_obra_individual(nombre, precio, estado)
+    if not ok:
+        return jsonify({'success': False, 'message': err or 'Error al guardar.'}), 400
+    anexo_config = load_anexo_config()
+    obras_sin = anexo_config.get('obras_sin_cobertura', [])
+    if no_cubre_anexo and nombre not in obras_sin:
+        obras_sin.append(nombre)
+        anexo_config['obras_sin_cobertura'] = obras_sin
+        save_anexo_config(anexo_config)
+    elif not no_cubre_anexo and nombre in obras_sin:
+        obras_sin = [o for o in obras_sin if o != nombre]
+        anexo_config['obras_sin_cobertura'] = obras_sin
+        save_anexo_config(anexo_config)
+    return jsonify({'success': True, 'message': 'Obra actualizada correctamente.'})
+
+# Aplicar muchos cambios de obras en un solo paso (inmediatos + programados)
+@app.route('/admin/obras/actualizar_lote', methods=['POST'])
+@require_login
+def admin_obras_actualizar_lote():
+    if not is_gaito_admin():
+        return jsonify({'success': False, 'message': 'No tienes permiso.'}), 403
+    data = request.get_json(silent=True) or {}
+    cambios = data.get('cambios', [])
+    if not cambios or not isinstance(cambios, list):
+        return jsonify({'success': False, 'message': 'Se requiere una lista de cambios.'}), 400
+    estado_data = load_obras_estado()
+    obras = estado_data.get('obras', {})
+    anexo_config = load_anexo_config()
+    obras_sin = list(anexo_config.get('obras_sin_cobertura', []))
+    programadas = load_modificaciones_programadas()
+    hoy = datetime.now().date()
+    errors = []
+    for c in cambios:
+        nombre = (c.get('nombre_obra') or c.get('nombre') or '').strip()
+        if not nombre or nombre not in obras:
+            errors.append(f"Obra no encontrada: {nombre or '(vacío)'}")
+            continue
+        precio = c.get('precio')
+        estado = (c.get('estado') or 'vigente').strip().lower()
+        if estado not in ('vigente', 'sin_convenio', 'suspendida'):
+            estado = 'vigente'
+        no_cubre_anexo = c.get('no_cubre_anexo') in (True, '1', 'true', 'on', 'yes')
+        fecha_aplicar = (c.get('fecha_aplicar') or '').strip()
+        if fecha_aplicar:
+            try:
+                fecha = datetime.strptime(fecha_aplicar, '%Y-%m-%d').date()
+                if fecha > hoy:
+                    programadas = [p for p in programadas if p.get('nombre_obra') != nombre]
+                    programadas.append({
+                        'nombre_obra': nombre,
+                        'fecha_aplicar': fecha_aplicar,
+                        'precio': precio,
+                        'estado': estado,
+                        'no_cubre_anexo': no_cubre_anexo
+                    })
+                    continue
+            except ValueError:
+                pass
+        # Aplicar ya
+        precio_str = None
+        if precio is not None and str(precio).strip() != '':
+            p = precio_str_a_float(precio)
+            precio_str = str(p).replace('.', ',') if p is not None else str(precio).strip()
+        obras[nombre] = {
+            'precio': precio_str or obras[nombre].get('precio'),
+            'estado': estado,
+            'ultima_actualizacion': datetime.now().isoformat()
+        }
+        if no_cubre_anexo and nombre not in obras_sin:
+            obras_sin.append(nombre)
+        elif not no_cubre_anexo and nombre in obras_sin:
+            obras_sin = [o for o in obras_sin if o != nombre]
+    if errors:
+        return jsonify({'success': False, 'message': '; '.join(errors[:5])}), 400
+    obras_ordenadas = dict(sorted(obras.items()))
+    estado_data['obras'] = obras_ordenadas
+    estado_data['fecha_actualizacion'] = datetime.now().isoformat()
+    estado_data['total_obras'] = len(obras_ordenadas)
+    estado_data['obras_vigentes'] = sum(1 for o in obras_ordenadas.values() if o.get('estado') == 'vigente')
+    estado_data['obras_sin_convenio'] = sum(1 for o in obras_ordenadas.values() if o.get('estado') == 'sin_convenio')
+    estado_data['obras_suspendidas'] = sum(1 for o in obras_ordenadas.values() if o.get('estado') == 'suspendida')
+    try:
+        with open(OBRAS_ESTADO_FILE, 'w', encoding='utf-8') as f:
+            json.dump(estado_data, f, indent=2, ensure_ascii=False)
+        _regenerar_obras_entero(obras_ordenadas)
+        anexo_config['obras_sin_cobertura'] = obras_sin
+        save_anexo_config(anexo_config)
+        save_modificaciones_programadas(programadas)
+    except Exception as e:
+        logger.error(f"Error al guardar lote de obras: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+    return jsonify({'success': True, 'message': f'Se aplicaron {len(cambios)} cambio(s) correctamente.'})
+
+# Eliminar una modificación programada sin aplicarla
+@app.route('/admin/obras/programadas/eliminar', methods=['POST'])
+@require_login
+def admin_obras_programadas_eliminar():
+    if not is_gaito_admin():
+        return jsonify({'success': False, 'message': 'No tienes permiso.'}), 403
+    nombre = (request.form.get('nombre') or request.form.get('nombre_obra') or '').strip()
+    if not nombre:
+        return jsonify({'success': False, 'message': 'Nombre de obra requerido.'}), 400
+    lista = load_modificaciones_programadas()
+    nueva = [p for p in lista if p.get('nombre_obra') != nombre]
+    if len(nueva) == len(lista):
+        return jsonify({'success': False, 'message': 'No hay programación para esta obra.'}), 404
+    if save_modificaciones_programadas(nueva):
+        return jsonify({'success': True, 'message': 'Programación cancelada.'})
+    return jsonify({'success': False, 'message': 'Error al guardar.'}), 500
+
+# Aranceles: cualquier usuario logueado puede ver (no es solo admin). Precios desde obras_entero.txt (misma fuente que Gestión de obras).
 @app.route('/aranceles', methods=['GET'])
 @require_login
 def aranceles():
-    estado_data = load_obras_estado()
+    aplicar_modificaciones_programadas()
+    obras_list, estado_data = load_obras_list_para_vista()
     
     # Formatear fecha de actualización
     fecha_actualizacion = None
@@ -1773,42 +2200,128 @@ def aranceles():
         except:
             fecha_actualizacion = estado_data.get('fecha_actualizacion')
     
-    # Convertir obras a lista ordenada para el template
-    obras_list = []
-    for nombre, datos in sorted(estado_data.get('obras', {}).items()):
-        obras_list.append({
-            'nombre': nombre,
-            'precio': datos.get('precio', 'N/A'),
-            'estado': datos.get('estado', 'vigente'),
-            'ultima_actualizacion': datos.get('ultima_actualizacion', '')
-        })
-    
+    modificaciones_programadas = load_modificaciones_programadas()
     return render_template('admin_estado_obras.html', 
                          estado_data=estado_data,
                          obras_list=obras_list,
                          fecha_actualizacion=fecha_actualizacion,
+                         modificaciones_programadas=modificaciones_programadas,
                          current_user=session.get('username'))
 
-# Ruta para instructivo de obras sociales (protegida)
+# Archivo de instructivos por obra social
+INSTRUCTIVOS_FILE = 'instructivos.json'
+
+def load_instructivos():
+    """Carga la lista de instructivos desde instructivos.json."""
+    try:
+        if os.path.exists(INSTRUCTIVOS_FILE):
+            with open(INSTRUCTIVOS_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"Error al leer instructivos: {e}")
+    return []
+
+def save_instructivos(instructivos):
+    """Guarda la lista de instructivos en instructivos.json."""
+    try:
+        with open(INSTRUCTIVOS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(instructivos, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        logger.error(f"Error al guardar instructivos: {e}")
+        return False
+
+def load_instructivos_completos():
+    """
+    Devuelve la lista de instructivos garantizando una hoja por cada obra social del sistema
+    (vigentes, sin convenio y suspendidas). Si falta una obra en instructivos.json, se agrega
+    con contenido vacío y se guarda el archivo.
+    """
+    estado_data = load_obras_estado()
+    obras_en_sistema = list((estado_data.get('obras') or {}).keys())
+    instructivos = load_instructivos()
+    # Índice por nombre normalizado para buscar y actualizar
+    by_norm = {}
+    for inv in instructivos:
+        nombre = (inv.get('nombre') or '').strip()
+        if nombre:
+            by_norm[normalizar_nombre_obra(nombre)] = inv
+    agregados = 0
+    for nombre_obra in obras_en_sistema:
+        if not (nombre_obra and nombre_obra.strip()):
+            continue
+        norm = normalizar_nombre_obra(nombre_obra)
+        if norm not in by_norm:
+            by_norm[norm] = {
+                'nombre': nombre_obra.strip(),
+                'contenido': '',
+                'contacto': '',
+                'telefonos': '',
+                'notas_especiales': ''
+            }
+            agregados += 1
+    # Lista final ordenada por nombre (usando el nombre de la obra en sistema para orden)
+    resultado = []
+    for nombre_obra in sorted(obras_en_sistema, key=lambda x: (x or '').lower()):
+        norm = normalizar_nombre_obra(nombre_obra)
+        if norm and norm in by_norm:
+            resultado.append(by_norm[norm])
+    if agregados > 0:
+        save_instructivos(resultado)
+        logger.info(f"Instructivos: se agregaron {agregados} hojas para obras nuevas en el sistema.")
+    return resultado
+
+# Ruta para instructivo de obras sociales (protegida). Siempre una hoja por cada obra del sistema.
 @app.route('/instructivo', methods=['GET'])
 @require_login
 def instructivo():
-    instructivos_file = 'instructivos.json'
-    instructivos = []
-    
-    try:
-        if os.path.exists(instructivos_file):
-            with open(instructivos_file, 'r', encoding='utf-8') as f:
-                instructivos = json.load(f)
-        else:
-            logger.warning(f"Archivo {instructivos_file} no encontrado")
-    except Exception as e:
-        logger.error(f"Error al leer instructivos: {e}")
-        instructivos = []
-    
+    instructivos = load_instructivos_completos()
     return render_template('instructivo.html', 
                          instructivos=instructivos,
                          username=session.get('username'))
+
+# Panel admin: gestión de instructivos por obra social (solo admin). Lista incluye todas las obras.
+@app.route('/admin/instructivos', methods=['GET'])
+@require_login
+def admin_instructivos():
+    if not is_gaito_admin():
+        flash('No tienes permiso para acceder a esta sección.', 'error')
+        return redirect(url_for('instructivo'))
+    instructivos = load_instructivos_completos()
+    return render_template('admin_instructivos.html',
+                         instructivos=instructivos,
+                         current_user=session.get('username'))
+
+@app.route('/admin/instructivos/actualizar', methods=['POST'])
+@require_login
+def admin_instructivos_actualizar():
+    if not is_gaito_admin():
+        return jsonify({'success': False, 'message': 'Sin permiso.'}), 403
+    # Aceptar form (FormData) o JSON; request.json es None cuando se envía form
+    data = request.json if request.is_json and request.json else {}
+    nombre = (request.form.get('nombre') or data.get('nombre') or '').strip()
+    if not nombre:
+        return jsonify({'success': False, 'message': 'Falta el nombre de la obra social.'}), 400
+    contenido = (request.form.get('contenido') or data.get('contenido') or '').strip()
+    contacto = (request.form.get('contacto') or data.get('contacto') or '').strip()
+    telefonos = (request.form.get('telefonos') or data.get('telefonos') or '').strip()
+    notas_especiales = (request.form.get('notas_especiales') or data.get('notas_especiales') or '').strip()
+    instructivos = load_instructivos_completos()
+    encontrado = False
+    for item in instructivos:
+        if normalizar_nombre_obra(item.get('nombre')) == normalizar_nombre_obra(nombre):
+            item['contenido'] = contenido
+            item['contacto'] = contacto
+            item['telefonos'] = telefonos
+            item['notas_especiales'] = notas_especiales
+            encontrado = True
+            break
+    if not encontrado:
+        return jsonify({'success': False, 'message': f'Obra social "{nombre}" no encontrada.'}), 404
+    if not save_instructivos(instructivos):
+        return jsonify({'success': False, 'message': 'Error al guardar.'}), 500
+    return jsonify({'success': True, 'message': 'Instructivo actualizado correctamente.'})
 
 # Ruta para descargar PDF
 @app.route('/descargar_pdf', methods=['POST'])

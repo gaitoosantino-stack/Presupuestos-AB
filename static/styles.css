@@ -1,3 +1,9 @@
+/* Escala global: 100% del navegador = aspecto compacto (equivalente al anterior 75% de zoom) */
+html {
+    zoom: 0.75;
+    -webkit-zoom: 0.75;
+}
+
 /* Reinicio básico */
 * {
     margin: 0;

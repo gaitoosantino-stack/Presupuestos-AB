@@ -15,10 +15,10 @@
             <nav class="admin-header-nav">
                 <a href="{{ url_for('presupuestos') }}" class="calc">Calculadora</a>
                 <a href="{{ url_for('aranceles') }}" class="aranceles nav-active">Aranceles</a>
+                <a href="{{ url_for('instructivo') }}" class="instructivo">Instructivo</a>
                 {% if current_user == 'Gaito' or current_user == '3' or current_user == 'DanielABNECH' %}
                 <a href="{{ url_for('admin_usuarios') }}" class="usuarios">Panel</a>
                 {% endif %}
-                <a href="{{ url_for('instructivo') }}" class="instructivo">Instructivo</a>
                 <a href="{{ url_for('logout') }}" class="logout">Cerrar Sesión</a>
             </nav>
         </div>
@@ -31,6 +31,12 @@
             {% if fecha_actualizacion %}
             <div class="admin-info-box">
                 <strong>Última actualización:</strong> {{ fecha_actualizacion }}
+            </div>
+            {% endif %}
+
+            {% if (current_user == 'Gaito' or current_user == '3' or current_user == 'DanielABNECH') and modificaciones_programadas %}
+            <div class="admin-info-box" style="background: #fef3c7; border-color: #f59e0b; color: #92400e;">
+                <strong>Modificaciones por aplicar:</strong> hay {{ modificaciones_programadas|length }} cambio(s) programado(s) que se aplicarán en su fecha. <a href="{{ url_for('admin_obras') }}">Ver en Gestión de obras</a>
             </div>
             {% endif %}
 

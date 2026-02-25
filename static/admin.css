@@ -384,6 +384,177 @@
 .admin-stat.vigentes .value { color: #059669; }
 .admin-stat.cortadas .value { color: #dc2626; }
 
+/* Lista de modificaciones programadas (legacy) */
+.admin-list-programadas {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.admin-list-programadas li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 14px;
+}
+.admin-list-programadas li:last-child {
+    border-bottom: none;
+}
+.admin-list-programadas li .admin-btn {
+    margin-left: auto;
+}
+
+/* Modificaciones por aplicar — Data grid corporativo */
+.admin-card-programadas {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    padding: 0;
+    overflow: hidden;
+}
+.admin-card-programadas .programadas-header {
+    margin: 0;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.admin-card-programadas .programadas-header h2 {
+    margin: 0 0 4px 0;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #1e293b;
+}
+.admin-card-programadas .programadas-header .admin-card-desc {
+    margin: 0;
+    font-size: 12px;
+    color: #64748b;
+}
+.programadas-table-wrap {
+    overflow-x: auto;
+}
+.programadas-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.programadas-th {
+    text-align: center;
+    padding: 10px 16px;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+.programadas-th-accion {
+    width: 56px;
+}
+.programadas-tr {
+    border-bottom: 1px solid #e5e7eb;
+}
+.programadas-tr:last-child {
+    border-bottom: none;
+}
+.programadas-td {
+    padding: 12px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #e5e7eb;
+}
+.programadas-tr:last-child .programadas-td {
+    border-bottom: none;
+}
+.programadas-td-fecha {
+    color: #475569;
+    font-size: 13px;
+    white-space: nowrap;
+}
+.programadas-td-obra {
+    color: #0f172a;
+    font-size: 14px;
+}
+.programadas-td-obra strong {
+    font-weight: 600;
+    color: #0f172a;
+}
+.programadas-td-mod {
+    color: #475569;
+    font-size: 13px;
+}
+.programadas-mod-line {
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+.programadas-mod-line:last-child {
+    margin-bottom: 0;
+}
+.programadas-valor-viejo {
+    color: #64748b;
+    text-decoration: line-through;
+}
+.programadas-valor-nuevo {
+    color: #047857;
+    font-weight: 500;
+}
+.programadas-mod-anexo {
+    font-size: 12px;
+    color: #64748b;
+}
+.programadas-td-accion {
+    text-align: center;
+}
+.programada-cancelar {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+.programada-cancelar-icon {
+    width: 16px;
+    height: 16px;
+}
+.programada-cancelar:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+.programada-cancelar:focus {
+    outline: none;
+}
+.programada-cancelar:focus-visible {
+    outline: 2px solid #dc2626;
+    outline-offset: 1px;
+}
+.programadas-empty {
+    text-align: center;
+    padding: 32px 24px;
+    color: #64748b;
+    font-size: 13px;
+    border-top: 1px solid #e5e7eb;
+}
+.programadas-empty-text {
+    margin: 0 0 4px 0;
+    font-weight: 500;
+    color: #475569;
+    font-size: 13px;
+}
+.programadas-empty-hint {
+    margin: 0;
+    font-size: 12px;
+    color: #94a3b8;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /* Info box */
 .admin-info-box {
     background: #f0f9ff;
@@ -692,6 +863,35 @@
     border-radius: 6px;
     width: 100%;
     max-width: 720px;
+}
+.admin-modal-content-wide {
+    max-width: 960px;
+}
+.admin-modal-content .modal-cambios-table-wrap {
+    margin-top: 8px;
+    margin-bottom: 12px;
+    overflow-x: auto;
+}
+.admin-modal-content .modal-cambios-table-wrap .admin-table {
+    font-size: 13px;
+}
+.admin-modal-content .modal-cambios-table-wrap .cambio-precio,
+.admin-modal-content .modal-cambios-table-wrap .cambio-estado,
+.admin-modal-content .modal-cambios-table-wrap .cambio-fecha {
+    padding: 6px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    width: 100%;
+    max-width: 120px;
+    box-sizing: border-box;
+}
+.admin-modal-content .modal-cambios-table-wrap select.cambio-estado {
+    max-width: 130px;
+}
+.admin-modal-content .modal-cambios-table-wrap .cambio-fecha {
+    max-width: 140px;
+}
+.admin-modal-content {
     box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     max-height: 90vh;
     display: flex;
@@ -716,12 +916,152 @@
     flex: 1;
 }
 
-.admin-modal-footer {
+.admin-modal-footer,
+.admin-modal-actions {
     padding: 16px 24px;
     border-top: 1px solid #e2e8f0;
     display: flex;
     justify-content: flex-end;
     gap: 12px;
+}
+
+/* Modal Editar obra — recuadros unificados */
+#modal-editar-obra .admin-form-group input[type="text"],
+#modal-editar-obra .admin-form-group input[type="date"],
+#modal-editar-obra .modal-date-input {
+    min-height: 44px;
+    height: 44px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    box-sizing: border-box;
+    font-size: 15px;
+    background: #fff;
+    color: #1e293b;
+}
+#modal-editar-obra .admin-form-group select {
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    box-sizing: border-box;
+    font-size: 15px;
+    background: #fff;
+    color: #1e293b;
+    width: 100%;
+    cursor: pointer;
+}
+#modal-editar-obra .modal-field-readonly {
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 15px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+}
+#modal-editar-obra .modal-cuando-aplicar .modal-radios {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    margin-bottom: 12px;
+}
+#modal-editar-obra .modal-radio-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-weight: 400;
+    cursor: pointer;
+}
+#modal-editar-obra .modal-fecha-wrap {
+    margin-top: 4px;
+}
+#modal-editar-obra .modal-fecha-wrap .modal-date-input {
+    width: 100%;
+    max-width: 220px;
+}
+
+#modal-editar-obras .modal-cuando-bloque {
+    font-size: 13px;
+    font-weight: 400;
+}
+#modal-editar-obras .modal-cuando-bloque .modal-radio-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 16px;
+    font-size: 13px;
+    font-weight: 400;
+    cursor: pointer;
+}
+#modal-editar-obras .modal-cuando-bloque .modal-radio-item input[type="radio"] {
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    min-height: 14px;
+    margin: 0;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+#modal-editar-obras .modal-cuando-bloque .modal-radio-item span {
+    font-size: 13px;
+    font-weight: 400;
+}
+
+/* Autocompletado de obras en el modal Editar obras */
+#modal-editar-obras .autocomplete-container {
+    position: relative;
+}
+#modal-editar-obras .autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    max-height: 220px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+#modal-editar-obras .autocomplete-option {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #1e293b;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.15s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#modal-editar-obras .autocomplete-option:last-child {
+    border-bottom: none;
+}
+#modal-editar-obras .autocomplete-option:hover {
+    background: #f1f5f9;
+}
+#modal-editar-obra .modal-checkbox-row .modal-label-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0;
+    font-weight: 400;
+    cursor: pointer;
+}
+#modal-editar-obra .modal-checkbox-row input[type="checkbox"] {
+    width: auto;
+    min-height: auto;
+    height: auto;
 }
 
 .admin-modal .btn-modal-secondary {

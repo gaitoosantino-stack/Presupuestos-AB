@@ -789,10 +789,10 @@
             <nav class="app-header-nav">
                 <a href="{{ url_for('presupuestos') }}" class="calc nav-active">Calculadora</a>
                 <a href="{{ url_for('aranceles') }}" class="aranceles">Aranceles</a>
+                <a href="{{ url_for('instructivo') }}" class="instructivo">Instructivo</a>
                 {% if username == 'Gaito' or username == '3' or username == 'DanielABNECH' %}
                 <a href="{{ url_for('admin_usuarios') }}" class="usuarios">Panel</a>
                 {% endif %}
-                <a href="{{ url_for('instructivo') }}" class="instructivo">Instructivo</a>
                 <a href="{{ url_for('logout') }}" class="logout">Cerrar Sesión</a>
             </nav>
         </div>
