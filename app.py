@@ -69,18 +69,6 @@ def bad_request_csrf(e):
 
 # Archivo para almacenar usuarios habilitados
 USERS_FILE = 'usuarios_habilitados.json'
-# Log de accesos de Daniel (solo para Gaito: login y cada entrada a una sección)
-DANIEL_LOG_FILE = 'log_daniel.txt'
-
-
-def append_daniel_log(accion):
-    """Escribe una línea en el log de Daniel (solo visible para Gaito)."""
-    try:
-        ahora = datetime.now(ZoneInfo('America/Argentina/Buenos_Aires'))
-        with open(DANIEL_LOG_FILE, 'a', encoding='utf-8') as f:
-            f.write(ahora.strftime('%Y-%m-%d %H:%M:%S') + ' ' + accion + '\n')
-    except OSError:
-        pass
 # Archivo para almacenar perfiles de laboratorios
 PERFILES_FILE = 'perfiles.json'
 # Carpeta para logos
@@ -258,25 +246,6 @@ def require_login(f):
 init_users_file()
 init_perfiles_file()
 
-
-@app.before_request
-def log_daniel_navigation():
-    """Registra cada vez que Daniel entra a una sección de la app (para que lo vea Gaito)."""
-    if session.get('username') != 'DanielABNECH':
-        return
-    # Solo registrar peticiones GET a rutas de contenido (no estáticos ni favicon)
-    if request.method != 'GET':
-        return
-    path = request.path or ''
-    if path.startswith('/static') or path == '/favicon.ico':
-        return
-    # Descripción legible de la ruta para el log
-    if path in ('', '/') or path.startswith('/login'):
-        accion = 'Entrada: /login'
-    else:
-        accion = 'Entrada: ' + path
-    append_daniel_log(accion)
-
 # Crear carpeta de logos si no existe
 os.makedirs(LOGO_FOLDER, exist_ok=True)
 
@@ -341,8 +310,6 @@ def login():
                 session['username'] = username
                 session.permanent = True
                 logger.info(f"Usuario {username} inició sesión")
-                if username == 'DanielABNECH':
-                    append_daniel_log('Login')
                 flash(f'¡Bienvenido, {username}!', 'success')
                 # Redirigir a admin si es admin, sino a presupuestos
                 if is_gaito_admin():
@@ -1766,15 +1733,6 @@ def admin_usuarios():
     # Obtener precio de Particular para mostrar en el template
     precio_particular = get_precio_particular()
     
-    # Log Daniel (solo para ver desde el panel, temporal)
-    daniel_log_lines = []
-    if os.path.isfile(DANIEL_LOG_FILE):
-        try:
-            with open(DANIEL_LOG_FILE, 'r', encoding='utf-8') as f:
-                daniel_log_lines = f.read().strip().split('\n')[-50:]  # últimas 50
-        except OSError:
-            pass
-    
     modificaciones_programadas = load_modificaciones_programadas()
     return render_template('admin_usuarios.html', 
                          users=users, 
@@ -1782,38 +1740,7 @@ def admin_usuarios():
                          obras_sin_cobertura_anexo=anexo_config.get('obras_sin_cobertura', []),
                          todas_las_obras=todas_las_obras,
                          precio_particular=precio_particular,
-                         daniel_log_lines=daniel_log_lines,
                          modificaciones_programadas=modificaciones_programadas)
-
-
-@app.route('/admin/daniel_log', methods=['GET'])
-@require_login
-def admin_daniel_log_content():
-    """Devuelve las últimas líneas del log de Daniel (solo Gaito). Para actualización en vivo."""
-    if not is_gaito_admin():
-        return jsonify({'success': False, 'lines': []}), 403
-    lines = []
-    if os.path.isfile(DANIEL_LOG_FILE):
-        try:
-            with open(DANIEL_LOG_FILE, 'r', encoding='utf-8') as f:
-                lines = f.read().strip().split('\n')[-50:]
-        except OSError:
-            pass
-    return jsonify({'success': True, 'lines': lines})
-
-
-@app.route('/admin/daniel_log/clear', methods=['POST'])
-@require_login
-def admin_daniel_log_clear():
-    """Vacía el log de Daniel. Solo Gaito."""
-    if not is_gaito_admin():
-        return jsonify({'success': False, 'message': 'Sin permiso.'}), 403
-    try:
-        with open(DANIEL_LOG_FILE, 'w', encoding='utf-8') as f:
-            f.write('')
-        return jsonify({'success': True})
-    except OSError:
-        return jsonify({'success': False, 'message': 'No se pudo vaciar el archivo.'}), 500
 
 
 # Ruta para obtener preview de precios antes de sincronizar (solo para Gaito)

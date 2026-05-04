@@ -46,16 +46,6 @@
                 <a href="{{ url_for('admin_instructivos') }}" class="admin-btn admin-btn-primary">Editar instructivos</a>
             </div>
 
-            {% if current_user == 'Gaito' and daniel_log_lines is defined %}
-            <div class="admin-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                    <h2 style="margin:0;">Log Daniel</h2>
-                    <button type="button" id="btn-vaciar-log-daniel" class="admin-btn admin-btn-secondary admin-btn-sm" title="Vaciar el registro">Vaciar log</button>
-                </div>
-                <pre id="log-daniel-content" style="margin:0; font-size:0.85rem; max-height:200px; overflow:auto;">{% for line in daniel_log_lines %}{{ line }}{{ '\n' }}{% endfor %}{% if not daniel_log_lines %}— vacío —{% endif %}</pre>
-            </div>
-            {% endif %}
-
             <div class="admin-card">
                 <h2>Agregar nuevo usuario</h2>
                 <p class="admin-card-desc">Crea un nuevo usuario para acceder al sistema.</p>
@@ -136,40 +126,5 @@
             </div>
         </div>
     </section>
-
-    <script>
-        var btnVaciarLog = document.getElementById('btn-vaciar-log-daniel');
-        if (btnVaciarLog) {
-            btnVaciarLog.addEventListener('click', function() {
-                if (!confirm('¿Vaciar el log de Daniel? Se borrará todo el registro.')) return;
-                fetch('{{ url_for("admin_daniel_log_clear") }}', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'csrf_token={{ csrf_token() }}'
-                }).then(function(r) { return r.json(); }).then(function(d) {
-                    if (d.success) {
-                        var pre = document.getElementById('log-daniel-content');
-                        if (pre) pre.textContent = '— vacío —';
-                    } else alert('Error: ' + (d.message || 'No se pudo vaciar'));
-                }).catch(function() { alert('Error de conexión'); });
-            });
-        }
-        (function logDanielLive() {
-            var pre = document.getElementById('log-daniel-content');
-            if (!pre) return;
-            function updateLog() {
-                fetch('{{ url_for("admin_daniel_log_content") }}')
-                    .then(function(r) { return r.json(); })
-                    .then(function(d) {
-                        if (!d.success) return;
-                        var atBottom = pre.scrollHeight - pre.scrollTop <= pre.clientHeight + 2;
-                        pre.textContent = d.lines && d.lines.length ? d.lines.join('\n') + '\n' : '— vacío —';
-                        if (atBottom) pre.scrollTop = pre.scrollHeight;
-                    })
-                    .catch(function() {});
-            }
-            setInterval(updateLog, 4000);
-        })();
-    </script>
 </body>
 </html>

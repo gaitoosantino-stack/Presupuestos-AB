@@ -4728,3 +4728,18 @@
 2026-05-04 13:23:12,783 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:23:12] "GET /admin/obras HTTP/1.1" 200 -
 2026-05-04 13:23:12,847 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:23:12] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
 2026-05-04 13:23:12,849 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:23:12] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-04 13:28:54,889 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.48:5000
+2026-05-04 13:28:54,893 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-04 13:28:54,948 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:28:54] "GET / HTTP/1.1" 200 -
+2026-05-04 13:28:55,353 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:28:55] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-04 13:28:57,692 - __main__ - INFO - Usuario 3 inició sesión
+2026-05-04 13:28:57,693 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:28:57] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-05-04 13:28:57,748 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:28:57] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-05-04 13:28:57,816 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:28:57] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-04 13:28:57,819 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:28:57] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-04 13:29:03,885 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:29:03] "GET /admin/obras HTTP/1.1" 200 -
+2026-05-04 13:29:03,959 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:29:03] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-04 13:29:03,967 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:29:03] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
