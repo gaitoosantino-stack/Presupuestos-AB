@@ -4677,3 +4677,54 @@
 2026-02-25 03:35:41,140 - werkzeug - INFO - 127.0.0.1 - - [25/Feb/2026 03:35:41] "GET /instructivo HTTP/1.1" 200 -
 2026-02-25 03:35:41,543 - werkzeug - INFO - 127.0.0.1 - - [25/Feb/2026 03:35:41] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
 2026-02-25 03:35:41,564 - werkzeug - INFO - 127.0.0.1 - - [25/Feb/2026 03:35:41] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-04 13:21:08,108 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.48:5000
+2026-05-04 13:21:08,113 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-04 13:21:34,682 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:21:34] "GET / HTTP/1.1" 200 -
+2026-05-04 13:21:35,096 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:21:35] "GET /static/styles.css HTTP/1.1" 200 -
+2026-05-04 13:21:35,250 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:21:35] "GET /static/images/favicon.png HTTP/1.1" 200 -
+2026-05-04 13:21:40,387 - __main__ - INFO - Usuario 3 inició sesión
+2026-05-04 13:21:40,394 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:21:40] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-05-04 13:21:40,450 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:21:40] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-05-04 13:21:40,515 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:21:40] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-04 13:21:40,520 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:21:40] "GET /static/admin.css HTTP/1.1" 200 -
+2026-05-04 13:22:46,310 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.48:5000
+2026-05-04 13:22:46,315 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-04 13:22:51,019 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:22:51] "[32mGET /admin/usuarios HTTP/1.1[0m" 302 -
+2026-05-04 13:22:51,045 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:22:51] "GET /login HTTP/1.1" 200 -
+2026-05-04 13:22:51,290 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:22:51] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-04 13:22:51,352 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:22:51] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-05-04 13:22:52,988 - __main__ - INFO - Usuario 3 inició sesión
+2026-05-04 13:22:52,989 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:22:52] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-05-04 13:22:53,048 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:22:53] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-05-04 13:22:53,120 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:22:53] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-04 13:22:53,126 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:22:53] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-04 13:22:54,420 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:22:54] "GET /admin/obras HTTP/1.1" 200 -
+2026-05-04 13:22:54,483 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:22:54] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-04 13:22:54,503 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:22:54] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-04 13:22:55,295 - __main__ - INFO - Obteniendo preview desde: https://onedrive.live.com/:x:/g/personal/4296eb0072506afb/IQC4XG2_Nw4YRqWSeSwd8XlUAUeJtQY4DC0CVFNPlhmpoRU?rtime=I1jbPvmp3kg&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0lRQzRYRzJfTnc0WVJxV1NlU3dkOFhsVUFVZUp0UVk0REMwQ1ZGTlBsaG1wb1JVP2U9TFIyQVQ2
+2026-05-04 13:22:55,300 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296eb0072506afb/IQC4XG2_Nw4YRqWSeSwd8X...
+2026-05-04 13:22:55,301 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296eb0072506afb/IQC4XG2_Nw4YRqWSeSwd8XlUAUeJtQY4DC0CVFNPlhmpoRU?rtime=I1jbPvmp3kg&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0lRQzRYRzJfTnc0WVJxV1NlU3dkOFhsVUFVZUp0UVk0REMwQ1ZGTlBsaG1wb1JVP2U9TFIyQVQ2&download=1
+2026-05-04 13:22:55,302 - __main__ - INFO - URL de OneDrive detectada, intentando descarga con requests primero...
+2026-05-04 13:22:55,549 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296eb0072506afb/IQC4XG2_Nw4YRqWSeSwd8X...
+2026-05-04 13:22:56,548 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-05-04 13:22:57,151 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-05-04 13:22:57,177 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:22:57] "GET /admin/sync_precios/preview HTTP/1.1" 200 -
+2026-05-04 13:23:09,100 - __main__ - INFO - Leyendo archivo desde: https://onedrive.live.com/:x:/g/personal/4296eb0072506afb/IQC4XG2_Nw4YRqWSeSwd8XlUAUeJtQY4DC0CVFNPlhmpoRU?rtime=I1jbPvmp3kg&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0lRQzRYRzJfTnc0WVJxV1NlU3dkOFhsVUFVZUp0UVk0REMwQ1ZGTlBsaG1wb1JVP2U9TFIyQVQ2
+2026-05-04 13:23:09,103 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296eb0072506afb/IQC4XG2_Nw4YRqWSeSwd8X...
+2026-05-04 13:23:09,104 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296eb0072506afb/IQC4XG2_Nw4YRqWSeSwd8XlUAUeJtQY4DC0CVFNPlhmpoRU?rtime=I1jbPvmp3kg&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0lRQzRYRzJfTnc0WVJxV1NlU3dkOFhsVUFVZUp0UVk0REMwQ1ZGTlBsaG1wb1JVP2U9TFIyQVQ2&download=1
+2026-05-04 13:23:11,675 - __main__ - WARNING - No se pudo leer directamente con pandas: HTTP Error 401: Unauthorized
+2026-05-04 13:23:11,678 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296eb0072506afb/IQC4XG2_Nw4YRqWSeSwd8X...
+2026-05-04 13:23:12,678 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-05-04 13:23:12,733 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-05-04 13:23:12,757 - __main__ - INFO - Sincronización completada: 77 obras activas, 79 total (incluyendo 14 sin convenio, 4 suspendidas)
+2026-05-04 13:23:12,758 - __main__ - INFO - Precios sincronizados por 3: 77 obras sociales
+2026-05-04 13:23:12,759 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:23:12] "[32mPOST /admin/sync_precios HTTP/1.1[0m" 302 -
+2026-05-04 13:23:12,783 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:23:12] "GET /admin/obras HTTP/1.1" 200 -
+2026-05-04 13:23:12,847 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:23:12] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-04 13:23:12,849 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:23:12] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
