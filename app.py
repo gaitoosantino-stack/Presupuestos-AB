@@ -2513,7 +2513,7 @@ def descargar_pdf():
         pdf.set_fill_color(240, 240, 240)  # Gris claro para encabezados
         pdf.cell(w_codigo, 9, 'CODIGOS', border=1, align='C', fill=True)
         pdf.cell(w_analisis, 9, 'ANALISIS', border=1, align='C', fill=True)
-        pdf.cell(w_nbu, 9, 'NBU=', border=1, align='C', fill=True)
+        pdf.cell(w_nbu, 9, 'NBU', border=1, align='C', fill=True)
         pdf.cell(w_valor, 9, 'VALOR', border=1, align='C', fill=True, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.set_fill_color(255, 255, 255)  # Restaurar color blanco
         
