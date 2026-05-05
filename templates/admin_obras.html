@@ -69,7 +69,7 @@
                                     {% if p.cambia_estado %}
                                     <div class="programadas-mod-line">Estado: <span class="programadas-valor-viejo">{{ p.estado_actual_label }}</span> → <span class="programadas-valor-nuevo">{{ p.estado_nuevo_label }}</span></div>
                                     {% endif %}
-                                    {% if p.no_cubre_anexo %}<div class="programadas-mod-line programadas-mod-anexo">No cubre anexo: Sí</div>{% endif %}
+                                    {% if p.no_cubre_anexo %}<div class="programadas-mod-line programadas-mod-anexo">Cubre Anexo: No</div>{% endif %}
                                 </td>
                                 <td class="programadas-td programadas-td-accion">
                                     <button type="button" class="programada-cancelar btn-cancelar-programada" data-obra="{{ p.nombre_obra }}" title="Cancelar esta programación" aria-label="Eliminar"><svg class="programada-cancelar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
@@ -116,7 +116,7 @@
                                 <th>Obra social</th>
                                 <th>Precio (UB)</th>
                                 <th>Estado</th>
-                                <th>No cubre anexo</th>
+                                <th>Cubre Anexo</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -141,7 +141,7 @@
                                         <span class="admin-badge admin-badge-sin-convenio">Sin convenio</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ 'Sí' if obra.no_cubre_anexo else 'No' }}</td>
+                                <td>{{ 'No' if obra.no_cubre_anexo else 'Sí' }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -201,7 +201,7 @@
                 </div>
                 <h3 style="margin: 16px 0 8px; font-size: 1em;">Cambios pendientes</h3>
                 <div class="modal-cambios-table-wrap">
-                    <table class="admin-table"><thead><tr><th>Obra</th><th>Precio</th><th>Estado</th><th>No anexo</th><th></th></tr></thead><tbody id="modal-cambios-list"></tbody></table>
+                    <table class="admin-table"><thead><tr><th>Obra</th><th>Precio</th><th>Estado</th><th>Cubre Anexo</th><th></th></tr></thead><tbody id="modal-cambios-list"></tbody></table>
                 </div>
                 <p id="modal-cambios-empty" class="admin-muted" style="margin: 8px 0;">Aún no hay cambios. Buscá y agregá obras arriba.</p>
                 <div id="modal-editar-obras-mensaje" class="admin-alert" style="display:none; margin-top:12px;"></div>
@@ -342,7 +342,7 @@
                         '<option value="sin_convenio"' + (c.estado === 'sin_convenio' ? ' selected' : '') + '>Sin convenio</option>' +
                         '<option value="suspendida"' + (c.estado === 'suspendida' ? ' selected' : '') + '>Suspendida</option>' +
                         '</select></td>' +
-                        '<td><label><input type="checkbox" class="cambio-anexo" data-idx="' + idx + '"' + (c.no_cubre_anexo ? ' checked' : '') + '> No anexo</label></td>' +
+                        '<td><label><input type="checkbox" class="cambio-anexo" data-idx="' + idx + '"' + (!c.no_cubre_anexo ? ' checked' : '') + '> Cubre anexo</label></td>' +
                         '<td><button type="button" class="admin-btn admin-btn-sm admin-btn-secondary btn-quitar-cambio" data-idx="' + idx + '">Quitar</button></td>';
                     listCambios.appendChild(tr);
                 });
@@ -366,12 +366,12 @@
                 if (!rowEl) return;
                 var precio = (rowEl.querySelector('.cambio-precio') || {}).value || '';
                 var estado = (rowEl.querySelector('.cambio-estado') || {}).value || 'vigente';
-                var anexo = (rowEl.querySelector('.cambio-anexo') || {}).checked || false;
+                var cubreAnexo = (rowEl.querySelector('.cambio-anexo') || {}).checked || false;
                 cambiosPendientes[idx] = {
                     nombre_obra: cambiosPendientes[idx].nombre_obra,
                     precio: precio,
                     estado: estado,
-                    no_cubre_anexo: anexo
+                    no_cubre_anexo: !cubreAnexo
                 };
             }
             function getFechaAplicarBloque() {
@@ -391,7 +391,8 @@
                     var precio = (row.querySelector('.cambio-precio') || {}).value || '';
                     var precioTrim = precio.trim();
                     var estado = (row.querySelector('.cambio-estado') || {}).value || 'vigente';
-                    var anexo = (row.querySelector('.cambio-anexo') || {}).checked || false;
+                    var cubreAnexo = (row.querySelector('.cambio-anexo') || {}).checked || false;
+                    var anexo = !cubreAnexo;
                     var precioIgual = (precioTrim || '') === (actual.precio || '');
                     var estadoIgual = estado === (actual.estado || 'vigente');
                     var anexoIgual = anexo === (actual.no_cubre_anexo || false);
@@ -412,15 +413,15 @@
                 var fechaBloque = getFechaAplicarBloque();
                 var cuandoTexto = fechaBloque ? ('Se aplicarán el ' + fechaBloque) : 'Se aplicarán ahora';
                 var html = '<div class="admin-preview-info"><p><strong>' + cuandoTexto + '.</strong></p><p><strong>' + cambios.length + ' cambio(s).</strong></p><p style="margin-top:8px;font-size:13px;color:#64748b;">Revisá la tabla y confirmá para guardar.</p></div>';
-                html += '<div style="max-height:360px;overflow-y:auto;"><table class="admin-preview-table"><thead><tr><th>Obra social</th><th>Precio actual</th><th>Precio nuevo</th><th>Estado actual</th><th>Estado nuevo</th><th>No anexo</th></tr></thead><tbody>';
+                html += '<div style="max-height:360px;overflow-y:auto;"><table class="admin-preview-table"><thead><tr><th>Obra social</th><th>Precio actual</th><th>Precio nuevo</th><th>Estado actual</th><th>Estado nuevo</th><th>Cubre Anexo</th></tr></thead><tbody>';
                 cambios.forEach(function(c) {
                     var actual = getObraActual(c.nombre_obra);
                     var prevP = actual.precio ? ('$' + actual.precio) : '—';
                     var nextP = c.precio ? ('$' + c.precio) : '—';
                     var prevE = actual.estado || 'vigente';
                     var nextE = c.estado || 'vigente';
-                    var prevA = actual.no_cubre_anexo ? 'Sí' : 'No';
-                    var nextA = c.no_cubre_anexo ? 'Sí' : 'No';
+                    var prevA = actual.no_cubre_anexo ? 'No' : 'Sí';
+                    var nextA = c.no_cubre_anexo ? 'No' : 'Sí';
                     html += '<tr><td><strong>' + c.nombre_obra + '</strong></td><td>' + prevP + '</td><td>' + nextP + '</td><td>' + prevE + '</td><td>' + nextE + '</td><td>' + prevA + ' → ' + nextA + '</td></tr>';
                 });
                 html += '</tbody></table></div>';

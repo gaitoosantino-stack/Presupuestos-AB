@@ -2117,6 +2117,7 @@ def admin_obras_programadas_eliminar():
 def aranceles():
     aplicar_modificaciones_programadas()
     obras_list, estado_data = load_obras_list_para_vista()
+    anexo_config = load_anexo_config()
     
     # Formatear fecha de actualización
     fecha_actualizacion = None
@@ -2133,6 +2134,7 @@ def aranceles():
                          obras_list=obras_list,
                          fecha_actualizacion=fecha_actualizacion,
                          modificaciones_programadas=modificaciones_programadas,
+                         obras_sin_cobertura_anexo=anexo_config.get('obras_sin_cobertura', []),
                          current_user=session.get('username'))
 
 # Archivo de instructivos por obra social

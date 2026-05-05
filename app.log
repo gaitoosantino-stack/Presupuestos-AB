@@ -4743,3 +4743,55 @@
 2026-05-04 13:29:03,885 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:29:03] "GET /admin/obras HTTP/1.1" 200 -
 2026-05-04 13:29:03,959 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:29:03] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
 2026-05-04 13:29:03,967 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:29:03] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-04 13:31:37,043 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.48:5000
+2026-05-04 13:31:37,057 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-04 13:31:37,231 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:37] "[32mGET /admin/perfil/1 HTTP/1.1[0m" 302 -
+2026-05-04 13:31:37,473 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:37] "GET /login HTTP/1.1" 200 -
+2026-05-04 13:31:37,697 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:37] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-04 13:31:41,031 - __main__ - INFO - Usuario 3 inició sesión
+2026-05-04 13:31:41,032 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:41] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-05-04 13:31:41,087 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:41] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-05-04 13:31:41,176 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:41] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-04 13:31:41,185 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:41] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-04 13:31:43,452 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:43] "GET /admin/perfil/Scozzina HTTP/1.1" 200 -
+2026-05-04 13:31:43,534 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:43] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-04 13:31:43,536 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:43] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-04 13:31:43,549 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:43] "GET /static/logos/logo_Scozzina.png HTTP/1.1" 200 -
+2026-05-04 13:31:45,448 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:45] "GET /admin/perfil/1 HTTP/1.1" 200 -
+2026-05-04 13:31:45,526 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:45] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-04 13:31:45,545 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:45] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-04 13:31:45,573 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:45] "GET /static/logos/logo_1.png HTTP/1.1" 200 -
+2026-05-04 13:31:45,584 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:45] "GET /static/logos/firma_1.png HTTP/1.1" 200 -
+2026-05-04 13:31:51,368 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:51] "GET /admin/usuarios HTTP/1.1" 200 -
+2026-05-04 13:31:51,437 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:51] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-04 13:31:51,442 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 13:31:51] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-04 14:12:33,177 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 14:12:33] "GET /admin/obras HTTP/1.1" 200 -
+2026-05-04 14:12:33,246 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 14:12:33] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-04 14:12:33,270 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 14:12:33] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-04 14:12:34,240 - __main__ - INFO - Obteniendo preview desde: https://onedrive.live.com/:x:/g/personal/4296eb0072506afb/IQC4XG2_Nw4YRqWSeSwd8XlUAUeJtQY4DC0CVFNPlhmpoRU?rtime=I1jbPvmp3kg&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0lRQzRYRzJfTnc0WVJxV1NlU3dkOFhsVUFVZUp0UVk0REMwQ1ZGTlBsaG1wb1JVP2U9TFIyQVQ2
+2026-05-04 14:12:34,243 - __main__ - INFO - URL de OneDrive personal detectada, agregando download=1: https://onedrive.live.com/:x:/g/personal/4296eb0072506afb/IQC4XG2_Nw4YRqWSeSwd8X...
+2026-05-04 14:12:34,244 - __main__ - INFO - URL convertida para descarga: https://onedrive.live.com/:x:/g/personal/4296eb0072506afb/IQC4XG2_Nw4YRqWSeSwd8XlUAUeJtQY4DC0CVFNPlhmpoRU?rtime=I1jbPvmp3kg&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0lRQzRYRzJfTnc0WVJxV1NlU3dkOFhsVUFVZUp0UVk0REMwQ1ZGTlBsaG1wb1JVP2U9TFIyQVQ2&download=1
+2026-05-04 14:12:34,244 - __main__ - INFO - URL de OneDrive detectada, intentando descarga con requests primero...
+2026-05-04 14:12:34,696 - __main__ - INFO - Intentando descargar archivo con requests desde: https://onedrive.live.com/:x:/g/personal/4296eb0072506afb/IQC4XG2_Nw4YRqWSeSwd8X...
+2026-05-04 14:12:35,586 - __main__ - INFO - Archivo descargado exitosamente (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+2026-05-04 14:12:35,975 - __main__ - INFO - Archivo descargado y leído exitosamente con requests + pandas
+2026-05-04 14:12:35,992 - werkzeug - INFO - 127.0.0.1 - - [04/May/2026 14:12:35] "GET /admin/sync_precios/preview HTTP/1.1" 200 -
+2026-05-05 13:57:33,288 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.48:5000
+2026-05-05 13:57:33,289 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-05 13:57:33,425 - werkzeug - INFO - 127.0.0.1 - - [05/May/2026 13:57:33] "GET / HTTP/1.1" 200 -
+2026-05-05 13:57:33,784 - werkzeug - INFO - 127.0.0.1 - - [05/May/2026 13:57:33] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-05 13:57:34,751 - __main__ - INFO - Usuario 1 inició sesión
+2026-05-05 13:57:34,755 - werkzeug - INFO - 127.0.0.1 - - [05/May/2026 13:57:34] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-05-05 13:57:34,814 - __main__ - INFO - Cargados 58 códigos de anexo
+2026-05-05 13:57:34,861 - werkzeug - INFO - 127.0.0.1 - - [05/May/2026 13:57:34] "GET /presupuestos HTTP/1.1" 200 -
+2026-05-05 13:57:34,929 - werkzeug - INFO - 127.0.0.1 - - [05/May/2026 13:57:34] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-05 13:57:34,934 - werkzeug - INFO - 127.0.0.1 - - [05/May/2026 13:57:34] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-05 13:57:35,690 - werkzeug - INFO - 127.0.0.1 - - [05/May/2026 13:57:35] "GET /aranceles HTTP/1.1" 200 -
+2026-05-05 13:57:35,822 - werkzeug - INFO - 127.0.0.1 - - [05/May/2026 13:57:35] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-05 13:57:35,839 - werkzeug - INFO - 127.0.0.1 - - [05/May/2026 13:57:35] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -

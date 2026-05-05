@@ -86,6 +86,7 @@
                                 <th>Obra social</th>
                                 <th>Precio (UB)</th>
                                 <th>Estado</th>
+                                <th>Cubre Anexo</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -112,6 +113,7 @@
                                         <span class="admin-badge admin-badge-sin-convenio">Sin convenio</span>
                                     {% endif %}
                                 </td>
+                                <td>{{ 'No' if obra.nombre in obras_sin_cobertura_anexo else 'Sí' }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
