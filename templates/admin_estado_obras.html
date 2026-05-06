@@ -79,6 +79,9 @@
                 </div>
 
                 {% if obras_list %}
+                <p class="admin-card-desc" style="margin-top:0; font-size:12px; color:#6b7280;">
+                    Tocá una fila para ver el historial de cambios de esa obra.
+                </p>
                 <div class="admin-table-wrap">
                     <table class="admin-table" id="obras-table">
                         <thead>
@@ -91,7 +94,11 @@
                         </thead>
                         <tbody>
                             {% for obra in obras_list %}
-                            <tr data-estado="{{ obra.estado }}" data-nombre="{{ obra.nombre.lower() }}">
+                            <tr data-estado="{{ obra.estado }}"
+                                data-nombre="{{ obra.nombre.lower() }}"
+                                data-obra="{{ obra.nombre }}"
+                                class="obra-fila-clickable"
+                                title="Ver historial de {{ obra.nombre }}">
                                 <td><strong>{{ obra.nombre }}</strong></td>
                                 <td>
                                     {% if obra.estado == 'sin_convenio' %}
@@ -129,6 +136,87 @@
         </div>
     </section>
 
+    <!-- Modal historial de obra -->
+    <div id="modal-historial" class="modal-historial-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modal-historial-titulo">
+        <div class="modal-historial-box">
+            <div class="modal-historial-header">
+                <h3 id="modal-historial-titulo">Historial</h3>
+                <button class="modal-historial-cerrar" onclick="cerrarHistorial()" aria-label="Cerrar">&times;</button>
+            </div>
+            <div id="modal-historial-body" class="modal-historial-body">
+                <div class="modal-historial-loading">Cargando...</div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .obra-fila-clickable { cursor: pointer; transition: background 0.15s; }
+        .obra-fila-clickable:hover { background: #f0f9ff; }
+
+        .modal-historial-overlay {
+            position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0,0,0,0.45);
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px;
+        }
+        .modal-historial-box {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            width: 100%; max-width: 640px;
+            max-height: 80vh;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        .modal-historial-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .modal-historial-header h3 {
+            margin: 0; font-size: 16px; color: #111827;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            max-width: calc(100% - 40px);
+        }
+        .modal-historial-cerrar {
+            background: none; border: none; font-size: 22px; cursor: pointer;
+            color: #6b7280; line-height: 1; padding: 0 4px;
+            flex-shrink: 0;
+        }
+        .modal-historial-cerrar:hover { color: #111; }
+        .modal-historial-body {
+            overflow-y: auto; padding: 16px 20px;
+            flex: 1;
+        }
+        .modal-historial-loading { color: #6b7280; font-size: 14px; text-align: center; padding: 24px 0; }
+        .modal-historial-vacio { color: #6b7280; font-size: 14px; text-align: center; padding: 24px 0; }
+
+        .historial-lista { list-style: none; margin: 0; padding: 0; }
+        .historial-item {
+            display: flex; flex-direction: column; gap: 4px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .historial-item:last-child { border-bottom: none; }
+        .historial-fecha { font-size: 11px; color: #9ca3af; }
+        .historial-cambio {
+            font-size: 14px; color: #111827;
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        }
+        .historial-precio-antes { color: #ef4444; text-decoration: line-through; font-weight: 500; }
+        .historial-flecha { color: #9ca3af; font-size: 12px; }
+        .historial-precio-despues { color: #16a34a; font-weight: 600; }
+        .historial-estado-tag {
+            font-size: 11px; background: #f3f4f6; color: #6b7280;
+            border-radius: 4px; padding: 2px 6px;
+        }
+
+        @media (max-width: 600px) {
+            .modal-historial-box { max-height: 90vh; border-radius: 12px 12px 0 0; align-self: flex-end; }
+            .modal-historial-overlay { align-items: flex-end; padding: 0; }
+        }
+    </style>
+
     <script>
         function filterTable() {
             var estado = document.getElementById('filter-estado').value;
@@ -140,6 +228,80 @@
                 row.style.display = show ? '' : 'none';
             });
         }
+
+        // --- Historial modal ---
+        document.querySelectorAll('.obra-fila-clickable').forEach(function(fila) {
+            fila.addEventListener('click', function() {
+                var nombre = this.getAttribute('data-obra');
+                abrirHistorial(nombre);
+            });
+        });
+
+        function abrirHistorial(nombre) {
+            var modal = document.getElementById('modal-historial');
+            var titulo = document.getElementById('modal-historial-titulo');
+            var body = document.getElementById('modal-historial-body');
+
+            titulo.textContent = nombre;
+            body.innerHTML = '<div class="modal-historial-loading">Cargando historial...</div>';
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            fetch('/aranceles/historial/' + encodeURIComponent(nombre))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (!data.ok || !data.historial || data.historial.length === 0) {
+                        body.innerHTML = '<div class="modal-historial-vacio">Sin historial de cambios registrado para esta obra.</div>';
+                        return;
+                    }
+                    var items = data.historial.map(function(r) {
+                        var cambioPrecio = r.precio_anterior !== r.precio_nuevo;
+                        var cambioEstado = r.estado_anterior !== r.estado_nuevo && r.estado_anterior !== '—' && r.estado_nuevo !== '—';
+
+                        var html = '<li class="historial-item">';
+                        html += '<span class="historial-fecha">' + r.fecha + '</span>';
+                        html += '<span class="historial-cambio">';
+
+                        if (cambioPrecio) {
+                            html += '<span class="historial-precio-antes">$' + (r.precio_anterior !== '—' ? r.precio_anterior : 'Sin precio') + '</span>';
+                            html += '<span class="historial-flecha">→</span>';
+                            html += '<span class="historial-precio-despues">$' + (r.precio_nuevo !== '—' ? r.precio_nuevo : 'Sin precio') + '</span>';
+                        }
+
+                        if (cambioEstado) {
+                            var labelAntes = traducirEstado(r.estado_anterior);
+                            var labelDespues = traducirEstado(r.estado_nuevo);
+                            html += '<span class="historial-estado-tag">' + labelAntes + ' → ' + labelDespues + '</span>';
+                        }
+
+                        html += '</span></li>';
+                        return html;
+                    }).join('');
+
+                    body.innerHTML = '<ul class="historial-lista">' + items + '</ul>';
+                })
+                .catch(function() {
+                    body.innerHTML = '<div class="modal-historial-vacio">Error al cargar el historial.</div>';
+                });
+        }
+
+        function traducirEstado(e) {
+            var map = { 'vigente': 'Vigente', 'sin_convenio': 'Sin convenio', 'suspendida': 'Suspendida' };
+            return map[e] || e;
+        }
+
+        function cerrarHistorial() {
+            document.getElementById('modal-historial').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        // Cerrar con ESC o click en overlay
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') cerrarHistorial();
+        });
+        document.getElementById('modal-historial').addEventListener('click', function(e) {
+            if (e.target === this) cerrarHistorial();
+        });
     </script>
 </body>
 </html>

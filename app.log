@@ -4870,3 +4870,27 @@
 2026-05-06 03:34:27,426 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:34:27] "GET /aranceles HTTP/1.1" 200 -
 2026-05-06 03:34:27,481 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:34:27] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
 2026-05-06 03:34:27,495 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:34:27] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-06 03:51:05,289 - app - INFO - Tablas DB verificadas/creadas.
+2026-05-06 03:51:32,090 - __main__ - INFO - Tablas DB verificadas/creadas.
+2026-05-06 03:51:32,416 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.48:5000
+2026-05-06 03:51:32,417 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-06 03:51:33,043 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:33] "[32mGET /aranceles HTTP/1.1[0m" 302 -
+2026-05-06 03:51:33,073 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:33] "GET /login HTTP/1.1" 200 -
+2026-05-06 03:51:33,834 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:33] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-06 03:51:34,028 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:34] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2026-05-06 03:51:43,378 - __main__ - INFO - Usuario 1 inició sesión
+2026-05-06 03:51:43,426 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:43] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-05-06 03:51:44,166 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:44] "GET /presupuestos HTTP/1.1" 200 -
+2026-05-06 03:51:44,243 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:44] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-06 03:51:44,246 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:44] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-06 03:51:46,333 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:46] "GET /aranceles HTTP/1.1" 200 -
+2026-05-06 03:51:46,400 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:46] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2026-05-06 03:51:46,410 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:46] "[36mGET /static/admin.css HTTP/1.1[0m" 304 -
+2026-05-06 03:51:48,431 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:48] "GET /aranceles/historial/ACA%20Salud%20-%20AVALIAN HTTP/1.1" 200 -
+2026-05-06 03:51:50,118 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:50] "GET /aranceles/historial/ART%20Berkley HTTP/1.1" 200 -
+2026-05-06 03:51:51,736 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:51] "GET /aranceles/historial/ART%20Experta HTTP/1.1" 200 -
+2026-05-06 03:51:52,749 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:51:52] "GET /aranceles/historial/ART%20Federacion%20Patronal HTTP/1.1" 200 -
+2026-05-06 03:52:39,285 - werkzeug - INFO - 127.0.0.1 - - [06/May/2026 03:52:39] "GET /aranceles/historial/ART%20Experta HTTP/1.1" 200 -

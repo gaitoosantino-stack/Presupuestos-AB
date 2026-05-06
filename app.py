@@ -116,6 +116,21 @@ class Estudio(db.Model):
     es_anexo = db.Column(db.Boolean, default=False, nullable=False)
 
 
+class ObraSocialHistorial(db.Model):
+    """
+    Registro de cambios de precio/estado de obras sociales.
+    Solo se inserta cuando el sync de OneDrive se confirma exitosamente.
+    """
+    __tablename__ = 'obra_social_historial'
+    id = db.Column(db.Integer, primary_key=True)
+    obra_nombre = db.Column(db.String(200), nullable=False, index=True)
+    fecha = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    precio_anterior = db.Column(db.String(50))
+    precio_nuevo = db.Column(db.String(50))
+    estado_anterior = db.Column(db.String(20))
+    estado_nuevo = db.Column(db.String(20))
+
+
 class ModificacionProgramada(db.Model):
     __tablename__ = 'modificacion_programada'
     id = db.Column(db.Integer, primary_key=True)
@@ -1416,16 +1431,39 @@ def sync_precios_google_sheet():
                 if precio_a_guardar and es_precio_real(precio_a_guardar):
                     obras_dict[nombre] = precio_a_guardar
         
-        # Persistir todas las obras en la DB (upsert por nombre)
+        # Persistir todas las obras en la DB (upsert por nombre) + historial
         if obras_estado_dict:
+            ahora = datetime.now(ZoneInfo('America/Argentina/Buenos_Aires')).replace(tzinfo=None)
             for nombre, datos in obras_estado_dict.items():
                 obra = ObraSocial.query.filter_by(nombre=nombre).first()
+                precio_nuevo = datos.get('precio')
+                estado_nuevo = datos.get('estado', 'vigente')
+
+                # Capturar valores previos para historial
+                precio_anterior = obra.precio if obra else None
+                estado_anterior = obra.estado if obra else None
+
                 if not obra:
                     obra = ObraSocial(nombre=nombre)
                     db.session.add(obra)
-                obra.precio = datos.get('precio')
-                obra.estado = datos.get('estado', 'vigente')
-                obra.ultima_actualizacion = datos.get('ultima_actualizacion', datetime.now().isoformat())
+
+                obra.precio = precio_nuevo
+                obra.estado = estado_nuevo
+                obra.ultima_actualizacion = datos.get('ultima_actualizacion', ahora.isoformat())
+
+                # Registrar historial solo si cambió precio o estado
+                precio_cambio = comparar_precios(precio_anterior, precio_nuevo)
+                estado_cambio = (estado_anterior or 'vigente') != (estado_nuevo or 'vigente')
+                if precio_cambio or estado_cambio:
+                    db.session.add(ObraSocialHistorial(
+                        obra_nombre=nombre,
+                        fecha=ahora,
+                        precio_anterior=precio_anterior,
+                        precio_nuevo=precio_nuevo,
+                        estado_anterior=estado_anterior,
+                        estado_nuevo=estado_nuevo,
+                    ))
+
             try:
                 db.session.commit()
             except Exception as db_err:
@@ -2200,6 +2238,36 @@ def aranceles():
                          modificaciones_programadas=modificaciones_programadas,
                          obras_sin_cobertura_anexo=anexo_config.get('obras_sin_cobertura', []),
                          current_user=session.get('username'))
+
+@app.route('/aranceles/historial/<path:nombre>', methods=['GET'])
+@require_login
+def aranceles_historial(nombre):
+    """Devuelve el historial de cambios de una obra social en JSON (público para logueados)."""
+    try:
+        tz_ar = ZoneInfo('America/Argentina/Buenos_Aires')
+        registros = (
+            ObraSocialHistorial.query
+            .filter_by(obra_nombre=nombre)
+            .order_by(ObraSocialHistorial.fecha.desc())
+            .limit(100)
+            .all()
+        )
+        data = []
+        for r in registros:
+            fecha_local = r.fecha.replace(tzinfo=None)
+            data.append({
+                'fecha': fecha_local.strftime('%d/%m/%Y %H:%M'),
+                'precio_anterior': r.precio_anterior or '—',
+                'precio_nuevo': r.precio_nuevo or '—',
+                'estado_anterior': r.estado_anterior or '—',
+                'estado_nuevo': r.estado_nuevo or '—',
+                'solo_estado': r.precio_anterior == r.precio_nuevo,
+            })
+        return jsonify({'ok': True, 'obra': nombre, 'historial': data})
+    except Exception as e:
+        logger.error(f"Error al obtener historial de {nombre}: {e}")
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
 
 # Archivo de instructivos por obra social
 INSTRUCTIVOS_FILE = 'instructivos.json'
