@@ -930,16 +930,23 @@ def preview_precios_google_sheet():
         
         cambios_dict = {}
         
-        # Procesar obras vigentes con cambios de precio
+        # Procesar obras vigentes con cambios de precio o estado
         for nombre, precio_nuevo in obras_dict.items():
             precio_actual = obras_actuales.get(nombre)
             obra_estado_actual = obras_estado_actual.get(nombre, {})
             estado_anterior = obra_estado_actual.get('estado')
             tiene_precio_real = es_precio_real(precio_actual)
+            estado_cambio_a_vigente = estado_anterior in ['suspendida', 'sin_convenio']
             
-            # Si la obra no existe con precio real o el precio cambió
-            if not tiene_precio_real or comparar_precios(precio_actual, precio_nuevo):
-                if not tiene_precio_real:
+            # Incluir cambios cuando:
+            # - cambia de estado a vigente, o
+            # - no tenía precio real, o
+            # - cambia el precio
+            if estado_cambio_a_vigente or (not tiene_precio_real) or comparar_precios(precio_actual, precio_nuevo):
+                if estado_cambio_a_vigente:
+                    precio_actual_display = 'Suspendida' if estado_anterior == 'suspendida' else 'Sin convenio'
+                    cambio = 'a_vigente'
+                elif not tiene_precio_real:
                     # Obra sin precio actual: puede ser nueva o pasar de suspendida/sin convenio a vigente
                     if estado_anterior == 'suspendida':
                         precio_actual_display = 'Suspendida'
@@ -960,15 +967,15 @@ def preview_precios_google_sheet():
                     'estado': 'vigente'
                 }
         
-        # Agregar obras sin convenio/suspendidas SOLO si cambiaron de estado (de vigente a no vigente)
+        # Agregar obras sin convenio/suspendidas cuando cambian de estado o precio
         for nombre, datos_no_vigente in obras_cortadas_dict.items():
             # Verificar el estado actual de la obra
             obra_estado_actual = obras_estado_actual.get(nombre, {})
             estado_anterior = obra_estado_actual.get('estado', 'vigente')  # Si no existe, asumimos que estaba vigente
+            estado_nuevo = datos_no_vigente.get('estado', 'sin_convenio')
             
             if estado_anterior == 'vigente':
                 # Vigente → suspendida/sin convenio: incluir precio del Excel (o conservar actual si Excel vacío/0)
-                estado_nuevo = datos_no_vigente.get('estado', 'sin_convenio')
                 precio_excel = datos_no_vigente.get('precio')
                 precio_actual = obras_actuales.get(nombre) or obra_estado_actual.get('precio')
                 # Si Excel no trae precio real, al importar se conserva el actual; mostrarlo en preview
@@ -981,15 +988,18 @@ def preview_precios_google_sheet():
                     'estado': estado_nuevo
                 }
             elif estado_anterior in ['suspendida', 'sin_convenio']:
-                # Ya estaba suspendida/sin convenio: incluir si el precio del Excel cambió (se actualizará al importar)
+                # Ya estaba no vigente: incluir si cambia estado (sin_convenio<->suspendida) o si cambia precio
                 precio_excel = datos_no_vigente.get('precio')
                 precio_actual = obra_estado_actual.get('precio')
-                if precio_excel is not None and es_precio_real(precio_excel) and comparar_precios(precio_actual, precio_excel):
+                estado_cambio = estado_anterior != estado_nuevo
+                precio_cambio = precio_excel is not None and es_precio_real(precio_excel) and comparar_precios(precio_actual, precio_excel)
+                if estado_cambio or precio_cambio:
+                    precio_nuevo_display = precio_excel if precio_excel is not None else precio_actual
                     cambios_dict[nombre] = {
                         'precio_actual': precio_actual,
-                        'precio_nuevo': precio_excel,
-                        'cambio': 'modificado',
-                        'estado': datos_no_vigente.get('estado', estado_anterior)
+                        'precio_nuevo': precio_nuevo_display,
+                        'cambio': estado_nuevo if estado_cambio else 'modificado',
+                        'estado': estado_nuevo
                     }
                 # Si Excel no trae precio real, no mostrar como cambio (se conserva el actual)
         
@@ -1579,13 +1589,30 @@ def save_obra_individual(nombre_obra, precio, estado):
         obra = ObraSocial.query.filter_by(nombre=nombre_obra).first()
         if not obra:
             return False, "Obra no encontrada."
+        precio_anterior = obra.precio
+        estado_anterior = obra.estado or 'vigente'
         precio_str = None
         if precio is not None and str(precio).strip() != '':
             p = precio_str_a_float(precio)
             precio_str = str(p).replace('.', ',') if p is not None else str(precio).strip()
-        obra.precio = precio_str or obra.precio
+        precio_nuevo = precio_str or obra.precio
+        obra.precio = precio_nuevo
         obra.estado = estado
         obra.ultima_actualizacion = datetime.now().isoformat()
+
+        # Historial para cambios manuales/lote (no solo sync)
+        precio_cambio = comparar_precios(precio_anterior, precio_nuevo)
+        estado_cambio = estado_anterior != (estado or 'vigente')
+        if precio_cambio or estado_cambio:
+            ahora = datetime.now(ZoneInfo('America/Argentina/Buenos_Aires')).replace(tzinfo=None)
+            db.session.add(ObraSocialHistorial(
+                obra_nombre=nombre_obra,
+                fecha=ahora,
+                precio_anterior=precio_anterior,
+                precio_nuevo=precio_nuevo,
+                estado_anterior=estado_anterior,
+                estado_nuevo=estado,
+            ))
         db.session.commit()
         return True, None
     except Exception as e:
@@ -2159,33 +2186,18 @@ def admin_obras_actualizar_lote():
                     continue
             except ValueError:
                 pass
-        # Aplicar ya
-        precio_str = None
-        if precio is not None and str(precio).strip() != '':
-            p = precio_str_a_float(precio)
-            precio_str = str(p).replace('.', ',') if p is not None else str(precio).strip()
-        obras[nombre] = {
-            'precio': precio_str or obras[nombre].get('precio'),
-            'estado': estado,
-            'ultima_actualizacion': datetime.now().isoformat()
-        }
+        # Aplicar inmediatamente en DB (fuente de verdad)
+        ok, err = save_obra_individual(nombre, precio, estado)
+        if not ok:
+            errors.append(f"Error al guardar {nombre}: {err or 'desconocido'}")
+            continue
         if no_cubre_anexo and nombre not in obras_sin:
             obras_sin.append(nombre)
         elif not no_cubre_anexo and nombre in obras_sin:
             obras_sin = [o for o in obras_sin if o != nombre]
     if errors:
         return jsonify({'success': False, 'message': '; '.join(errors[:5])}), 400
-    obras_ordenadas = dict(sorted(obras.items()))
-    estado_data['obras'] = obras_ordenadas
-    estado_data['fecha_actualizacion'] = datetime.now().isoformat()
-    estado_data['total_obras'] = len(obras_ordenadas)
-    estado_data['obras_vigentes'] = sum(1 for o in obras_ordenadas.values() if o.get('estado') == 'vigente')
-    estado_data['obras_sin_convenio'] = sum(1 for o in obras_ordenadas.values() if o.get('estado') == 'sin_convenio')
-    estado_data['obras_suspendidas'] = sum(1 for o in obras_ordenadas.values() if o.get('estado') == 'suspendida')
     try:
-        with open(OBRAS_ESTADO_FILE, 'w', encoding='utf-8') as f:
-            json.dump(estado_data, f, indent=2, ensure_ascii=False)
-        _regenerar_obras_entero(obras_ordenadas)
         anexo_config['obras_sin_cobertura'] = obras_sin
         save_anexo_config(anexo_config)
         save_modificaciones_programadas(programadas)
