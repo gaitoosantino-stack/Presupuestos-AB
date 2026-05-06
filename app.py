@@ -677,8 +677,6 @@ def precio_str_a_float(precio_str):
         s = s.replace('.', '').replace(',', '.')
     try:
         val = float(s)
-        if val > 3000:
-            logger.warning(f"Precio fuera de rango habitual (1000-3000): {val} origen={precio_str}")
         return val
     except (ValueError, TypeError):
         return None

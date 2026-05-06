@@ -985,10 +985,6 @@
             }
             const num = parseFloat(s);
             if (isNaN(num) || num < 0) return 0;
-            if (num > 3000) {
-                console.warn('Precio fuera de rango esperado (1000-3000):', num, 'origen:', str);
-                alert('Atención: precio ' + num + ' supera el rango habitual (1000-3000). Verifica que sea correcto.');
-            }
             return num;
         }
         
