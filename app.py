@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, session, send_file, jsonify
 from flask_wtf.csrf import CSRFProtect
+from flask_sqlalchemy import SQLAlchemy
 import os
 import json
 import logging
@@ -43,6 +44,101 @@ app.config['WTF_CSRF_TIME_LIMIT'] = None
 
 # Habilitar protección CSRF
 csrf = CSRFProtect(app)
+
+# ---------------------------------------------------------------------------
+# Base de datos (Supabase / Postgres)
+# DATABASE_URL se lee del entorno (.env local o variables de Render/VPS).
+# ---------------------------------------------------------------------------
+_db_url = os.environ.get('DATABASE_URL', '')
+if _db_url.startswith('postgres://'):
+    _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = _db_url or 'sqlite:///sistema_local.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 300,
+}
+db = SQLAlchemy(app)
+
+
+class Usuario(db.Model):
+    __tablename__ = 'usuario'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    password = db.Column(db.Text, nullable=False)
+    email = db.Column(db.String(120), default='')
+    habilitado = db.Column(db.Boolean, default=True, nullable=False)
+    perfil = db.relationship('Perfil', back_populates='usuario', uselist=False, cascade='all, delete-orphan')
+
+
+class Perfil(db.Model):
+    __tablename__ = 'perfil'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), db.ForeignKey('usuario.username', ondelete='CASCADE'), unique=True, nullable=False)
+    nombre_lab = db.Column(db.String(200), default='Laboratorio')
+    subtitulo = db.Column(db.String(200), default='Análisis Clínicos')
+    profesionales = db.Column(db.String(300), default='Bioquímico: - MP: -')
+    direccion = db.Column(db.String(200), default='')
+    ciudad = db.Column(db.String(100), default='Trelew')
+    telefono = db.Column(db.String(100), default='')
+    logo_path = db.Column(db.String(200), default='')
+    info_bancaria = db.Column(db.Text, default='')
+    firma_texto = db.Column(db.String(200), default='')
+    firma_path = db.Column(db.String(200), default='')
+    usuario = db.relationship('Usuario', back_populates='perfil')
+
+
+class ObraSocial(db.Model):
+    """
+    Obra social / convenio. PARTICULAR se trata como una obra más.
+    cubre_anexo: True  → todos los estudios al NBU de esta obra.
+                 False → estudios con es_anexo=True se cobran al NBU de PARTICULAR.
+    """
+    __tablename__ = 'obra_social'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(200), unique=True, nullable=False, index=True)
+    precio = db.Column(db.String(50))
+    estado = db.Column(db.String(20), default='vigente', nullable=False)
+    cubre_anexo = db.Column(db.Boolean, default=True, nullable=False)
+    ultima_actualizacion = db.Column(db.String(50))
+
+
+class Estudio(db.Model):
+    """
+    Catálogo de estudios importado desde CODIGO_ESTUDIO_UB.txt / Anexo_Codigos.txt.
+    es_anexo: True → práctica de anexo; se cobra a NBU PARTICULAR si la obra no cubre anexo.
+    """
+    __tablename__ = 'estudio'
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(30), unique=True, nullable=False, index=True)
+    nombre = db.Column(db.String(400), nullable=False)
+    ub = db.Column(db.String(200), nullable=False)
+    es_anexo = db.Column(db.Boolean, default=False, nullable=False)
+
+
+class ModificacionProgramada(db.Model):
+    __tablename__ = 'modificacion_programada'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_obra = db.Column(db.String(200), nullable=False, index=True)
+    fecha_aplicar = db.Column(db.String(20), nullable=False)
+    precio = db.Column(db.String(50))
+    estado = db.Column(db.String(20))
+    no_cubre_anexo = db.Column(db.Boolean, default=False)
+
+
+class Instructivo(db.Model):
+    __tablename__ = 'instructivo'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(200), unique=True, nullable=False, index=True)
+    contenido = db.Column(db.Text, default='')
+    contacto = db.Column(db.String(200), default='')
+    telefonos = db.Column(db.String(200), default='')
+    notas_especiales = db.Column(db.Text, default='')
+
+
+with app.app_context():
+    db.create_all()
+    logger.info("Tablas DB verificadas/creadas.")
 
 
 def strip_html(text):
@@ -95,117 +191,128 @@ MODIFICACIONES_PROGRAMADAS_FILE = 'modificaciones_programadas.json'
 # Ejemplo OneDrive: https://onedrive.live.com/download?resid=RESID
 GOOGLE_SHEET_URL = os.environ.get('GOOGLE_SHEET_URL', 'https://onedrive.live.com/:x:/g/personal/4296eb0072506afb/IQC4XG2_Nw4YRqWSeSwd8XlUAUeJtQY4DC0CVFNPlhmpoRU?rtime=I1jbPvmp3kg&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy80Mjk2ZWIwMDcyNTA2YWZiL0lRQzRYRzJfTnc0WVJxV1NlU3dkOFhsVUFVZUp0UVk0REMwQ1ZGTlBsaG1wb1JVP2U9TFIyQVQ2')
 
-def init_users_file():
-    """Inicializa el archivo de usuarios si no existe"""
-    if not os.path.exists(USERS_FILE):
-        # Crear archivo con usuarios administradores
-        default_users = {
-            'Gaito': {
-                'password': generate_password_hash('Simon@594*'),
-                'email': '',
-                'habilitado': True
-            },
-            'DanielABNECH': {
-                'password': generate_password_hash('Paraguay37'),
-                'email': '',
-                'habilitado': True
-            }
-        }
-        with open(USERS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(default_users, f, indent=2, ensure_ascii=False)
-        logger.info("Archivo de usuarios creado con usuario Gaito")
-    else:
-        # Verificar que Gaito y usuario 3 existan, si no existen agregarlos
-        try:
-            with open(USERS_FILE, 'r', encoding='utf-8') as f:
-                users = json.load(f)
-            modified = False
-            if 'Gaito' not in users:
-                users['Gaito'] = {
-                    'password': generate_password_hash('Simon@594*'),
-                    'email': '',
-                    'habilitado': True
-                }
-                modified = True
-                logger.info("Usuario Gaito agregado al archivo de usuarios")
-            if '3' not in users:
-                users['3'] = {
-                    'password': generate_password_hash('3'),
-                    'email': '',
-                    'habilitado': True
-                }
-                modified = True
-                logger.info("Usuario 3 agregado al archivo de usuarios")
-            if 'DanielABNECH' not in users:
-                users['DanielABNECH'] = {
-                    'password': generate_password_hash('Paraguay37'),
-                    'email': '',
-                    'habilitado': True
-                }
-                modified = True
-                logger.info("Usuario DanielABNECH agregado al archivo de usuarios")
-            if modified:
-                with open(USERS_FILE, 'w', encoding='utf-8') as f:
-                    json.dump(users, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            logger.error(f"Error al verificar usuarios admin: {e}")
+def _seed_admin_users():
+    """Asegura que los usuarios admin existan en la DB al arrancar."""
+    admins = [
+        ('Gaito', 'Simon@594*', ''),
+        ('3', '3', ''),
+        ('DanielABNECH', 'Paraguay37', ''),
+    ]
+    for username, pw, email in admins:
+        if not Usuario.query.filter_by(username=username).first():
+            db.session.add(Usuario(
+                username=username,
+                password=generate_password_hash(pw),
+                email=email,
+                habilitado=True
+            ))
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error al seed usuarios admin: {e}")
+
 
 def load_users():
-    """Carga los usuarios desde el archivo JSON"""
-    init_users_file()
+    """Devuelve dict {username: {password, email, habilitado}} desde la DB."""
     try:
-        with open(USERS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        return {
+            u.username: {
+                'password': u.password,
+                'email': u.email or '',
+                'habilitado': u.habilitado,
+            }
+            for u in Usuario.query.all()
+        }
     except Exception as e:
         logger.error(f"Error al cargar usuarios: {e}")
         return {}
 
-def save_users(users):
-    """Guarda los usuarios en el archivo JSON"""
+
+def save_users(users_dict):
+    """Persiste cambios de usuarios en la DB."""
     try:
-        with open(USERS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(users, f, indent=2, ensure_ascii=False)
+        usernames_nuevos = set(users_dict.keys())
+        for u in Usuario.query.all():
+            if u.username not in usernames_nuevos:
+                db.session.delete(u)
+        for username, data in users_dict.items():
+            u = Usuario.query.filter_by(username=username).first()
+            if not u:
+                u = Usuario(username=username)
+                db.session.add(u)
+            u.password = data.get('password', '')
+            u.email = data.get('email', '')
+            u.habilitado = bool(data.get('habilitado', True))
+        db.session.commit()
         return True
     except Exception as e:
+        db.session.rollback()
         logger.error(f"Error al guardar usuarios: {e}")
         return False
 
-def init_perfiles_file():
-    """Inicializa el archivo de perfiles si no existe"""
-    if not os.path.exists(PERFILES_FILE):
-        default_perfiles = {}
-        with open(PERFILES_FILE, 'w', encoding='utf-8') as f:
-            json.dump(default_perfiles, f, indent=2, ensure_ascii=False)
-        logger.info("Archivo de perfiles creado")
 
 def load_perfiles():
-    """Carga los perfiles desde el archivo JSON"""
-    init_perfiles_file()
+    """Devuelve dict {username: {...campos perfil}} desde la DB."""
     try:
-        with open(PERFILES_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        return {
+            p.username: {
+                'nombre_lab': p.nombre_lab,
+                'subtitulo': p.subtitulo,
+                'profesionales': p.profesionales,
+                'direccion': p.direccion,
+                'ciudad': p.ciudad,
+                'telefono': p.telefono,
+                'logo_path': p.logo_path,
+                'info_bancaria': p.info_bancaria,
+                'firma_texto': p.firma_texto,
+                'firma_path': p.firma_path,
+            }
+            for p in Perfil.query.all()
+        }
     except Exception as e:
         logger.error(f"Error al cargar perfiles: {e}")
         return {}
 
-def save_perfiles(perfiles):
-    """Guarda los perfiles en el archivo JSON"""
+
+def save_perfiles(perfiles_dict):
+    """Persiste perfiles en la DB (upsert por username)."""
     try:
-        with open(PERFILES_FILE, 'w', encoding='utf-8') as f:
-            json.dump(perfiles, f, indent=2, ensure_ascii=False)
+        for username, data in perfiles_dict.items():
+            p = Perfil.query.filter_by(username=username).first()
+            if not p:
+                p = Perfil(username=username)
+                db.session.add(p)
+            for k, v in data.items():
+                if hasattr(p, k):
+                    setattr(p, k, v)
+        db.session.commit()
         return True
     except Exception as e:
+        db.session.rollback()
         logger.error(f"Error al guardar perfiles: {e}")
         return False
 
+
 def get_lab_profile(username):
-    """Obtiene el perfil del laboratorio para un usuario. Devuelve valores por defecto si no existe."""
-    perfiles = load_perfiles()
-    
-    if username in perfiles:
-        return perfiles[username]
-    
-    # Valores por defecto genéricos
+    """Devuelve perfil del lab para un usuario (fallback a valores por defecto)."""
+    try:
+        p = Perfil.query.filter_by(username=username).first()
+        if p:
+            return {
+                'nombre_lab': p.nombre_lab,
+                'subtitulo': p.subtitulo,
+                'profesionales': p.profesionales,
+                'direccion': p.direccion,
+                'ciudad': p.ciudad,
+                'telefono': p.telefono,
+                'logo_path': p.logo_path,
+                'info_bancaria': p.info_bancaria,
+                'firma_texto': p.firma_texto,
+                'firma_path': p.firma_path,
+            }
+    except Exception as e:
+        logger.error(f"Error al cargar perfil de {username}: {e}")
     return {
         'nombre_lab': 'Laboratorio',
         'subtitulo': 'Análisis Clínicos',
@@ -216,7 +323,7 @@ def get_lab_profile(username):
         'logo_path': '',
         'info_bancaria': '',
         'firma_texto': '',
-        'firma_path': ''
+        'firma_path': '',
     }
 
 def require_login(f):
@@ -242,9 +349,9 @@ def require_login(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Inicializar archivos al iniciar
-init_users_file()
-init_perfiles_file()
+# Seed de usuarios admin al arrancar (crea si no existen en DB)
+with app.app_context():
+    _seed_admin_users()
 
 # Crear carpeta de logos si no existe
 os.makedirs(LOGO_FOLDER, exist_ok=True)
@@ -355,84 +462,66 @@ def presupuestos():
 
     aplicar_modificaciones_programadas()
 
-    # Leer obras sociales (vigentes y cortadas)
+    # Cargar obras sociales desde la DB
     obras = {}
-    obras_estado = {}  # Para almacenar el estado de cada obra
-    
-    # Primero cargar obras vigentes desde obras_entero.txt
+    obras_estado = {}
     try:
-        with open('obras_entero.txt', 'r', encoding='utf-8') as f:
-            for line in f:
-                if ':' in line:
-                    obra, precio = line.strip().split(':', 1)
-                    p = precio_str_a_float(precio)
-                    obras[obra] = str(p) if p is not None else '0'
-                    obras_estado[obra] = 'vigente'
-    except FileNotFoundError:
-        logger.error("Archivo obras_entero.txt no encontrado")
+        for o in ObraSocial.query.order_by(ObraSocial.nombre).all():
+            p = precio_str_a_float(o.precio) if o.precio else None
+            obras[o.nombre] = str(p) if p is not None else (o.precio or '0')
+            obras_estado[o.nombre] = o.estado or 'vigente'
     except Exception as e:
-        logger.error(f"Error al leer obras sociales: {e}")
-    
-    # Luego cargar obras cortadas desde obras_estado.json
-    try:
-        estado_data = load_obras_estado()
-        if estado_data and 'obras' in estado_data:
-            for nombre_obra, info_obra in estado_data['obras'].items():
-                estado_obra = info_obra.get('estado')
-                if estado_obra in ['sin_convenio', 'suspendida']:
-                    # Agregar obra sin convenio/suspendida (con precio si existe, o None)
-                    precio_cortada = info_obra.get('precio')
-                    if precio_cortada:
-                        p = precio_str_a_float(precio_cortada)
-                        obras[nombre_obra] = str(p) if p is not None else str(precio_cortada)
-                    else:
-                        obras[nombre_obra] = None
-                    obras_estado[nombre_obra] = estado_obra
-    except Exception as e:
-        logger.error(f"Error al cargar obras cortadas: {e}")
-    
-    # Ordenar alfabéticamente
-    obras = dict(sorted(obras.items()))
+        logger.error(f"Error al cargar obras desde DB: {e}")
 
-    # Leer estudios desde CODIGO_ESTUDIO_UB.txt (archivo principal)
+    # Cargar estudios desde la DB; fallback a TXT si tabla vacía (antes de migración)
     estudios = {}
+    def _codigo_sort_key(c):
+        s = (c or '').strip()
+        try:
+            return (0, int(s))
+        except Exception:
+            return (1, s.lower())
     try:
-        with open('CODIGO_ESTUDIO_UB.txt', 'r', encoding='utf-8') as f:
-            for line in f:
-                if ':' in line:
-                    parts = line.strip().split(':', 2)
-                    if len(parts) == 3:
-                        codigo, estudio, ub = parts
-                        estudios[codigo] = {'nombre': estudio, 'ub': ub.replace(',', '.')}
-    except FileNotFoundError:
-        logger.error("Archivo CODIGO_ESTUDIO_UB.txt no encontrado")
-        estudios = {}
+        count = Estudio.query.count()
+        if count > 0:
+            # Orden estético: por código (numérico si aplica)
+            rows = Estudio.query.all()
+            rows = sorted(rows, key=lambda r: _codigo_sort_key(r.codigo))
+            for e in rows:
+                estudios[e.codigo] = {'nombre': e.nombre, 'ub': e.ub}
+        else:
+            raise ValueError("Tabla estudio vacía, usando TXT como fallback")
     except Exception as e:
-        logger.error(f"Error al leer estudios desde CODIGO_ESTUDIO_UB.txt: {e}")
-        estudios = {}
-    
-    # Leer estudios adicionales desde Anexo_Codigos.txt (solo los que no están ya en estudios)
-    try:
-        with open(ANEXO_CODIGOS_FILE, 'r', encoding='utf-8') as f:
-            for line in f:
-                if ':' in line:
-                    parts = line.strip().split(':', 2)
-                    if len(parts) == 3:
-                        codigo, estudio, ub = parts
-                        # Solo agregar si no existe ya (evitar duplicados)
-                        if codigo not in estudios:
-                            estudios[codigo] = {'nombre': estudio, 'ub': ub.replace(',', '.')}
-    except FileNotFoundError:
-        logger.warning(f"Archivo {ANEXO_CODIGOS_FILE} no encontrado, continuando sin estudios de anexo adicionales")
-    except Exception as e:
-        logger.error(f"Error al leer estudios desde {ANEXO_CODIGOS_FILE}: {e}")
+        logger.warning(f"Cargando estudios desde TXT (fallback): {e}")
+        try:
+            with open('CODIGO_ESTUDIO_UB.txt', 'r', encoding='utf-8') as f:
+                for line in f:
+                    if ':' in line:
+                        parts = line.strip().split(':', 2)
+                        if len(parts) == 3:
+                            codigo, nombre_e, ub = parts
+                            estudios[codigo] = {'nombre': nombre_e, 'ub': ub.replace(',', '.')}
+        except Exception as e2:
+            logger.error(f"Error al leer CODIGO_ESTUDIO_UB.txt: {e2}")
+        try:
+            with open(ANEXO_CODIGOS_FILE, 'r', encoding='utf-8') as f:
+                for line in f:
+                    if ':' in line:
+                        parts = line.strip().split(':', 2)
+                        if len(parts) == 3:
+                            codigo, nombre_e, ub = parts
+                            if codigo not in estudios:
+                                estudios[codigo] = {'nombre': nombre_e, 'ub': ub.replace(',', '.')}
+        except FileNotFoundError:
+            pass
 
-    # Cargar configuración de anexo
+    # Asegurar orden por código también en fallback TXT
+    estudios = dict(sorted(estudios.items(), key=lambda kv: _codigo_sort_key(kv[0])))
+
+    # Configuración de anexo
     anexo_config = load_anexo_config()
     codigos_anexo = load_anexo_codigos()
     precio_particular = get_precio_particular()
-    
-    # Convertir set a lista para JSON serialization en el template
     codigos_anexo_list = list(codigos_anexo)
 
     return render_template('presupuestos.html', 
@@ -545,19 +634,16 @@ def normalizar_nombre_obra(nombre):
     return re.sub(r'\s+', ' ', str(nombre).strip()) if str(nombre).strip() else None
 
 def load_current_obras():
-    """Carga las obras sociales actuales desde obras_entero.txt (claves normalizadas para lookup)."""
+    """Devuelve {nombre_normalizado: precio} desde la DB (obras con precio válido)."""
     obras = {}
     try:
-        if os.path.exists(OBRAS_FILE):
-            with open(OBRAS_FILE, 'r', encoding='utf-8') as f:
-                for line in f:
-                    if ':' in line:
-                        obra, precio = line.strip().split(':', 1)
-                        key = normalizar_nombre_obra(obra)
-                        if key:
-                            obras[key] = precio.strip()
+        for o in ObraSocial.query.all():
+            if es_precio_real(o.precio):
+                key = normalizar_nombre_obra(o.nombre)
+                if key:
+                    obras[key] = o.precio
     except Exception as e:
-        logger.error(f"Error al leer obras actuales: {e}")
+        logger.error(f"Error al cargar obras actuales desde DB: {e}")
     return obras
 
 def precio_str_a_float(precio_str):
@@ -1330,41 +1416,29 @@ def sync_precios_google_sheet():
                 if precio_a_guardar and es_precio_real(precio_a_guardar):
                     obras_dict[nombre] = precio_a_guardar
         
-        # Escribir el archivo obras_entero.txt (obras con precio > 0: vigentes + sin convenio/suspendida con precio)
-        if obras_dict:
-            # Ordenar alfabéticamente por nombre
-            obras_ordenadas = dict(sorted(obras_dict.items()))
-            
-            # Escribir al archivo
-            with open(OBRAS_FILE, 'w', encoding='utf-8') as f:
-                for nombre, precio in obras_ordenadas.items():
-                    f.write(f"{nombre}:{precio}\n")
-        
-        # Escribir el archivo obras_estado.json (todas las obras con estado)
+        # Persistir todas las obras en la DB (upsert por nombre)
         if obras_estado_dict:
-            obras_estado_ordenadas = dict(sorted(obras_estado_dict.items()))
-            
-            # Agregar metadata
-            obras_sin_convenio = sum(1 for o in obras_estado_ordenadas.values() if o['estado'] == 'sin_convenio')
-            obras_suspendidas = sum(1 for o in obras_estado_ordenadas.values() if o['estado'] == 'suspendida')
-            estado_data = {
-                'fecha_actualizacion': datetime.now().isoformat(),
-                'total_obras': len(obras_estado_ordenadas),
-                'obras_vigentes': sum(1 for o in obras_estado_ordenadas.values() if o['estado'] == 'vigente'),
-                'obras_sin_convenio': obras_sin_convenio,
-                'obras_suspendidas': obras_suspendidas,
-                'obras': obras_estado_ordenadas
-            }
-            
-            with open(OBRAS_ESTADO_FILE, 'w', encoding='utf-8') as f:
-                json.dump(estado_data, f, indent=2, ensure_ascii=False)
-            
+            for nombre, datos in obras_estado_dict.items():
+                obra = ObraSocial.query.filter_by(nombre=nombre).first()
+                if not obra:
+                    obra = ObraSocial(nombre=nombre)
+                    db.session.add(obra)
+                obra.precio = datos.get('precio')
+                obra.estado = datos.get('estado', 'vigente')
+                obra.ultima_actualizacion = datos.get('ultima_actualizacion', datetime.now().isoformat())
+            try:
+                db.session.commit()
+            except Exception as db_err:
+                db.session.rollback()
+                logger.error(f"Error al guardar obras en DB durante sync: {db_err}")
+                return False, f"Error al guardar en base de datos: {db_err}", 0
+
             count = len(obras_dict) if obras_dict else 0
             total_count = len(obras_estado_dict)
-            sin_convenio_count = estado_data['obras_sin_convenio']
-            suspendidas_count = estado_data['obras_suspendidas']
+            sin_convenio_count = sum(1 for o in obras_estado_dict.values() if o['estado'] == 'sin_convenio')
+            suspendidas_count = sum(1 for o in obras_estado_dict.values() if o['estado'] == 'suspendida')
             no_vigentes_count = sin_convenio_count + suspendidas_count
-            logger.info(f"Sincronización completada: {count} obras activas, {total_count} total (incluyendo {sin_convenio_count} sin convenio, {suspendidas_count} suspendidas)")
+            logger.info(f"Sincronización completada: {count} obras activas, {total_count} total ({sin_convenio_count} sin convenio, {suspendidas_count} suspendidas)")
             return True, f"Sincronización exitosa: {count} obras activas importadas ({total_count} total, {no_vigentes_count} no vigentes).", count
         else:
             return False, "No se encontraron obras sociales válidas en el archivo.", 0
@@ -1393,20 +1467,28 @@ def is_gaito_admin():
     return username in ('Gaito', '3', 'DanielABNECH')
 
 def load_obras_estado():
-    """Carga el estado de obras sociales desde el archivo JSON"""
+    """Devuelve estructura de obras compatible con el código existente."""
     try:
-        if os.path.exists(OBRAS_ESTADO_FILE):
-            with open(OBRAS_ESTADO_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        else:
-            return {
-                'fecha_actualizacion': None,
-                'total_obras': 0,
-                'obras_vigentes': 0,
-                'obras_sin_convenio': 0,
-                'obras_suspendidas': 0,
-                'obras': {}
+        obras_db = ObraSocial.query.all()
+        obras_dict = {
+            o.nombre: {
+                'precio': o.precio or '',
+                'estado': o.estado or 'vigente',
+                'ultima_actualizacion': o.ultima_actualizacion or '',
             }
+            for o in obras_db
+        }
+        vigentes = sum(1 for o in obras_db if o.estado == 'vigente')
+        sin_conv = sum(1 for o in obras_db if o.estado == 'sin_convenio')
+        suspendidas = sum(1 for o in obras_db if o.estado == 'suspendida')
+        return {
+            'fecha_actualizacion': datetime.now().isoformat(),
+            'total_obras': len(obras_db),
+            'obras_vigentes': vigentes,
+            'obras_sin_convenio': sin_conv,
+            'obras_suspendidas': suspendidas,
+            'obras': obras_dict,
+        }
     except Exception as e:
         logger.error(f"Error al cargar estado de obras: {e}")
         return {
@@ -1415,109 +1497,100 @@ def load_obras_estado():
             'obras_vigentes': 0,
             'obras_sin_convenio': 0,
             'obras_suspendidas': 0,
-            'obras': {}
+            'obras': {},
         }
 
 def load_obras_list_para_vista():
-    """
-    Lista de obras para Aranceles y Gestión de obras: misma fuente.
-    Los precios se toman de obras_entero.txt (archivo de texto); el estado y el resto de obras vienen de obras_estado.json.
-    Así ambas vistas comparten precios y van por el archivo de texto.
-    """
-    estado_data = load_obras_estado()
-    precios_txt = load_current_obras()  # nombre normalizado -> precio (desde obras_entero.txt)
-    obras_list = []
-    for nombre, datos in sorted(estado_data.get('obras', {}).items()):
-        # Precio: prioridad al archivo de texto; si no está, al JSON
-        nombre_norm = normalizar_nombre_obra(nombre)
-        precio = (precios_txt.get(nombre_norm) or datos.get('precio') or '').strip() if (precios_txt.get(nombre_norm) or datos.get('precio')) else ''
-        obras_list.append({
-            'nombre': nombre,
-            'precio': precio,
-            'estado': datos.get('estado', 'vigente'),
-            'ultima_actualizacion': datos.get('ultima_actualizacion', ''),
-        })
-    return obras_list, estado_data
+    """Lista de obras para Aranceles y Gestión de obras desde la DB."""
+    try:
+        obras_db = ObraSocial.query.order_by(ObraSocial.nombre).all()
+        obras_list = [
+            {
+                'nombre': o.nombre,
+                'precio': o.precio or '',
+                'estado': o.estado or 'vigente',
+                'ultima_actualizacion': o.ultima_actualizacion or '',
+                'no_cubre_anexo': not o.cubre_anexo,
+            }
+            for o in obras_db
+        ]
+        vigentes = sum(1 for o in obras_db if o.estado == 'vigente')
+        sin_conv = sum(1 for o in obras_db if o.estado == 'sin_convenio')
+        suspendidas = sum(1 for o in obras_db if o.estado == 'suspendida')
+        estado_data = {
+            'fecha_actualizacion': datetime.now().isoformat(),
+            'total_obras': len(obras_db),
+            'obras_vigentes': vigentes,
+            'obras_sin_convenio': sin_conv,
+            'obras_suspendidas': suspendidas,
+            'obras': {o['nombre']: o for o in obras_list},
+        }
+        return obras_list, estado_data
+    except Exception as e:
+        logger.error(f"Error al cargar lista de obras: {e}")
+        return [], {}
+
 
 def _regenerar_obras_entero(obras_estado_dict):
-    """
-    Escribe obras_entero.txt con todas las obras que tengan precio válido (vigentes, sin convenio, suspendidas).
-    Así Aranceles y Gestión de obras comparten la misma fuente y los precios de sin convenio no se pierden.
-    """
-    con_precio = dict(sorted(
-        (n, str(d.get('precio', '') or '').strip() or '0')
-        for n, d in obras_estado_dict.items()
-        if es_precio_real(d.get('precio'))
-    ))
-    try:
-        with open(OBRAS_FILE, 'w', encoding='utf-8') as f:
-            for nombre, precio in con_precio.items():
-                p = precio_str_a_float(precio)
-                if p is not None and p > 0:
-                    f.write(f"{nombre}:{precio}\n")
-    except Exception as e:
-        logger.error(f"Error al regenerar obras_entero.txt: {e}")
+    """Ya no escribe a disco; la DB es la única fuente de verdad."""
+    pass
 
 def save_obra_individual(nombre_obra, precio, estado):
-    """
-    Actualiza una sola obra en obras_estado.json y regenera obras_entero.txt.
-    precio: str o número; estado: 'vigente' | 'sin_convenio' | 'suspendida'.
-    Devuelve (True, None) o (False, mensaje_error).
-    """
+    """Actualiza una obra en la DB. Devuelve (True, None) o (False, mensaje)."""
     if estado not in ('vigente', 'sin_convenio', 'suspendida'):
         return False, "Estado inválido."
-    estado_data = load_obras_estado()
-    obras = estado_data.get('obras', {})
-    if nombre_obra not in obras:
-        return False, "Obra no encontrada."
-    precio_str = None
-    if precio is not None and str(precio).strip() != '':
-        p = precio_str_a_float(precio)
-        if p is not None:
-            # Guardar en formato legible (coma decimal)
-            precio_str = str(p).replace('.', ',')
-        else:
-            precio_str = str(precio).strip()
-    # Actualizar la obra
-    obras[nombre_obra] = {
-        'precio': precio_str or obras[nombre_obra].get('precio'),
-        'estado': estado,
-        'ultima_actualizacion': datetime.now().isoformat()
-    }
-    obras_ordenadas = dict(sorted(obras.items()))
-    estado_data['obras'] = obras_ordenadas
-    estado_data['fecha_actualizacion'] = datetime.now().isoformat()
-    estado_data['total_obras'] = len(obras_ordenadas)
-    estado_data['obras_vigentes'] = sum(1 for o in obras_ordenadas.values() if o.get('estado') == 'vigente')
-    estado_data['obras_sin_convenio'] = sum(1 for o in obras_ordenadas.values() if o.get('estado') == 'sin_convenio')
-    estado_data['obras_suspendidas'] = sum(1 for o in obras_ordenadas.values() if o.get('estado') == 'suspendida')
     try:
-        with open(OBRAS_ESTADO_FILE, 'w', encoding='utf-8') as f:
-            json.dump(estado_data, f, indent=2, ensure_ascii=False)
-        _regenerar_obras_entero(obras_ordenadas)
+        obra = ObraSocial.query.filter_by(nombre=nombre_obra).first()
+        if not obra:
+            return False, "Obra no encontrada."
+        precio_str = None
+        if precio is not None and str(precio).strip() != '':
+            p = precio_str_a_float(precio)
+            precio_str = str(p).replace('.', ',') if p is not None else str(precio).strip()
+        obra.precio = precio_str or obra.precio
+        obra.estado = estado
+        obra.ultima_actualizacion = datetime.now().isoformat()
+        db.session.commit()
         return True, None
     except Exception as e:
+        db.session.rollback()
         logger.error(f"Error al guardar obra individual: {e}")
         return False, str(e)
 
 def load_modificaciones_programadas():
-    """Carga la lista de modificaciones programadas desde el archivo JSON."""
+    """Carga modificaciones programadas desde la DB."""
     try:
-        if os.path.exists(MODIFICACIONES_PROGRAMADAS_FILE):
-            with open(MODIFICACIONES_PROGRAMADAS_FILE, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                return data if isinstance(data, list) else []
+        return [
+            {
+                'nombre_obra': m.nombre_obra,
+                'fecha_aplicar': m.fecha_aplicar,
+                'precio': m.precio,
+                'estado': m.estado,
+                'no_cubre_anexo': m.no_cubre_anexo,
+            }
+            for m in ModificacionProgramada.query.order_by(ModificacionProgramada.fecha_aplicar).all()
+        ]
     except Exception as e:
         logger.error(f"Error al cargar modificaciones programadas: {e}")
-    return []
+        return []
+
 
 def save_modificaciones_programadas(lista):
-    """Guarda la lista de modificaciones programadas en el archivo JSON."""
+    """Reemplaza todas las modificaciones en la DB con la lista nueva."""
     try:
-        with open(MODIFICACIONES_PROGRAMADAS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(lista, f, indent=2, ensure_ascii=False)
+        ModificacionProgramada.query.delete()
+        for item in lista:
+            db.session.add(ModificacionProgramada(
+                nombre_obra=item.get('nombre_obra', ''),
+                fecha_aplicar=item.get('fecha_aplicar', ''),
+                precio=item.get('precio'),
+                estado=item.get('estado'),
+                no_cubre_anexo=bool(item.get('no_cubre_anexo', False)),
+            ))
+        db.session.commit()
         return True
     except Exception as e:
+        db.session.rollback()
         logger.error(f"Error al guardar modificaciones programadas: {e}")
         return False
 
@@ -1575,74 +1648,65 @@ def aplicar_modificaciones_programadas():
         logger.info(f"Se aplicaron {aplicadas} modificaciones programadas.")
 
 def load_anexo_config():
-    """Carga la configuración de anexo desde el archivo JSON"""
+    """Devuelve dict con lista de obras que NO cubren anexo (cubre_anexo=False en DB)."""
     try:
-        if os.path.exists(ANEXO_CONFIG_FILE):
-            with open(ANEXO_CONFIG_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        else:
-            return {
-                'obras_sin_cobertura': []  # Lista de nombres de obras sociales que no cubren anexo
-            }
+        obras_sin = ObraSocial.query.filter_by(cubre_anexo=False).all()
+        return {'obras_sin_cobertura': [o.nombre for o in obras_sin]}
     except Exception as e:
         logger.error(f"Error al cargar configuración de anexo: {e}")
-        return {
-            'obras_sin_cobertura': []
-        }
+        return {'obras_sin_cobertura': []}
+
 
 def save_anexo_config(config):
-    """Guarda la configuración de anexo en el archivo JSON"""
+    """Actualiza cubre_anexo en la DB según la lista obras_sin_cobertura."""
     try:
-        with open(ANEXO_CONFIG_FILE, 'w', encoding='utf-8') as f:
-            json.dump(config, f, indent=2, ensure_ascii=False)
+        sin_cobertura = set(config.get('obras_sin_cobertura', []))
+        for obra in ObraSocial.query.all():
+            obra.cubre_anexo = obra.nombre not in sin_cobertura
+        db.session.commit()
         return True
     except Exception as e:
+        db.session.rollback()
         logger.error(f"Error al guardar configuración de anexo: {e}")
         return False
 
+
 def load_anexo_codigos():
-    """Carga los códigos de anexo desde el archivo Anexo_Codigos.txt"""
+    """Devuelve set de códigos de estudios con es_anexo=True desde la DB.
+    Fallback al archivo TXT si la tabla estudio está vacía (antes de la migración)."""
+    try:
+        count = Estudio.query.filter_by(es_anexo=True).count()
+        if count > 0:
+            return {e.codigo for e in Estudio.query.filter_by(es_anexo=True).all()}
+    except Exception as e:
+        logger.warning(f"Error al cargar códigos de anexo desde DB, usando TXT: {e}")
+    # Fallback: leer del archivo TXT original
     codigos_anexo = set()
     try:
         if os.path.exists(ANEXO_CODIGOS_FILE):
             with open(ANEXO_CODIGOS_FILE, 'r', encoding='utf-8') as f:
                 for line in f:
                     if ':' in line:
-                        # Formato: codigo:nombre:UB
                         parts = line.strip().split(':', 1)
-                        if len(parts) >= 1:
-                            codigo = parts[0].strip()
-                            if codigo:  # Ignorar líneas vacías
-                                codigos_anexo.add(codigo)
-        logger.info(f"Cargados {len(codigos_anexo)} códigos de anexo")
+                        codigo = parts[0].strip()
+                        if codigo:
+                            codigos_anexo.add(codigo)
+        logger.info(f"Cargados {len(codigos_anexo)} códigos de anexo desde TXT (fallback)")
     except Exception as e:
-        logger.error(f"Error al cargar códigos de anexo: {e}")
+        logger.error(f"Error al cargar códigos de anexo desde TXT: {e}")
     return codigos_anexo
 
+
 def get_precio_particular():
-    """Obtiene el precio de Particular desde obras_estado.json o obras_entero.txt"""
+    """Obtiene el NBU de PARTICULAR desde la DB."""
     try:
-        estado_data = load_obras_estado()
-        if 'obras' in estado_data and 'PARTICULAR' in estado_data['obras']:
-            precio_str = estado_data['obras']['PARTICULAR'].get('precio', '3000,00')
-            precio = precio_str_a_float(precio_str)
+        obra = ObraSocial.query.filter_by(nombre='PARTICULAR').first()
+        if obra and obra.precio:
+            precio = precio_str_a_float(obra.precio)
             if precio is not None:
                 return precio
     except Exception as e:
-        logger.warning(f"Error al obtener precio de Particular desde obras_estado.json: {e}")
-    
-    try:
-        with open(OBRAS_FILE, 'r', encoding='utf-8') as f:
-            for line in f:
-                if line.startswith('PARTICULAR:'):
-                    precio_str = line.split(':', 1)[1].strip()
-                    precio = precio_str_a_float(precio_str)
-                    if precio is not None:
-                        return precio
-    except Exception as e:
-        logger.warning(f"Error al obtener precio de Particular desde obras_entero.txt: {e}")
-    
-    # Valor por defecto
+        logger.warning(f"Error al obtener precio de Particular desde DB: {e}")
     return 3000.0
 
 # Ruta admin para gestionar usuarios (solo para Gaito)
@@ -2141,23 +2205,42 @@ def aranceles():
 INSTRUCTIVOS_FILE = 'instructivos.json'
 
 def load_instructivos():
-    """Carga la lista de instructivos desde instructivos.json."""
+    """Carga instructivos desde la DB."""
     try:
-        if os.path.exists(INSTRUCTIVOS_FILE):
-            with open(INSTRUCTIVOS_FILE, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                return data if isinstance(data, list) else []
+        return [
+            {
+                'nombre': i.nombre,
+                'contenido': i.contenido or '',
+                'contacto': i.contacto or '',
+                'telefonos': i.telefonos or '',
+                'notas_especiales': i.notas_especiales or '',
+            }
+            for i in Instructivo.query.order_by(Instructivo.nombre).all()
+        ]
     except Exception as e:
         logger.error(f"Error al leer instructivos: {e}")
     return []
 
+
 def save_instructivos(instructivos):
-    """Guarda la lista de instructivos en instructivos.json."""
+    """Persiste instructivos en la DB (upsert por nombre)."""
     try:
-        with open(INSTRUCTIVOS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(instructivos, f, indent=2, ensure_ascii=False)
+        for item in instructivos:
+            nombre = (item.get('nombre') or '').strip()
+            if not nombre:
+                continue
+            inst = Instructivo.query.filter_by(nombre=nombre).first()
+            if not inst:
+                inst = Instructivo(nombre=nombre)
+                db.session.add(inst)
+            inst.contenido = item.get('contenido', '')
+            inst.contacto = item.get('contacto', '')
+            inst.telefonos = item.get('telefonos', '')
+            inst.notas_especiales = item.get('notas_especiales', '')
+        db.session.commit()
         return True
     except Exception as e:
+        db.session.rollback()
         logger.error(f"Error al guardar instructivos: {e}")
         return False
 

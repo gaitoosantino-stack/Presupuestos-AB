@@ -1,0 +1,22 @@
+# Entorno local (nunca subir: DATABASE_URL, SECRET_KEY, etc.)
+.env
+.env.*
+!.env.example
+
+# Logs y runtime
+app.log
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
