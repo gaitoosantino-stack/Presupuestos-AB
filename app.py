@@ -31,14 +31,25 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Usar SECRET_KEY de variables de entorno, con fallback a una clave aleatoria
-# En Render, configurá SECRET_KEY en el dashboard de variables de entorno
-app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24).hex()
+# Seguridad base de entorno
+IS_PRODUCTION = (
+    os.environ.get('FLASK_ENV', '').lower() == 'production'
+    or os.environ.get('RENDER', '').lower() == 'true'
+)
+
+# SECRET_KEY: obligatoria en producción, fallback aleatorio solo local/dev
+secret_key = os.environ.get('SECRET_KEY')
+if IS_PRODUCTION and not secret_key:
+    raise RuntimeError("Falta SECRET_KEY en entorno de producción.")
+app.secret_key = secret_key or os.urandom(24).hex()
 
 # Configuración de sesión
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = IS_PRODUCTION
+# Límite de subida para evitar abusos por archivos muy grandes
+app.config['MAX_CONTENT_LENGTH'] = int(os.environ.get('MAX_UPLOAD_MB', '8')) * 1024 * 1024
 # El token CSRF no expira por tiempo; así el formulario de login no falla si se deja la página abierta
 app.config['WTF_CSRF_TIME_LIMIT'] = None
 
@@ -209,18 +220,29 @@ GOOGLE_SHEET_URL = os.environ.get('GOOGLE_SHEET_URL', 'https://onedrive.live.com
 def _seed_admin_users():
     """Asegura que los usuarios admin existan en la DB al arrancar."""
     admins = [
-        ('Gaito', 'Simon@594*', ''),
-        ('3', '3', ''),
-        ('DanielABNECH', 'Paraguay37', ''),
+        ('Gaito', os.environ.get('ADMIN_GAITO_PASSWORD'), os.environ.get('ADMIN_GAITO_EMAIL', '')),
+        ('3', os.environ.get('ADMIN_3_PASSWORD'), os.environ.get('ADMIN_3_EMAIL', '')),
+        ('DanielABNECH', os.environ.get('ADMIN_DANIEL_PASSWORD'), os.environ.get('ADMIN_DANIEL_EMAIL', '')),
     ]
     for username, pw, email in admins:
-        if not Usuario.query.filter_by(username=username).first():
-            db.session.add(Usuario(
-                username=username,
-                password=generate_password_hash(pw),
-                email=email,
-                habilitado=True
-            ))
+        if Usuario.query.filter_by(username=username).first():
+            continue
+        if not pw:
+            logger.warning(
+                f"No se creó admin '{username}' porque falta variable de entorno de password."
+            )
+            continue
+        if not isinstance(pw, str) or len(pw) < 8:
+            logger.warning(
+                f"No se creó admin '{username}': password inválida o demasiado corta."
+            )
+            continue
+        db.session.add(Usuario(
+            username=username,
+            password=generate_password_hash(pw),
+            email=email,
+            habilitado=True
+        ))
     try:
         db.session.commit()
     except Exception as e:
