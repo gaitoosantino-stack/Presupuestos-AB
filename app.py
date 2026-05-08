@@ -13,6 +13,7 @@ from fpdf.enums import XPos, YPos
 import io
 import pandas as pd
 import re
+import secrets
 
 from extensions import db
 
@@ -72,6 +73,8 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 }
 db.init_app(app)
 
+from sqlalchemy import update  # noqa: E402 — after app config
+
 from models import (  # noqa: E402 — after app config
     Usuario, Perfil, ObraSocial, Estudio,
     ObraSocialHistorial, ModificacionProgramada, Instructivo,
@@ -82,6 +85,117 @@ from services.supabase_storage import (  # noqa: E402
     upload_profile_image,
 )
 from services.perfil_assets import resolve_perfil_image, cleanup_temp_paths  # noqa: E402
+
+
+def _migrate_perfil_usuario_id():
+    """
+    Reemplaza perfil.username (FK legado) por perfil.usuario_id -> usuario.id
+    y elimina la columna username de perfil.
+    Idempotente: si ya no hay columna username, no hace nada.
+    """
+    from sqlalchemy import inspect, text
+
+    try:
+        insp = inspect(db.engine)
+        if "perfil" not in insp.get_table_names():
+            return
+        cols = {c["name"] for c in insp.get_columns("perfil")}
+    except Exception as e:
+        logger.debug("inspect perfil: %s", e)
+        return
+
+    if "usuario_id" in cols and "username" not in cols:
+        return
+
+    uri = str(app.config.get("SQLALCHEMY_DATABASE_URI") or "")
+    is_pg = "postgres" in uri.lower()
+
+    try:
+        with db.engine.begin() as conn:
+            if "usuario_id" not in cols:
+                try:
+                    conn.execute(text("ALTER TABLE perfil ADD COLUMN usuario_id INTEGER"))
+                except Exception:
+                    pass
+
+            if "username" in cols:
+                if is_pg:
+                    conn.execute(
+                        text(
+                            "UPDATE perfil AS p SET usuario_id = u.id FROM usuario AS u "
+                            "WHERE p.username = u.username AND p.usuario_id IS NULL"
+                        )
+                    )
+                else:
+                    conn.execute(
+                        text(
+                            "UPDATE perfil SET usuario_id = (SELECT id FROM usuario "
+                            "WHERE usuario.username = perfil.username) "
+                            "WHERE usuario_id IS NULL"
+                        )
+                    )
+                conn.execute(text("DELETE FROM perfil WHERE usuario_id IS NULL"))
+
+                if is_pg:
+                    conn.execute(text("ALTER TABLE perfil ALTER COLUMN usuario_id SET NOT NULL"))
+                    conn.execute(
+                        text("ALTER TABLE perfil DROP CONSTRAINT IF EXISTS perfil_username_fkey")
+                    )
+                    conn.execute(
+                        text("ALTER TABLE perfil DROP CONSTRAINT IF EXISTS perfil_username_key")
+                    )
+                    conn.execute(text("ALTER TABLE perfil DROP COLUMN username"))
+                    try:
+                        conn.execute(
+                            text(
+                                "ALTER TABLE perfil ADD CONSTRAINT perfil_usuario_id_fkey "
+                                "FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE CASCADE"
+                            )
+                        )
+                    except Exception:
+                        logger.debug("FK perfil_usuario_id_fkey ya existente o omitido.")
+                    conn.execute(
+                        text(
+                            "CREATE UNIQUE INDEX IF NOT EXISTS ix_perfil_usuario_id "
+                            "ON perfil (usuario_id)"
+                        )
+                    )
+                else:
+                    try:
+                        conn.execute(text("ALTER TABLE perfil DROP COLUMN username"))
+                    except Exception as ex:
+                        logger.warning(
+                            "SQLite: no se pudo DROP COLUMN username (versión antigua?): %s",
+                            ex,
+                        )
+                    conn.execute(
+                        text(
+                            "CREATE UNIQUE INDEX IF NOT EXISTS ix_perfil_usuario_id "
+                            "ON perfil (usuario_id)"
+                        )
+                    )
+
+        logger.info("Migración perfil: enlazado a usuario.id; columna username eliminada.")
+    except Exception as e:
+        logger.error("Migración perfil usuario_id falló: %s", e, exc_info=True)
+
+
+def _migrate_usuario_codigo_registro():
+    """Añade usuario.codigo_registro si la tabla existe y aún no tiene la columna."""
+    from sqlalchemy import inspect, text
+
+    try:
+        insp = inspect(db.engine)
+        if "usuario" not in insp.get_table_names():
+            return
+        cols = {c["name"] for c in insp.get_columns("usuario")}
+        if "codigo_registro" in cols:
+            return
+        with db.engine.begin() as conn:
+            conn.execute(text("ALTER TABLE usuario ADD COLUMN codigo_registro VARCHAR(20)"))
+        logger.info("Columna usuario.codigo_registro añadida.")
+    except Exception as e:
+        logger.error("Migración codigo_registro falló: %s", e, exc_info=True)
 
 
 def _upgrade_perfil_image_columns_to_text():
@@ -110,6 +224,8 @@ def _upgrade_perfil_image_columns_to_text():
 
 with app.app_context():
     db.create_all()
+    _migrate_perfil_usuario_id()
+    _migrate_usuario_codigo_registro()
     _upgrade_perfil_image_columns_to_text()
     logger.info("Tablas DB verificadas/creadas.")
 
@@ -193,13 +309,14 @@ def _seed_admin_users():
 
 
 def load_users():
-    """Devuelve dict {username: {password, email, habilitado}} desde la DB."""
+    """Devuelve dict {username: {password, email, habilitado, codigo_registro}} desde la DB."""
     try:
         return {
             u.username: {
                 'password': u.password,
                 'email': u.email or '',
                 'habilitado': u.habilitado,
+                'codigo_registro': (u.codigo_registro or ''),
             }
             for u in Usuario.query.all()
         }
@@ -223,6 +340,9 @@ def save_users(users_dict):
             u.password = data.get('password', '')
             u.email = data.get('email', '')
             u.habilitado = bool(data.get('habilitado', True))
+            if 'codigo_registro' in data:
+                cr = data.get('codigo_registro')
+                u.codigo_registro = (cr.strip() if cr else None) or None
         db.session.commit()
         return True
     except Exception as e:
@@ -231,11 +351,27 @@ def save_users(users_dict):
         return False
 
 
+REGISTER_MAX_ATTEMPTS = 15
+
+
+def _nuevo_codigo_registro():
+    """Genera un código de 6 dígitos único en la tabla usuario."""
+    for _ in range(80):
+        c = f"{secrets.randbelow(10**6):06d}"
+        if not Usuario.query.filter_by(codigo_registro=c).first():
+            return c
+    return f"{secrets.randbelow(10**6):06d}"
+
+
 def load_perfiles():
     """Devuelve dict {username: {...campos perfil}} desde la DB."""
     try:
-        return {
-            p.username: {
+        out = {}
+        for p in Perfil.query.all():
+            u = db.session.get(Usuario, p.usuario_id)
+            if not u:
+                continue
+            out[u.username] = {
                 'nombre_lab': p.nombre_lab,
                 'subtitulo': p.subtitulo,
                 'profesionales': p.profesionales,
@@ -247,22 +383,27 @@ def load_perfiles():
                 'firma_texto': p.firma_texto,
                 'firma_path': p.firma_path,
             }
-            for p in Perfil.query.all()
-        }
+        return out
     except Exception as e:
         logger.error(f"Error al cargar perfiles: {e}")
         return {}
 
 
 def save_perfiles(perfiles_dict):
-    """Persiste perfiles en la DB (upsert por username)."""
+    """Persiste perfiles en la DB (upsert por username del usuario dueño)."""
     try:
         for username, data in perfiles_dict.items():
-            p = Perfil.query.filter_by(username=username).first()
+            u = Usuario.query.filter_by(username=username).first()
+            if not u:
+                logger.warning("save_perfiles: usuario inexistente %s", username)
+                continue
+            p = Perfil.query.filter_by(usuario_id=u.id).first()
             if not p:
-                p = Perfil(username=username)
+                p = Perfil(usuario_id=u.id)
                 db.session.add(p)
             for k, v in data.items():
+                if k == 'username':
+                    continue
                 if hasattr(p, k):
                     setattr(p, k, v)
         db.session.commit()
@@ -275,8 +416,23 @@ def save_perfiles(perfiles_dict):
 
 def get_lab_profile(username):
     """Devuelve perfil del lab para un usuario (fallback a valores por defecto)."""
+    defaults = {
+        'nombre_lab': 'Laboratorio',
+        'subtitulo': 'Análisis Clínicos',
+        'profesionales': 'Bioquímico: - MP: -',
+        'direccion': '',
+        'ciudad': 'Trelew',
+        'telefono': '',
+        'logo_path': '',
+        'info_bancaria': '',
+        'firma_texto': '',
+        'firma_path': '',
+    }
     try:
-        p = Perfil.query.filter_by(username=username).first()
+        u = Usuario.query.filter_by(username=username).first()
+        if not u:
+            return defaults
+        p = Perfil.query.filter_by(usuario_id=u.id).first()
         if p:
             return {
                 'nombre_lab': p.nombre_lab,
@@ -292,18 +448,7 @@ def get_lab_profile(username):
             }
     except Exception as e:
         logger.error(f"Error al cargar perfil de {username}: {e}")
-    return {
-        'nombre_lab': 'Laboratorio',
-        'subtitulo': 'Análisis Clínicos',
-        'profesionales': 'Bioquímico: - MP: -',
-        'direccion': '',
-        'ciudad': 'Trelew',
-        'telefono': '',
-        'logo_path': '',
-        'info_bancaria': '',
-        'firma_texto': '',
-        'firma_path': '',
-    }
+    return defaults
 
 def require_login(f):
     """Decorador para proteger rutas que requieren login"""
@@ -410,6 +555,162 @@ def login():
         return redirect(url_for('login'))
     
     return render_template('login.html')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """Activación en dos pasos: código de 6 dígitos → usuario y contraseña definitivos."""
+    if session.get('logged_in'):
+        flash('Ya iniciaste sesión.', 'info')
+        return redirect(url_for('presupuestos'))
+
+    if request.method == 'GET' and request.args.get('reiniciar'):
+        session.pop('register_user_id', None)
+        session.pop('register_codigo_ok', None)
+        flash('Volvé a ingresar el código de activación.', 'info')
+        return redirect(url_for('register'))
+
+    def _render(
+        step_cuenta,
+        *,
+        prefill_codigo='',
+        prefill_username='',
+        prefill_password='',
+        prefill_password2='',
+    ):
+        return render_template(
+            'register.html',
+            step_cuenta=step_cuenta,
+            prefill_codigo=prefill_codigo,
+            prefill_username=prefill_username,
+            prefill_password=prefill_password,
+            prefill_password2=prefill_password2,
+        )
+
+    if request.method == 'POST':
+        step = request.form.get('step', 'codigo')
+
+        if step == 'codigo':
+            fails = session.get('register_fails', 0)
+            if fails >= REGISTER_MAX_ATTEMPTS:
+                flash('Demasiados intentos. Probá más tarde.', 'error')
+                return redirect(url_for('register'))
+
+            raw = request.form.get('codigo', '').strip()
+            digits = re.sub(r'\D', '', raw)
+            if len(digits) != 6:
+                session['register_fails'] = fails + 1
+                flash('El código debe tener 6 dígitos.', 'error')
+                return _render(False, prefill_codigo=raw)
+
+            u = Usuario.query.filter_by(codigo_registro=digits).first()
+            if not u:
+                session['register_fails'] = fails + 1
+                flash('Código incorrecto.', 'error')
+                return _render(False, prefill_codigo=raw)
+            if not u.habilitado:
+                flash('Esta cuenta no está habilitada. Contactá al administrador.', 'error')
+                return _render(False, prefill_codigo=raw)
+
+            session['register_user_id'] = u.id
+            session['register_codigo_ok'] = digits
+            session.pop('register_fails', None)
+            flash('Código correcto. Elegí tu usuario y contraseña.', 'success')
+            return redirect(url_for('register'))
+
+        if step == 'cuenta':
+            uid = session.get('register_user_id')
+            code_ok = session.get('register_codigo_ok')
+            if not uid or not code_ok:
+                flash('Empezá de nuevo ingresando el código.', 'error')
+                return redirect(url_for('register'))
+
+            u_row = db.session.get(Usuario, uid)
+            if not u_row or u_row.codigo_registro != code_ok:
+                session.pop('register_user_id', None)
+                session.pop('register_codigo_ok', None)
+                flash('La sesión de registro expiró o el código ya fue usado. Pedí uno nuevo.', 'error')
+                return redirect(url_for('register'))
+
+            new_user = request.form.get('username', '').strip()
+            pw1 = request.form.get('password', '')
+            pw2 = request.form.get('password2', '')
+
+            def _cuenta_again(msg):
+                flash(msg, 'error')
+                return _render(
+                    True,
+                    prefill_username=new_user,
+                    prefill_password=pw1,
+                    prefill_password2=pw2,
+                )
+
+            if len(new_user) < 2 or len(new_user) > 80:
+                return _cuenta_again('El usuario debe tener entre 2 y 80 caracteres.')
+
+            if not re.match(r'^[\w.-]+$', new_user, re.UNICODE):
+                return _cuenta_again(
+                    'Usuario: solo letras, números, guiones bajos, puntos o guiones (sin espacios).'
+                )
+
+            existing = Usuario.query.filter_by(username=new_user).first()
+            if existing and existing.id != uid:
+                return _cuenta_again('Ese nombre de usuario ya existe.')
+
+            if len(pw1) < 6:
+                return _cuenta_again('La contraseña debe tener al menos 6 caracteres.')
+
+            if pw1 != pw2:
+                return _cuenta_again('Las contraseñas no coinciden.')
+
+            old_username = u_row.username
+            try:
+                stmt = (
+                    update(Usuario)
+                    .where(Usuario.id == uid)
+                    .values(
+                        username=new_user,
+                        password=generate_password_hash(pw1),
+                        codigo_registro=None,
+                    )
+                )
+                db.session.execute(stmt)
+                db.session.commit()
+                logger.info(
+                    "Registro completado (UPDATE id=%s): %s -> %s",
+                    uid,
+                    old_username,
+                    new_user,
+                )
+            except Exception as e:
+                db.session.rollback()
+                logger.error("Error al completar registro: %s", e)
+                flash('Error al guardar. Probá de nuevo.', 'error')
+                return _render(
+                    True,
+                    prefill_username=new_user,
+                    prefill_password=pw1,
+                    prefill_password2=pw2,
+                )
+
+            session.pop('register_user_id', None)
+            session.pop('register_codigo_ok', None)
+            session['logged_in'] = True
+            session['username'] = new_user
+            session.permanent = True
+            flash(f'¡Listo, {new_user}! Ya podés usar la calculadora.', 'success')
+            return redirect(url_for('presupuestos'))
+
+    show_cuenta = bool(session.get('register_user_id') and session.get('register_codigo_ok'))
+    if show_cuenta:
+        u_chk = db.session.get(Usuario, session['register_user_id'])
+        if not u_chk or u_chk.codigo_registro != session.get('register_codigo_ok'):
+            session.pop('register_user_id', None)
+            session.pop('register_codigo_ok', None)
+            show_cuenta = False
+
+    return _render(show_cuenta)
+
 
 # Ruta para logout
 @app.route('/logout')
@@ -975,15 +1276,21 @@ def admin_usuarios():
                 flash('El usuario ya existe.', 'error')
                 return redirect(url_for('admin_usuarios'))
             
-            # Agregar nuevo usuario
+            codigo = _nuevo_codigo_registro()
             users[username] = {
                 'password': generate_password_hash(password),
-                'habilitado': True
+                'habilitado': True,
+                'email': '',
+                'codigo_registro': codigo,
             }
-            
+
             if save_users(users):
-                flash(f'Usuario {username} agregado y habilitado correctamente.', 'success')
-                logger.info(f"Usuario {username} agregado por {session.get('username')}")
+                flash(
+                    f'Usuario {username} agregado. Código de activación (un solo uso): {codigo}. '
+                    f'Compartilo para que active en /register.',
+                    'success',
+                )
+                logger.info(f"Usuario {username} agregado por {session.get('username')} (código registro generado)")
             else:
                 flash('Error al guardar el usuario.', 'error')
         

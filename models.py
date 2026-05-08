@@ -11,6 +11,8 @@ class Usuario(db.Model):
     password = db.Column(db.Text, nullable=False)
     email = db.Column(db.String(120), default="")
     habilitado = db.Column(db.Boolean, default=True, nullable=False)
+    # Código de un solo uso para /register (NULL = ya activó o nunca se generó)
+    codigo_registro = db.Column(db.String(20), nullable=True, index=True)
     perfil = db.relationship(
         "Perfil",
         back_populates="usuario",
@@ -23,11 +25,12 @@ class Perfil(db.Model):
     __tablename__ = "perfil"
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(
-        db.String(80),
-        db.ForeignKey("usuario.username", ondelete="CASCADE"),
+    usuario_id = db.Column(
+        db.Integer,
+        db.ForeignKey("usuario.id", ondelete="CASCADE"),
         unique=True,
         nullable=False,
+        index=True,
     )
     nombre_lab = db.Column(db.String(200), default="Laboratorio")
     subtitulo = db.Column(db.String(200), default="Analisis Clinicos")
