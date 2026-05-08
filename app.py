@@ -11,6 +11,7 @@ from werkzeug.utils import secure_filename
 from fpdf import FPDF
 from fpdf.enums import XPos, YPos
 import io
+import glob
 import pandas as pd
 import re
 import secrets
@@ -83,8 +84,13 @@ from services.sync_excel import preview_precios_google_sheet, sync_precios_googl
 from services.supabase_storage import (  # noqa: E402
     supabase_storage_configured,
     upload_profile_image,
+    delete_profile_bucket_assets,
 )
-from services.perfil_assets import resolve_perfil_image, cleanup_temp_paths  # noqa: E402
+from services.perfil_assets import (  # noqa: E402
+    resolve_perfil_image,
+    cleanup_temp_paths,
+    is_http_url,
+)
 
 
 def _migrate_perfil_usuario_id():
@@ -265,6 +271,32 @@ def bad_request_csrf(e):
 
 # Carpeta para logos
 LOGO_FOLDER = 'static/logos'
+
+
+def _cleanup_usuario_local_assets(username, perfil_snapshot=None):
+    """Elimina logo/firma en disco (paths relativos en perfil y convención logo_<user>.*)."""
+    perfil_snapshot = perfil_snapshot or {}
+    for key in ("logo_path", "firma_path"):
+        ref = (perfil_snapshot.get(key) or "").strip()
+        if not ref or ref.startswith("http://") or ref.startswith("https://"):
+            continue
+        path = os.path.join(LOGO_FOLDER, ref)
+        if os.path.isfile(path):
+            try:
+                os.unlink(path)
+                logger.info("Archivo local de perfil eliminado: %s", path)
+            except OSError as e:
+                logger.warning("No se pudo borrar %s: %s", path, e)
+    for pat in (f"logo_{username}.*", f"firma_{username}.*"):
+        for path in glob.glob(os.path.join(LOGO_FOLDER, pat)):
+            try:
+                if os.path.isfile(path):
+                    os.unlink(path)
+                    logger.info("Archivo local de perfil eliminado: %s", path)
+            except OSError as e:
+                logger.warning("No se pudo borrar %s: %s", path, e)
+
+
 # Configuración de Asociación Bioquímica (aparecerá en todos los PDFs)
 ASOCIACION_BIOQUIMICA = {
     'logo_path': 'logo_asociacion_bioquimica.png',
@@ -331,6 +363,9 @@ def save_users(users_dict):
         usernames_nuevos = set(users_dict.keys())
         for u in Usuario.query.all():
             if u.username not in usernames_nuevos:
+                p = Perfil.query.filter_by(usuario_id=u.id).first()
+                if p:
+                    db.session.delete(p)
                 db.session.delete(u)
         for username, data in users_dict.items():
             u = Usuario.query.filter_by(username=username).first()
@@ -449,6 +484,24 @@ def get_lab_profile(username):
     except Exception as e:
         logger.error(f"Error al cargar perfil de {username}: {e}")
     return defaults
+
+
+def resolve_header_logo_url(username):
+    """URL del logo del perfil para el header (HTTPS Storage o archivo en /static/logos)."""
+    if not username:
+        return None
+    try:
+        perfil = get_lab_profile(username)
+        ref = (perfil.get("logo_path") or "").strip()
+        if not ref:
+            return None
+        if is_http_url(ref):
+            return ref
+        return url_for("serve_logo", filename=ref)
+    except Exception as e:
+        logger.warning("resolve_header_logo_url: %s", e)
+        return None
+
 
 def require_login(f):
     """Decorador para proteger rutas que requieren login"""
@@ -804,14 +857,18 @@ def presupuestos():
     precio_particular = get_precio_particular()
     codigos_anexo_list = list(codigos_anexo)
 
-    return render_template('presupuestos.html', 
-                         obras=obras, 
-                         obras_estado=obras_estado, 
-                         estudios=estudios, 
-                         username=session.get('username'),
-                         obras_sin_cobertura_anexo=anexo_config.get('obras_sin_cobertura', []),
-                         codigos_anexo=codigos_anexo_list,
-                         precio_particular=precio_particular)
+    uname = session.get("username")
+    return render_template(
+        "presupuestos.html",
+        obras=obras,
+        obras_estado=obras_estado,
+        estudios=estudios,
+        username=uname,
+        header_logo_url=resolve_header_logo_url(uname),
+        obras_sin_cobertura_anexo=anexo_config.get("obras_sin_cobertura", []),
+        codigos_anexo=codigos_anexo_list,
+        precio_particular=precio_particular,
+    )
 
 def normalizar_precio_argentino(precio_str):
     """
@@ -1324,8 +1381,23 @@ def admin_usuarios():
                 elif username in ('Gaito', '3', 'DanielABNECH'):
                     flash('No puedes eliminar la cuenta de administrador.', 'error')
                 else:
+                    perfil_snapshot = {}
+                    u_del = Usuario.query.filter_by(username=username).first()
+                    if u_del:
+                        p_del = Perfil.query.filter_by(usuario_id=u_del.id).first()
+                        if p_del:
+                            perfil_snapshot = {
+                                "logo_path": p_del.logo_path or "",
+                                "firma_path": p_del.firma_path or "",
+                            }
                     del users[username]
                     if save_users(users):
+                        delete_profile_bucket_assets(
+                            username,
+                            logo_path=perfil_snapshot.get("logo_path", ""),
+                            firma_path=perfil_snapshot.get("firma_path", ""),
+                        )
+                        _cleanup_usuario_local_assets(username, perfil_snapshot)
                         flash(f'Usuario {username} eliminado.', 'success')
                     else:
                         flash('Error al guardar los cambios.', 'error')
@@ -1749,13 +1821,17 @@ def aranceles():
             fecha_actualizacion = estado_data.get('fecha_actualizacion')
     
     modificaciones_programadas = load_modificaciones_programadas()
-    return render_template('admin_estado_obras.html', 
-                         estado_data=estado_data,
-                         obras_list=obras_list,
-                         fecha_actualizacion=fecha_actualizacion,
-                         modificaciones_programadas=modificaciones_programadas,
-                         obras_sin_cobertura_anexo=anexo_config.get('obras_sin_cobertura', []),
-                         current_user=session.get('username'))
+    uname = session.get("username")
+    return render_template(
+        "admin_estado_obras.html",
+        estado_data=estado_data,
+        obras_list=obras_list,
+        fecha_actualizacion=fecha_actualizacion,
+        modificaciones_programadas=modificaciones_programadas,
+        obras_sin_cobertura_anexo=anexo_config.get("obras_sin_cobertura", []),
+        current_user=uname,
+        header_logo_url=resolve_header_logo_url(uname),
+    )
 
 @app.route('/aranceles/historial/<path:nombre>', methods=['GET'])
 @require_login
@@ -1875,9 +1951,13 @@ def load_instructivos_completos():
 @require_login
 def instructivo():
     instructivos = load_instructivos_completos()
-    return render_template('instructivo.html', 
-                         instructivos=instructivos,
-                         username=session.get('username'))
+    uname = session.get("username")
+    return render_template(
+        "instructivo.html",
+        instructivos=instructivos,
+        username=uname,
+        header_logo_url=resolve_header_logo_url(uname),
+    )
 
 # Panel admin: gestión de instructivos por obra social (solo admin). Lista incluye todas las obras.
 @app.route('/admin/instructivos', methods=['GET'])
