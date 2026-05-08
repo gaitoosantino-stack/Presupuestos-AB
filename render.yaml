@@ -10,4 +10,6 @@ services:
     envVars:
       - key: SECRET_KEY
         sync: false  # Necesitás configurarlo manualmente en el dashboard de Render
+      # Logos/firma en Supabase Storage (opcional; si faltan, se guardan en static/logos):
+      # SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_STORAGE_BUCKET (default: laboratorio-assets)
 

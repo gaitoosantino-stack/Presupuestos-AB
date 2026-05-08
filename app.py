@@ -13,6 +13,7 @@ from fpdf.enums import XPos, YPos
 import io
 import pandas as pd
 import re
+import secrets
 
 from extensions import db
 
@@ -72,15 +73,160 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 }
 db.init_app(app)
 
+from sqlalchemy import update  # noqa: E402 — after app config
+
 from models import (  # noqa: E402 — after app config
     Usuario, Perfil, ObraSocial, Estudio,
     ObraSocialHistorial, ModificacionProgramada, Instructivo,
 )
 from services.sync_excel import preview_precios_google_sheet, sync_precios_google_sheet  # noqa: E402
+from services.supabase_storage import (  # noqa: E402
+    supabase_storage_configured,
+    upload_profile_image,
+)
+from services.perfil_assets import resolve_perfil_image, cleanup_temp_paths  # noqa: E402
+
+
+def _migrate_perfil_usuario_id():
+    """
+    Reemplaza perfil.username (FK legado) por perfil.usuario_id -> usuario.id
+    y elimina la columna username de perfil.
+    Idempotente: si ya no hay columna username, no hace nada.
+    """
+    from sqlalchemy import inspect, text
+
+    try:
+        insp = inspect(db.engine)
+        if "perfil" not in insp.get_table_names():
+            return
+        cols = {c["name"] for c in insp.get_columns("perfil")}
+    except Exception as e:
+        logger.debug("inspect perfil: %s", e)
+        return
+
+    if "usuario_id" in cols and "username" not in cols:
+        return
+
+    uri = str(app.config.get("SQLALCHEMY_DATABASE_URI") or "")
+    is_pg = "postgres" in uri.lower()
+
+    try:
+        with db.engine.begin() as conn:
+            if "usuario_id" not in cols:
+                try:
+                    conn.execute(text("ALTER TABLE perfil ADD COLUMN usuario_id INTEGER"))
+                except Exception:
+                    pass
+
+            if "username" in cols:
+                if is_pg:
+                    conn.execute(
+                        text(
+                            "UPDATE perfil AS p SET usuario_id = u.id FROM usuario AS u "
+                            "WHERE p.username = u.username AND p.usuario_id IS NULL"
+                        )
+                    )
+                else:
+                    conn.execute(
+                        text(
+                            "UPDATE perfil SET usuario_id = (SELECT id FROM usuario "
+                            "WHERE usuario.username = perfil.username) "
+                            "WHERE usuario_id IS NULL"
+                        )
+                    )
+                conn.execute(text("DELETE FROM perfil WHERE usuario_id IS NULL"))
+
+                if is_pg:
+                    conn.execute(text("ALTER TABLE perfil ALTER COLUMN usuario_id SET NOT NULL"))
+                    conn.execute(
+                        text("ALTER TABLE perfil DROP CONSTRAINT IF EXISTS perfil_username_fkey")
+                    )
+                    conn.execute(
+                        text("ALTER TABLE perfil DROP CONSTRAINT IF EXISTS perfil_username_key")
+                    )
+                    conn.execute(text("ALTER TABLE perfil DROP COLUMN username"))
+                    try:
+                        conn.execute(
+                            text(
+                                "ALTER TABLE perfil ADD CONSTRAINT perfil_usuario_id_fkey "
+                                "FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE CASCADE"
+                            )
+                        )
+                    except Exception:
+                        logger.debug("FK perfil_usuario_id_fkey ya existente o omitido.")
+                    conn.execute(
+                        text(
+                            "CREATE UNIQUE INDEX IF NOT EXISTS ix_perfil_usuario_id "
+                            "ON perfil (usuario_id)"
+                        )
+                    )
+                else:
+                    try:
+                        conn.execute(text("ALTER TABLE perfil DROP COLUMN username"))
+                    except Exception as ex:
+                        logger.warning(
+                            "SQLite: no se pudo DROP COLUMN username (versión antigua?): %s",
+                            ex,
+                        )
+                    conn.execute(
+                        text(
+                            "CREATE UNIQUE INDEX IF NOT EXISTS ix_perfil_usuario_id "
+                            "ON perfil (usuario_id)"
+                        )
+                    )
+
+        logger.info("Migración perfil: enlazado a usuario.id; columna username eliminada.")
+    except Exception as e:
+        logger.error("Migración perfil usuario_id falló: %s", e, exc_info=True)
+
+
+def _migrate_usuario_codigo_registro():
+    """Añade usuario.codigo_registro si la tabla existe y aún no tiene la columna."""
+    from sqlalchemy import inspect, text
+
+    try:
+        insp = inspect(db.engine)
+        if "usuario" not in insp.get_table_names():
+            return
+        cols = {c["name"] for c in insp.get_columns("usuario")}
+        if "codigo_registro" in cols:
+            return
+        with db.engine.begin() as conn:
+            conn.execute(text("ALTER TABLE usuario ADD COLUMN codigo_registro VARCHAR(20)"))
+        logger.info("Columna usuario.codigo_registro añadida.")
+    except Exception as e:
+        logger.error("Migración codigo_registro falló: %s", e, exc_info=True)
+
+
+def _upgrade_perfil_image_columns_to_text():
+    """Postgres: ampliar logo_path/firma_path a TEXT para URLs de Storage (idempotente si ya es TEXT)."""
+    uri = str(app.config.get("SQLALCHEMY_DATABASE_URI") or "")
+    if "postgres" not in uri.lower():
+        return
+    try:
+        from sqlalchemy import text
+
+        with db.engine.begin() as conn:
+            conn.execute(
+                text(
+                    "ALTER TABLE perfil ALTER COLUMN logo_path TYPE TEXT USING logo_path::text"
+                )
+            )
+            conn.execute(
+                text(
+                    "ALTER TABLE perfil ALTER COLUMN firma_path TYPE TEXT USING firma_path::text"
+                )
+            )
+        logger.info("Columnas perfil logo_path/firma_path verificadas como TEXT.")
+    except Exception as e:
+        logger.debug("ALTER perfil image columns (puede ser ya TEXT o SQLite): %s", e)
 
 
 with app.app_context():
     db.create_all()
+    _migrate_perfil_usuario_id()
+    _migrate_usuario_codigo_registro()
+    _upgrade_perfil_image_columns_to_text()
     logger.info("Tablas DB verificadas/creadas.")
 
 
@@ -93,6 +239,17 @@ def strip_html(text):
 
 
 app.jinja_env.filters['strip_html'] = strip_html
+
+
+@app.template_global()
+def perfil_imagen_src(path_value):
+    """URL para previsualizar logo/firma: Storage (https) o archivo en static/logos."""
+    if not path_value:
+        return ""
+    s = str(path_value).strip()
+    if s.startswith("http://") or s.startswith("https://"):
+        return s
+    return url_for("serve_logo", filename=s)
 
 
 @app.errorhandler(400)
@@ -152,13 +309,14 @@ def _seed_admin_users():
 
 
 def load_users():
-    """Devuelve dict {username: {password, email, habilitado}} desde la DB."""
+    """Devuelve dict {username: {password, email, habilitado, codigo_registro}} desde la DB."""
     try:
         return {
             u.username: {
                 'password': u.password,
                 'email': u.email or '',
                 'habilitado': u.habilitado,
+                'codigo_registro': (u.codigo_registro or ''),
             }
             for u in Usuario.query.all()
         }
@@ -182,6 +340,9 @@ def save_users(users_dict):
             u.password = data.get('password', '')
             u.email = data.get('email', '')
             u.habilitado = bool(data.get('habilitado', True))
+            if 'codigo_registro' in data:
+                cr = data.get('codigo_registro')
+                u.codigo_registro = (cr.strip() if cr else None) or None
         db.session.commit()
         return True
     except Exception as e:
@@ -190,11 +351,27 @@ def save_users(users_dict):
         return False
 
 
+REGISTER_MAX_ATTEMPTS = 15
+
+
+def _nuevo_codigo_registro():
+    """Genera un código de 6 dígitos único en la tabla usuario."""
+    for _ in range(80):
+        c = f"{secrets.randbelow(10**6):06d}"
+        if not Usuario.query.filter_by(codigo_registro=c).first():
+            return c
+    return f"{secrets.randbelow(10**6):06d}"
+
+
 def load_perfiles():
     """Devuelve dict {username: {...campos perfil}} desde la DB."""
     try:
-        return {
-            p.username: {
+        out = {}
+        for p in Perfil.query.all():
+            u = db.session.get(Usuario, p.usuario_id)
+            if not u:
+                continue
+            out[u.username] = {
                 'nombre_lab': p.nombre_lab,
                 'subtitulo': p.subtitulo,
                 'profesionales': p.profesionales,
@@ -206,22 +383,27 @@ def load_perfiles():
                 'firma_texto': p.firma_texto,
                 'firma_path': p.firma_path,
             }
-            for p in Perfil.query.all()
-        }
+        return out
     except Exception as e:
         logger.error(f"Error al cargar perfiles: {e}")
         return {}
 
 
 def save_perfiles(perfiles_dict):
-    """Persiste perfiles en la DB (upsert por username)."""
+    """Persiste perfiles en la DB (upsert por username del usuario dueño)."""
     try:
         for username, data in perfiles_dict.items():
-            p = Perfil.query.filter_by(username=username).first()
+            u = Usuario.query.filter_by(username=username).first()
+            if not u:
+                logger.warning("save_perfiles: usuario inexistente %s", username)
+                continue
+            p = Perfil.query.filter_by(usuario_id=u.id).first()
             if not p:
-                p = Perfil(username=username)
+                p = Perfil(usuario_id=u.id)
                 db.session.add(p)
             for k, v in data.items():
+                if k == 'username':
+                    continue
                 if hasattr(p, k):
                     setattr(p, k, v)
         db.session.commit()
@@ -234,8 +416,23 @@ def save_perfiles(perfiles_dict):
 
 def get_lab_profile(username):
     """Devuelve perfil del lab para un usuario (fallback a valores por defecto)."""
+    defaults = {
+        'nombre_lab': 'Laboratorio',
+        'subtitulo': 'Análisis Clínicos',
+        'profesionales': 'Bioquímico: - MP: -',
+        'direccion': '',
+        'ciudad': 'Trelew',
+        'telefono': '',
+        'logo_path': '',
+        'info_bancaria': '',
+        'firma_texto': '',
+        'firma_path': '',
+    }
     try:
-        p = Perfil.query.filter_by(username=username).first()
+        u = Usuario.query.filter_by(username=username).first()
+        if not u:
+            return defaults
+        p = Perfil.query.filter_by(usuario_id=u.id).first()
         if p:
             return {
                 'nombre_lab': p.nombre_lab,
@@ -251,18 +448,7 @@ def get_lab_profile(username):
             }
     except Exception as e:
         logger.error(f"Error al cargar perfil de {username}: {e}")
-    return {
-        'nombre_lab': 'Laboratorio',
-        'subtitulo': 'Análisis Clínicos',
-        'profesionales': 'Bioquímico: - MP: -',
-        'direccion': '',
-        'ciudad': 'Trelew',
-        'telefono': '',
-        'logo_path': '',
-        'info_bancaria': '',
-        'firma_texto': '',
-        'firma_path': '',
-    }
+    return defaults
 
 def require_login(f):
     """Decorador para proteger rutas que requieren login"""
@@ -369,6 +555,162 @@ def login():
         return redirect(url_for('login'))
     
     return render_template('login.html')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """Activación en dos pasos: código de 6 dígitos → usuario y contraseña definitivos."""
+    if session.get('logged_in'):
+        flash('Ya iniciaste sesión.', 'info')
+        return redirect(url_for('presupuestos'))
+
+    if request.method == 'GET' and request.args.get('reiniciar'):
+        session.pop('register_user_id', None)
+        session.pop('register_codigo_ok', None)
+        flash('Volvé a ingresar el código de activación.', 'info')
+        return redirect(url_for('register'))
+
+    def _render(
+        step_cuenta,
+        *,
+        prefill_codigo='',
+        prefill_username='',
+        prefill_password='',
+        prefill_password2='',
+    ):
+        return render_template(
+            'register.html',
+            step_cuenta=step_cuenta,
+            prefill_codigo=prefill_codigo,
+            prefill_username=prefill_username,
+            prefill_password=prefill_password,
+            prefill_password2=prefill_password2,
+        )
+
+    if request.method == 'POST':
+        step = request.form.get('step', 'codigo')
+
+        if step == 'codigo':
+            fails = session.get('register_fails', 0)
+            if fails >= REGISTER_MAX_ATTEMPTS:
+                flash('Demasiados intentos. Probá más tarde.', 'error')
+                return redirect(url_for('register'))
+
+            raw = request.form.get('codigo', '').strip()
+            digits = re.sub(r'\D', '', raw)
+            if len(digits) != 6:
+                session['register_fails'] = fails + 1
+                flash('El código debe tener 6 dígitos.', 'error')
+                return _render(False, prefill_codigo=raw)
+
+            u = Usuario.query.filter_by(codigo_registro=digits).first()
+            if not u:
+                session['register_fails'] = fails + 1
+                flash('Código incorrecto.', 'error')
+                return _render(False, prefill_codigo=raw)
+            if not u.habilitado:
+                flash('Esta cuenta no está habilitada. Contactá al administrador.', 'error')
+                return _render(False, prefill_codigo=raw)
+
+            session['register_user_id'] = u.id
+            session['register_codigo_ok'] = digits
+            session.pop('register_fails', None)
+            flash('Código correcto. Elegí tu usuario y contraseña.', 'success')
+            return redirect(url_for('register'))
+
+        if step == 'cuenta':
+            uid = session.get('register_user_id')
+            code_ok = session.get('register_codigo_ok')
+            if not uid or not code_ok:
+                flash('Empezá de nuevo ingresando el código.', 'error')
+                return redirect(url_for('register'))
+
+            u_row = db.session.get(Usuario, uid)
+            if not u_row or u_row.codigo_registro != code_ok:
+                session.pop('register_user_id', None)
+                session.pop('register_codigo_ok', None)
+                flash('La sesión de registro expiró o el código ya fue usado. Pedí uno nuevo.', 'error')
+                return redirect(url_for('register'))
+
+            new_user = request.form.get('username', '').strip()
+            pw1 = request.form.get('password', '')
+            pw2 = request.form.get('password2', '')
+
+            def _cuenta_again(msg):
+                flash(msg, 'error')
+                return _render(
+                    True,
+                    prefill_username=new_user,
+                    prefill_password=pw1,
+                    prefill_password2=pw2,
+                )
+
+            if len(new_user) < 2 or len(new_user) > 80:
+                return _cuenta_again('El usuario debe tener entre 2 y 80 caracteres.')
+
+            if not re.match(r'^[\w.-]+$', new_user, re.UNICODE):
+                return _cuenta_again(
+                    'Usuario: solo letras, números, guiones bajos, puntos o guiones (sin espacios).'
+                )
+
+            existing = Usuario.query.filter_by(username=new_user).first()
+            if existing and existing.id != uid:
+                return _cuenta_again('Ese nombre de usuario ya existe.')
+
+            if len(pw1) < 6:
+                return _cuenta_again('La contraseña debe tener al menos 6 caracteres.')
+
+            if pw1 != pw2:
+                return _cuenta_again('Las contraseñas no coinciden.')
+
+            old_username = u_row.username
+            try:
+                stmt = (
+                    update(Usuario)
+                    .where(Usuario.id == uid)
+                    .values(
+                        username=new_user,
+                        password=generate_password_hash(pw1),
+                        codigo_registro=None,
+                    )
+                )
+                db.session.execute(stmt)
+                db.session.commit()
+                logger.info(
+                    "Registro completado (UPDATE id=%s): %s -> %s",
+                    uid,
+                    old_username,
+                    new_user,
+                )
+            except Exception as e:
+                db.session.rollback()
+                logger.error("Error al completar registro: %s", e)
+                flash('Error al guardar. Probá de nuevo.', 'error')
+                return _render(
+                    True,
+                    prefill_username=new_user,
+                    prefill_password=pw1,
+                    prefill_password2=pw2,
+                )
+
+            session.pop('register_user_id', None)
+            session.pop('register_codigo_ok', None)
+            session['logged_in'] = True
+            session['username'] = new_user
+            session.permanent = True
+            flash(f'¡Listo, {new_user}! Ya podés usar la calculadora.', 'success')
+            return redirect(url_for('presupuestos'))
+
+    show_cuenta = bool(session.get('register_user_id') and session.get('register_codigo_ok'))
+    if show_cuenta:
+        u_chk = db.session.get(Usuario, session['register_user_id'])
+        if not u_chk or u_chk.codigo_registro != session.get('register_codigo_ok'):
+            session.pop('register_user_id', None)
+            session.pop('register_codigo_ok', None)
+            show_cuenta = False
+
+    return _render(show_cuenta)
+
 
 # Ruta para logout
 @app.route('/logout')
@@ -934,15 +1276,21 @@ def admin_usuarios():
                 flash('El usuario ya existe.', 'error')
                 return redirect(url_for('admin_usuarios'))
             
-            # Agregar nuevo usuario
+            codigo = _nuevo_codigo_registro()
             users[username] = {
                 'password': generate_password_hash(password),
-                'habilitado': True
+                'habilitado': True,
+                'email': '',
+                'codigo_registro': codigo,
             }
-            
+
             if save_users(users):
-                flash(f'Usuario {username} agregado y habilitado correctamente.', 'success')
-                logger.info(f"Usuario {username} agregado por {session.get('username')}")
+                flash(
+                    f'Usuario {username} agregado. Código de activación (un solo uso): {codigo}. '
+                    f'Compartilo para que active en /register.',
+                    'success',
+                )
+                logger.info(f"Usuario {username} agregado por {session.get('username')} (código registro generado)")
             else:
                 flash('Error al guardar el usuario.', 'error')
         
@@ -1083,37 +1431,61 @@ def admin_perfil(username):
         perfil['info_bancaria'] = request.form.get('info_bancaria', '').strip()
         perfil['firma_texto'] = request.form.get('firma_texto', '').strip()
         
-        # Manejar subida de logo
+        # Manejar subida de logo (Supabase Storage si está configurado; si no, disco local)
         if 'logo' in request.files:
             file = request.files['logo']
             if file and file.filename:
-                # Validar extensión
                 allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
                 filename = secure_filename(file.filename)
                 if '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions:
-                    # Guardar con nombre único basado en username
                     extension = filename.rsplit('.', 1)[1].lower()
-                    logo_filename = f'logo_{username}.{extension}'
-                    logo_path = os.path.join(LOGO_FOLDER, logo_filename)
-                    file.save(logo_path)
-                    perfil['logo_path'] = logo_filename
-                    logger.info(f"Logo guardado para usuario {username}: {logo_filename}")
-        
+                    raw = file.read()
+                    if raw:
+                        if supabase_storage_configured():
+                            url, err = upload_profile_image(
+                                raw, username=username, kind='logo', extension=extension
+                            )
+                            if url:
+                                perfil['logo_path'] = url
+                                logger.info("Logo subido a Storage para %s", username)
+                            else:
+                                flash(f'No se pudo subir el logo al bucket: {err or "error desconocido"}', 'error')
+                        else:
+                            os.makedirs(LOGO_FOLDER, exist_ok=True)
+                            logo_filename = f'logo_{username}.{extension}'
+                            logo_path = os.path.join(LOGO_FOLDER, logo_filename)
+                            with open(logo_path, 'wb') as out:
+                                out.write(raw)
+                            perfil['logo_path'] = logo_filename
+                            logger.info(f"Logo guardado en disco para usuario {username}: {logo_filename}")
+
         # Manejar subida de imagen de firma
         if 'firma_imagen' in request.files:
             file = request.files['firma_imagen']
             if file and file.filename:
-                # Validar extensión
                 allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
                 filename = secure_filename(file.filename)
                 if '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions:
-                    # Guardar con nombre único basado en username
                     extension = filename.rsplit('.', 1)[1].lower()
-                    firma_filename = f'firma_{username}.{extension}'
-                    firma_path = os.path.join(LOGO_FOLDER, firma_filename)
-                    file.save(firma_path)
-                    perfil['firma_path'] = firma_filename
-                    logger.info(f"Imagen de firma guardada para usuario {username}: {firma_filename}")
+                    raw = file.read()
+                    if raw:
+                        if supabase_storage_configured():
+                            url, err = upload_profile_image(
+                                raw, username=username, kind='firma', extension=extension
+                            )
+                            if url:
+                                perfil['firma_path'] = url
+                                logger.info("Firma subida a Storage para %s", username)
+                            else:
+                                flash(f'No se pudo subir la firma al bucket: {err or "error desconocido"}', 'error')
+                        else:
+                            os.makedirs(LOGO_FOLDER, exist_ok=True)
+                            firma_filename = f'firma_{username}.{extension}'
+                            firma_path = os.path.join(LOGO_FOLDER, firma_filename)
+                            with open(firma_path, 'wb') as out:
+                                out.write(raw)
+                            perfil['firma_path'] = firma_filename
+                            logger.info(f"Imagen de firma guardada en disco para usuario {username}: {firma_filename}")
         
         # Guardar perfil
         perfiles[username] = perfil
@@ -1553,6 +1925,7 @@ def admin_instructivos_actualizar():
 @app.route('/descargar_pdf', methods=['POST'])
 @require_login
 def descargar_pdf():
+    pdf_temp_files = []
     try:
         username = session.get('username')
         if not username:
@@ -1584,7 +1957,15 @@ def descargar_pdf():
         
         # Obtener perfil del laboratorio
         perfil = get_lab_profile(username)
-        
+
+        # Rutas locales o temporales (URLs de Storage se bajan a tmp y se borran al final)
+        resolved_logo, _tl = resolve_perfil_image(perfil.get('logo_path'), LOGO_FOLDER)
+        if _tl:
+            pdf_temp_files.append(_tl)
+        resolved_firma, _tf = resolve_perfil_image(perfil.get('firma_path'), LOGO_FOLDER)
+        if _tf:
+            pdf_temp_files.append(_tf)
+
         # Función helper para texto con encoding seguro
         def safe_text(text):
             """Convierte texto a formato seguro para PDF (maneja tildes y caracteres especiales)"""
@@ -1631,11 +2012,12 @@ def descargar_pdf():
         
         # Clase personalizada de PDF con header repetido
         class PDFConHeader(FPDF):
-            def __init__(self, perfil, fecha_presupuesto, safe_text_func):
+            def __init__(self, perfil, fecha_presupuesto, safe_text_func, resolved_logo_path=None):
                 super().__init__()
                 self.perfil = perfil
                 self.fecha_presupuesto = fecha_presupuesto
                 self.safe_text = safe_text_func
+                self._resolved_logo_path = resolved_logo_path
                 self.set_auto_page_break(auto=True, margin=15)
                 self._header_rendering = False  # Bandera para evitar recursión
                 self.y_linea_separadora = None  # Guardar posición Y de la línea separadora
@@ -1646,14 +2028,13 @@ def descargar_pdf():
                 self._header_rendering = True
                 
                 try:
-                    # A. LOGO (Fijo a la izquierda)
-                    if self.perfil.get('logo_path'):
-                        logo_full_path = os.path.join(LOGO_FOLDER, self.perfil['logo_path'])
-                        if os.path.exists(logo_full_path):
-                            try:
-                                self.image(logo_full_path, x=10, y=10, w=25)
-                            except Exception as e:
-                                logger.warning(f"No se pudo insertar logo del laboratorio: {e}")
+                    # A. LOGO (Fijo a la izquierda): ruta local, legado static/logos, o tmp desde URL
+                    logo_path_use = self._resolved_logo_path
+                    if logo_path_use and os.path.isfile(logo_path_use):
+                        try:
+                            self.image(logo_path_use, x=10, y=10, w=25)
+                        except Exception as e:
+                            logger.warning(f"No se pudo insertar logo del laboratorio: {e}")
                     
                     # B. TEXTO DEL LABORATORIO (Centrado y Espaciado)
                     # Título Principal
@@ -1755,7 +2136,7 @@ def descargar_pdf():
             
         
         # Crear PDF con header automático
-        pdf = PDFConHeader(perfil, fecha_presupuesto, safe_text)
+        pdf = PDFConHeader(perfil, fecha_presupuesto, safe_text, resolved_logo_path=resolved_logo)
         pdf.add_page()  # El header se dibujará automáticamente
         
         # Fecha - debajo de la línea separadora (solo en la primera página, no parte del header)
@@ -1927,10 +2308,12 @@ def descargar_pdf():
             pdf.set_xy(110, y_inicio)
             pdf.set_font('Helvetica', '', 9)
             
-            # Si hay imagen de firma, mostrarla primero
+            # Si hay imagen de firma, mostrarla primero (Storage URL -> tmp, o archivo local legado)
             if firma_path:
-                firma_full_path = os.path.join(LOGO_FOLDER, firma_path)
-                if os.path.exists(firma_full_path):
+                firma_full_path = (
+                    resolved_firma if (resolved_firma and os.path.isfile(resolved_firma)) else None
+                )
+                if firma_full_path:
                     try:
                         # Tamaño para la imagen de firma
                         firma_width_mm = 40
@@ -2059,11 +2442,13 @@ def descargar_pdf():
             as_attachment=True,
             download_name=nombre_archivo
         )
-        
+
     except Exception as e:
         logger.error(f"Error al generar PDF: {e}", exc_info=True)
         flash(f'Error al generar el PDF: {str(e)}. Por favor, intenta nuevamente.', 'error')
         return redirect(url_for('presupuestos'))
+    finally:
+        cleanup_temp_paths(pdf_temp_files)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

@@ -48,7 +48,7 @@
 
             <div class="admin-card">
                 <h2>Agregar nuevo usuario</h2>
-                <p class="admin-card-desc">Crea un nuevo usuario para acceder al sistema.</p>
+                <p class="admin-card-desc">Creá una cuenta plantilla: se genera un código de 6 dígitos de un solo uso. La persona activa en “Activar cuenta con código”, elige usuario definitivo y contraseña. La contraseña que cargás aquí es solo temporal hasta que active.</p>
                 <form method="POST" action="{{ url_for('admin_usuarios') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <input type="hidden" name="action" value="agregar"/>
@@ -73,6 +73,7 @@
                         <thead>
                             <tr>
                                 <th>Usuario</th>
+                                <th>Código activación</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
@@ -81,6 +82,13 @@
                             {% for username, user_data in users.items() %}
                             <tr>
                                 <td><strong>{{ username }}</strong>{% if username == current_user %} (Tú){% endif %}</td>
+                                <td>
+                                    {% if user_data.get('codigo_registro') %}
+                                        <code style="font-size: 0.95em;">{{ user_data.get('codigo_registro') }}</code>
+                                    {% else %}
+                                        <span class="admin-muted">—</span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     {% if user_data.get('habilitado', False) %}
                                         <span class="admin-badge admin-badge-ok">Habilitado</span>
