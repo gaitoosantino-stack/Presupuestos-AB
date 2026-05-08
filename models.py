@@ -35,10 +35,10 @@ class Perfil(db.Model):
     direccion = db.Column(db.String(200), default="")
     ciudad = db.Column(db.String(100), default="Trelew")
     telefono = db.Column(db.String(100), default="")
-    logo_path = db.Column(db.String(200), default="")
+    logo_path = db.Column(db.Text, default="")  # URL pública (Storage) o nombre de archivo local legado
     info_bancaria = db.Column(db.Text, default="")
     firma_texto = db.Column(db.String(200), default="")
-    firma_path = db.Column(db.String(200), default="")
+    firma_path = db.Column(db.Text, default="")  # URL pública (Storage) o nombre local legado
     usuario = db.relationship("Usuario", back_populates="perfil")
 
 

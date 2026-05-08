@@ -90,7 +90,7 @@
                                 {% if perfil.get('logo_path') %}
                                 <div class="perfil-preview-wrap">
                                     <p>Actual</p>
-                                    <img src="{{ url_for('static', filename='logos/' + perfil.get('logo_path', '')) }}" alt="Logo actual">
+                                    <img src="{{ perfil_imagen_src(perfil.get('logo_path')) }}" alt="Logo actual">
                                 </div>
                                 {% endif %}
                             </div>
@@ -124,7 +124,7 @@
                                 {% if perfil.get('firma_path') %}
                                 <div class="perfil-preview-wrap">
                                     <p>Actual</p>
-                                    <img src="{{ url_for('static', filename='logos/' + perfil.get('firma_path', '')) }}" alt="Firma actual">
+                                    <img src="{{ perfil_imagen_src(perfil.get('firma_path')) }}" alt="Firma actual">
                                 </div>
                                 {% endif %}
                             </div>

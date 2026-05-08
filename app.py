@@ -77,10 +77,40 @@ from models import (  # noqa: E402 — after app config
     ObraSocialHistorial, ModificacionProgramada, Instructivo,
 )
 from services.sync_excel import preview_precios_google_sheet, sync_precios_google_sheet  # noqa: E402
+from services.supabase_storage import (  # noqa: E402
+    supabase_storage_configured,
+    upload_profile_image,
+)
+from services.perfil_assets import resolve_perfil_image, cleanup_temp_paths  # noqa: E402
+
+
+def _upgrade_perfil_image_columns_to_text():
+    """Postgres: ampliar logo_path/firma_path a TEXT para URLs de Storage (idempotente si ya es TEXT)."""
+    uri = str(app.config.get("SQLALCHEMY_DATABASE_URI") or "")
+    if "postgres" not in uri.lower():
+        return
+    try:
+        from sqlalchemy import text
+
+        with db.engine.begin() as conn:
+            conn.execute(
+                text(
+                    "ALTER TABLE perfil ALTER COLUMN logo_path TYPE TEXT USING logo_path::text"
+                )
+            )
+            conn.execute(
+                text(
+                    "ALTER TABLE perfil ALTER COLUMN firma_path TYPE TEXT USING firma_path::text"
+                )
+            )
+        logger.info("Columnas perfil logo_path/firma_path verificadas como TEXT.")
+    except Exception as e:
+        logger.debug("ALTER perfil image columns (puede ser ya TEXT o SQLite): %s", e)
 
 
 with app.app_context():
     db.create_all()
+    _upgrade_perfil_image_columns_to_text()
     logger.info("Tablas DB verificadas/creadas.")
 
 
@@ -93,6 +123,17 @@ def strip_html(text):
 
 
 app.jinja_env.filters['strip_html'] = strip_html
+
+
+@app.template_global()
+def perfil_imagen_src(path_value):
+    """URL para previsualizar logo/firma: Storage (https) o archivo en static/logos."""
+    if not path_value:
+        return ""
+    s = str(path_value).strip()
+    if s.startswith("http://") or s.startswith("https://"):
+        return s
+    return url_for("serve_logo", filename=s)
 
 
 @app.errorhandler(400)
@@ -1083,37 +1124,61 @@ def admin_perfil(username):
         perfil['info_bancaria'] = request.form.get('info_bancaria', '').strip()
         perfil['firma_texto'] = request.form.get('firma_texto', '').strip()
         
-        # Manejar subida de logo
+        # Manejar subida de logo (Supabase Storage si está configurado; si no, disco local)
         if 'logo' in request.files:
             file = request.files['logo']
             if file and file.filename:
-                # Validar extensión
                 allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
                 filename = secure_filename(file.filename)
                 if '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions:
-                    # Guardar con nombre único basado en username
                     extension = filename.rsplit('.', 1)[1].lower()
-                    logo_filename = f'logo_{username}.{extension}'
-                    logo_path = os.path.join(LOGO_FOLDER, logo_filename)
-                    file.save(logo_path)
-                    perfil['logo_path'] = logo_filename
-                    logger.info(f"Logo guardado para usuario {username}: {logo_filename}")
-        
+                    raw = file.read()
+                    if raw:
+                        if supabase_storage_configured():
+                            url, err = upload_profile_image(
+                                raw, username=username, kind='logo', extension=extension
+                            )
+                            if url:
+                                perfil['logo_path'] = url
+                                logger.info("Logo subido a Storage para %s", username)
+                            else:
+                                flash(f'No se pudo subir el logo al bucket: {err or "error desconocido"}', 'error')
+                        else:
+                            os.makedirs(LOGO_FOLDER, exist_ok=True)
+                            logo_filename = f'logo_{username}.{extension}'
+                            logo_path = os.path.join(LOGO_FOLDER, logo_filename)
+                            with open(logo_path, 'wb') as out:
+                                out.write(raw)
+                            perfil['logo_path'] = logo_filename
+                            logger.info(f"Logo guardado en disco para usuario {username}: {logo_filename}")
+
         # Manejar subida de imagen de firma
         if 'firma_imagen' in request.files:
             file = request.files['firma_imagen']
             if file and file.filename:
-                # Validar extensión
                 allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
                 filename = secure_filename(file.filename)
                 if '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions:
-                    # Guardar con nombre único basado en username
                     extension = filename.rsplit('.', 1)[1].lower()
-                    firma_filename = f'firma_{username}.{extension}'
-                    firma_path = os.path.join(LOGO_FOLDER, firma_filename)
-                    file.save(firma_path)
-                    perfil['firma_path'] = firma_filename
-                    logger.info(f"Imagen de firma guardada para usuario {username}: {firma_filename}")
+                    raw = file.read()
+                    if raw:
+                        if supabase_storage_configured():
+                            url, err = upload_profile_image(
+                                raw, username=username, kind='firma', extension=extension
+                            )
+                            if url:
+                                perfil['firma_path'] = url
+                                logger.info("Firma subida a Storage para %s", username)
+                            else:
+                                flash(f'No se pudo subir la firma al bucket: {err or "error desconocido"}', 'error')
+                        else:
+                            os.makedirs(LOGO_FOLDER, exist_ok=True)
+                            firma_filename = f'firma_{username}.{extension}'
+                            firma_path = os.path.join(LOGO_FOLDER, firma_filename)
+                            with open(firma_path, 'wb') as out:
+                                out.write(raw)
+                            perfil['firma_path'] = firma_filename
+                            logger.info(f"Imagen de firma guardada en disco para usuario {username}: {firma_filename}")
         
         # Guardar perfil
         perfiles[username] = perfil
@@ -1553,6 +1618,7 @@ def admin_instructivos_actualizar():
 @app.route('/descargar_pdf', methods=['POST'])
 @require_login
 def descargar_pdf():
+    pdf_temp_files = []
     try:
         username = session.get('username')
         if not username:
@@ -1584,7 +1650,15 @@ def descargar_pdf():
         
         # Obtener perfil del laboratorio
         perfil = get_lab_profile(username)
-        
+
+        # Rutas locales o temporales (URLs de Storage se bajan a tmp y se borran al final)
+        resolved_logo, _tl = resolve_perfil_image(perfil.get('logo_path'), LOGO_FOLDER)
+        if _tl:
+            pdf_temp_files.append(_tl)
+        resolved_firma, _tf = resolve_perfil_image(perfil.get('firma_path'), LOGO_FOLDER)
+        if _tf:
+            pdf_temp_files.append(_tf)
+
         # Función helper para texto con encoding seguro
         def safe_text(text):
             """Convierte texto a formato seguro para PDF (maneja tildes y caracteres especiales)"""
@@ -1631,11 +1705,12 @@ def descargar_pdf():
         
         # Clase personalizada de PDF con header repetido
         class PDFConHeader(FPDF):
-            def __init__(self, perfil, fecha_presupuesto, safe_text_func):
+            def __init__(self, perfil, fecha_presupuesto, safe_text_func, resolved_logo_path=None):
                 super().__init__()
                 self.perfil = perfil
                 self.fecha_presupuesto = fecha_presupuesto
                 self.safe_text = safe_text_func
+                self._resolved_logo_path = resolved_logo_path
                 self.set_auto_page_break(auto=True, margin=15)
                 self._header_rendering = False  # Bandera para evitar recursión
                 self.y_linea_separadora = None  # Guardar posición Y de la línea separadora
@@ -1646,14 +1721,13 @@ def descargar_pdf():
                 self._header_rendering = True
                 
                 try:
-                    # A. LOGO (Fijo a la izquierda)
-                    if self.perfil.get('logo_path'):
-                        logo_full_path = os.path.join(LOGO_FOLDER, self.perfil['logo_path'])
-                        if os.path.exists(logo_full_path):
-                            try:
-                                self.image(logo_full_path, x=10, y=10, w=25)
-                            except Exception as e:
-                                logger.warning(f"No se pudo insertar logo del laboratorio: {e}")
+                    # A. LOGO (Fijo a la izquierda): ruta local, legado static/logos, o tmp desde URL
+                    logo_path_use = self._resolved_logo_path
+                    if logo_path_use and os.path.isfile(logo_path_use):
+                        try:
+                            self.image(logo_path_use, x=10, y=10, w=25)
+                        except Exception as e:
+                            logger.warning(f"No se pudo insertar logo del laboratorio: {e}")
                     
                     # B. TEXTO DEL LABORATORIO (Centrado y Espaciado)
                     # Título Principal
@@ -1755,7 +1829,7 @@ def descargar_pdf():
             
         
         # Crear PDF con header automático
-        pdf = PDFConHeader(perfil, fecha_presupuesto, safe_text)
+        pdf = PDFConHeader(perfil, fecha_presupuesto, safe_text, resolved_logo_path=resolved_logo)
         pdf.add_page()  # El header se dibujará automáticamente
         
         # Fecha - debajo de la línea separadora (solo en la primera página, no parte del header)
@@ -1927,10 +2001,12 @@ def descargar_pdf():
             pdf.set_xy(110, y_inicio)
             pdf.set_font('Helvetica', '', 9)
             
-            # Si hay imagen de firma, mostrarla primero
+            # Si hay imagen de firma, mostrarla primero (Storage URL -> tmp, o archivo local legado)
             if firma_path:
-                firma_full_path = os.path.join(LOGO_FOLDER, firma_path)
-                if os.path.exists(firma_full_path):
+                firma_full_path = (
+                    resolved_firma if (resolved_firma and os.path.isfile(resolved_firma)) else None
+                )
+                if firma_full_path:
                     try:
                         # Tamaño para la imagen de firma
                         firma_width_mm = 40
@@ -2059,11 +2135,13 @@ def descargar_pdf():
             as_attachment=True,
             download_name=nombre_archivo
         )
-        
+
     except Exception as e:
         logger.error(f"Error al generar PDF: {e}", exc_info=True)
         flash(f'Error al generar el PDF: {str(e)}. Por favor, intenta nuevamente.', 'error')
         return redirect(url_for('presupuestos'))
+    finally:
+        cleanup_temp_paths(pdf_temp_files)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
