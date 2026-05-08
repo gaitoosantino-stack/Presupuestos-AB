@@ -13,19 +13,28 @@
             font-family: 'Segoe UI', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
             color: #2c3e50;
             padding-top: 0;
+            font-size: 17px;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body.presupuestos-page > section:first-of-type {
+            flex: 1 1 auto;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1180px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 clamp(16px, 3vw, 28px);
         }
 
         h1 {
             text-align: center;
             color: #1a365d;
-            font-size: 2.2em;
-            margin-bottom: 8px;
+            font-size: clamp(1.85rem, 4vw, 2.55rem);
+            margin-bottom: 10px;
             font-weight: 500;
             letter-spacing: -0.5px;
         }
@@ -33,15 +42,15 @@
         p {
             text-align: center;
             color: #64748b;
-            font-size: 1em;
+            font-size: 1.08em;
             margin-bottom: 35px;
-            line-height: 1.6;
+            line-height: 1.65;
         }
 
         #presupuesto-form {
             background: white;
-            padding: 45px;
-            border-radius: 6px;
+            padding: clamp(36px, 4vw, 52px);
+            border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             margin-bottom: 30px;
             border: 1px solid #e2e8f0;
@@ -53,19 +62,19 @@
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: 500;
             color: #1e293b;
-            font-size: 0.95em;
+            font-size: 1.05em;
             letter-spacing: 0.2px;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 14px 18px;
             border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            font-size: 15px;
+            border-radius: 6px;
+            font-size: 17px;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
             background: #ffffff;
             color: #1e293b;
@@ -87,10 +96,10 @@
             background: #2563eb;
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 4px;
+            padding: 14px 24px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 15px;
+            font-size: 17px;
             font-weight: 500;
             transition: background-color 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -114,8 +123,8 @@
 
         #estudios-agregados h3 {
             color: #1e293b;
-            font-size: 1.35em;
-            margin-bottom: 16px;
+            font-size: 1.5em;
+            margin-bottom: 18px;
             font-weight: 500;
             display: flex;
             justify-content: space-between;
@@ -177,7 +186,7 @@
         
         .estudio-codigo-nombre strong {
             color: #1e293b;
-            font-size: 0.95em;
+            font-size: 1.02em;
         }
         
         .estudio-detalles {
@@ -292,7 +301,7 @@
 
         #total-container h3 {
             color: #1e293b;
-            font-size: 1.5em;
+            font-size: clamp(1.45rem, 3vw, 1.85rem);
             margin-bottom: 8px;
             font-weight: 500;
             letter-spacing: -0.3px;
@@ -433,12 +442,12 @@
             background: transparent;
             color: #64748b;
             border: 1px solid #cbd5e1;
-            padding: 4px 10px;
-            border-radius: 4px;
+            padding: 8px 14px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 0.75em;
+            font-size: 0.92em;
             font-family: 'Segoe UI', sans-serif;
-            font-weight: 400;
+            font-weight: 500;
             transition: all 0.2s ease;
             margin-left: 10px;
             line-height: 1.4;
@@ -785,7 +794,15 @@
     <!-- Header unificado -->
     <header class="app-header">
         <div class="app-header-inner">
-            <div class="app-header-user"><strong>Usuario:</strong> {{ username }}</div>
+            <div class="app-header-brand">
+                {% if header_logo_url %}
+                <div class="app-header-logo-wrap">
+                    <img src="{{ header_logo_url }}" alt="Logo del laboratorio" class="app-header-logo" decoding="async" title="{{ username }}">
+                </div>
+                {% else %}
+                <span class="app-header-fallback" title="{{ username }}">{{ username }}</span>
+                {% endif %}
+            </div>
             <nav class="app-header-nav">
                 <a href="{{ url_for('presupuestos') }}" class="calc nav-active">Calculadora</a>
                 <a href="{{ url_for('aranceles') }}" class="aranceles">Aranceles</a>
@@ -799,7 +816,7 @@
     </header>
 
     <!-- Contenido Principal -->
-    <section style="padding: 28px 20px 40px; min-height: calc(100vh - 80px); background-color: #f5f7fa;">
+    <section style="padding: 28px 20px 40px; background-color: #f5f7fa;">
         <div class="container">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
@@ -859,7 +876,7 @@
 
                 <!-- Toggle para estudios manuales -->
                 <div class="form-group" style="margin-top: 25px;">
-                    <button type="button" id="toggle-manual" class="btn-secondary" style="width: auto; padding: 10px 18px; background: white; color: #475569; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease; margin-top: 10px;">Agregar Estudio Manual</button>
+                    <button type="button" id="toggle-manual" class="btn-secondary" style="width: auto; padding: 12px 20px; background: white; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 500; transition: all 0.2s ease; margin-top: 10px;">Agregar Estudio Manual</button>
                 </div>
 
                 <!-- Sección para estudios manuales (oculta por defecto) -->
@@ -876,7 +893,7 @@
 
                     <div style="display: flex; gap: 12px; align-items: center;">
                         <button type="button" id="agregar-estudio-manual" class="btn-primary" style="width: auto; flex: 1;">Agregar Estudio</button>
-                        <button type="button" id="cancelar-manual" class="btn-secondary" style="width: auto; padding: 10px 18px; background: white; color: #64748b; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease;">Cancelar</button>
+                        <button type="button" id="cancelar-manual" class="btn-secondary" style="width: auto; padding: 12px 20px; background: white; color: #64748b; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 500; transition: all 0.2s ease;">Cancelar</button>
                     </div>
                 </div>
 
@@ -900,7 +917,7 @@
                 </div>
 
                 <div style="margin-top: 30px; text-align: center;">
-                    <button type="button" id="descargar-pdf" class="btn-primary" style="width: auto; padding: 12px 32px; font-size: 15px;">Descargar PDF</button>
+                    <button type="button" id="descargar-pdf" class="btn-primary" style="width: auto; padding: 14px 36px; font-size: 17px;">Descargar PDF</button>
                 </div>
             </form>
         </div>
