@@ -85,15 +85,76 @@ def _estado_desde_vigente(value):
     return "vigente"
 
 
-def _load_df(url_origen):
-    url = convert_onedrive_url(url_origen)
-    try:
-        return pd.read_excel(url, engine="openpyxl", header=None)
-    except Exception:
-        content = download_file_with_requests(url)
-        if content:
-            return pd.read_excel(io.BytesIO(content), engine="openpyxl", header=None)
-        raise
+def _candidate_urls_for_excel(url_origen):
+    """Genera variantes de URL a probar (OneDrive a veces solo acepta una de ellas)."""
+    if not url_origen:
+        return []
+    raw = url_origen.strip()
+    seen = set()
+    out = []
+
+    def add(u):
+        if not u or u in seen:
+            return
+        seen.add(u)
+        out.append(u)
+
+    add(raw)
+    converted = convert_onedrive_url(raw)
+    add(converted)
+    # Variante download.aspx (OneDrive personal)
+    if "onedrive.live.com" in raw and "/download?" in raw:
+        add(raw.replace("/download?", "/download.aspx?"))
+    if converted and "onedrive.live.com" in converted and "/download?" in converted:
+        add(converted.replace("/download?", "/download.aspx?"))
+    return out
+
+
+def _read_excel_dataframe(url_origen):
+    """
+    Lee el Excel desde URL. OneDrive suele devolver 401 a urllib/pandas directo;
+    por eso priorizamos requests con User-Agent de navegador y varias URLs.
+    """
+    if not url_origen or not str(url_origen).strip():
+        raise ValueError("URL vacía")
+
+    raw = str(url_origen).strip()
+    is_onedrive = "onedrive.live.com" in raw or "1drv.ms" in raw or ":x:/g/personal/" in raw
+    is_google = "docs.google.com/spreadsheets" in raw
+
+    candidates = _candidate_urls_for_excel(raw)
+    errors = []
+
+    # 1) OneDrive / enlaces problemáticos: primero bytes por requests (más parecido a un navegador)
+    if is_onedrive or is_google:
+        for url in candidates:
+            content = download_file_with_requests(url)
+            if not content:
+                continue
+            try:
+                return pd.read_excel(io.BytesIO(content), engine="openpyxl", header=None)
+            except Exception as e:
+                errors.append(f"{url[:60]}… (bytes): {e}")
+
+    # 2) Pandas leyendo URL (a veces funciona con Google export)
+    for url in candidates:
+        try:
+            return pd.read_excel(url, engine="openpyxl", header=None)
+        except Exception as e:
+            errors.append(f"{url[:60]}… (pandas): {e}")
+
+    # 3) Último intento: requests sobre cada candidato si el paso 1 no corrió
+    if not is_onedrive and not is_google:
+        for url in candidates:
+            content = download_file_with_requests(url)
+            if content:
+                try:
+                    return pd.read_excel(io.BytesIO(content), engine="openpyxl", header=None)
+                except Exception as e:
+                    errors.append(f"{url[:60]}… (bytes): {e}")
+
+    detail = errors[-1] if errors else "sin detalle"
+    raise RuntimeError(f"No se pudo leer el archivo. Último intento: {detail}")
 
 
 def _db_estado_map():
@@ -111,6 +172,10 @@ def _db_estado_map():
 
 
 def convert_onedrive_url(url):
+    """
+    Convierte enlaces de vista/edición de OneDrive a algo descargable cuando es posible.
+    Los enlaces :x:/g/personal/ a menudo funcionan mejor con ?download=1 o sin convertir.
+    """
     if not url:
         return url
 
@@ -126,34 +191,81 @@ def convert_onedrive_url(url):
     if "onedrive.live.com" in url or "1drv.ms" in url:
         if "/download?" in url and "resid=" in url:
             return url
-        if ":x:/g/personal/" in url and "download=1" not in url:
-            sep = "&" if "?" in url else "?"
-            return f"{url}{sep}download=1"
+        if "/download.aspx?" in url and "resid=" in url:
+            return url
+
+        if ":x:/g/personal/" in url:
+            if "download=1" not in url:
+                sep = "&" if "?" in url else "?"
+                return f"{url}{sep}download=1"
+            return url
 
         m = re.search(r"resid=([^&]+)", url)
         if m:
             resid = urllib.parse.unquote(m.group(1)).strip()
             return f"https://onedrive.live.com/download?resid={resid}"
+
+        if "1drv.ms" in url:
+            logger.warning("URL corta 1drv.ms: puede requerir expansión manual. %s", url[:80])
+        return url
+
     return url
 
 
 def download_file_with_requests(url):
+    """
+    Descarga binarios; OneDrive rechaza muchas peticiones sin User-Agent de navegador real.
+    """
     try:
         import requests
     except Exception:
+        logger.warning("Instalá requests (pip install requests)")
         return None
+
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        ),
+        "Accept": (
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,"
+            "application/vnd.ms-excel,application/octet-stream,*/*"
+        ),
+        "Accept-Language": "es-AR,es;q=0.9,en;q=0.8",
+    }
+
+    def _get(u):
+        return requests.get(u, headers=headers, timeout=45, allow_redirects=True)
+
     try:
-        headers = {
-            "User-Agent": "Mozilla/5.0",
-            "Accept": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,*/*",
-        }
-        res = requests.get(url, headers=headers, timeout=30, allow_redirects=True)
-        res.raise_for_status()
-        if len(res.content) > 100:
-            return res.content
+        # Enlaces personales: probar primero con download=1 explícito
+        if ":x:/g/personal/" in url and "download=1" not in url:
+            sep = "&" if "?" in url else "?"
+            u2 = f"{url}{sep}download=1"
+            try:
+                r = _get(u2)
+                r.raise_for_status()
+                if len(r.content) > 500:
+                    return r.content
+            except Exception as e:
+                logger.info("Intento download=1 falló, sigo con URL original: %s", e)
+
+        r = _get(url)
+        r.raise_for_status()
+        ct = (r.headers.get("Content-Type") or "").lower()
+        # Página HTML de login suele ser pequeña o text/html
+        if "text/html" in ct and len(r.content) < 5000:
+            logger.warning(
+                "Respuesta parece HTML (¿login?). content-type=%s len=%s",
+                ct,
+                len(r.content),
+            )
+            return None
+        if len(r.content) > 100:
+            return r.content
         return None
     except Exception as e:
-        logger.warning("No se pudo descargar OneDrive por requests: %s", e)
+        logger.warning("download_file_with_requests: %s", e)
         return None
 
 
@@ -163,7 +275,7 @@ def preview_precios_google_sheet():
         return False, "URL del archivo no configurada.", {}, 0
 
     try:
-        df = _load_df(url)
+        df = _read_excel_dataframe(url)
     except Exception as e:
         return False, f"Error al obtener preview: {e}", {}, 0
 
