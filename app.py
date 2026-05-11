@@ -2046,48 +2046,34 @@ def descargar_pdf():
         if _tf:
             pdf_temp_files.append(_tf)
 
-        # Función helper para texto con encoding seguro
+        # Función helper: fuentes core (Helvetica) = Latin-1 en fpdf2 — tildes y ñ se conservan.
+        # No usar ASCII: antes se quitaban tildes innecesariamente. €/£ no caben en Latin-1.
         def safe_text(text):
-            """Convierte texto a formato seguro para PDF (maneja tildes y caracteres especiales)"""
+            """Normaliza texto para PDF con fuentes estándar (Latin-1); conserva tildes y eñes."""
             if not text:
                 return ''
             try:
-                # Convertir a string si no lo es
                 result = str(text)
-                
-                # Reemplazar caracteres problemáticos comunes ANTES de cualquier otra operación
-                # IMPORTANTE: Hacer múltiples pasadas para asegurar que se reemplacen todos
                 replacements = [
-                    ('–', '-'),  # En-dash (U+2013) - PRIMERO
-                    ('—', '-'),  # Em-dash (U+2014)
-                    ('−', '-'),  # Minus sign (U+2212)
-                    ('\u2013', '-'),  # En-dash como código Unicode
-                    ('\u2014', '-'),  # Em-dash como código Unicode
-                    ('\u2212', '-'),  # Minus sign como código Unicode
-                    ('á', 'a'), ('é', 'e'), ('í', 'i'), ('ó', 'o'), ('ú', 'u'),
-                    ('Á', 'A'), ('É', 'E'), ('Í', 'I'), ('Ó', 'O'), ('Ú', 'U'),
-                    ('ñ', 'n'), ('Ñ', 'N'),
-                    ('ü', 'u'), ('Ü', 'U'),
-                    ('°', 'o'),  # Grado
-                    ('€', 'EUR'),  # Euro
-                    ('£', 'GBP'),  # Libra
+                    ('–', '-'),
+                    ('—', '-'),
+                    ('−', '-'),
+                    ('\u2013', '-'),
+                    ('\u2014', '-'),
+                    ('\u2212', '-'),
+                    ('€', 'EUR'),
+                    ('£', 'GBP'),
                 ]
-                
-                # Aplicar reemplazos múltiples veces para asegurar que se capturen todos
                 for old, new in replacements:
                     result = result.replace(old, new)
-                # Una pasada adicional específica para en-dash
                 result = result.replace('\u2013', '-').replace('\u2014', '-')
-                
-                # Eliminar cualquier otro carácter no ASCII que pueda causar problemas
-                result = result.encode('ascii', 'ignore').decode('ascii')
-                return result
+                # Latin-1 = lo que Helvetica soporta en fpdf2; el resto pasa a '?' de forma segura
+                return result.encode('latin-1', errors='replace').decode('latin-1')
             except Exception as e:
                 logger.warning(f"Error al procesar texto: {e}, texto original: {str(text)[:50]}")
-                # Si falla, intentar solo con ASCII
                 try:
-                    return str(text).encode('ascii', 'ignore').decode('ascii')
-                except:
+                    return str(text).encode('latin-1', errors='replace').decode('latin-1')
+                except Exception:
                     return ''
         
         # Clase personalizada de PDF con header repetido
@@ -2345,8 +2331,17 @@ def descargar_pdf():
         
         # --- LÓGICA DE PIE DE PÁGINA INTELIGENTE ---
         info_bancaria = perfil.get('info_bancaria', '')
-        firma_texto = safe_text(perfil.get('firma_texto', ''))
+        raw_firma_texto = perfil.get('firma_texto') or ''
         firma_path = perfil.get('firma_path', '')
+
+        def render_firma_lineas(pdf_obj):
+            """Texto bajo la línea de firma: respeta saltos de línea (p. ej. nombre + matrícula)."""
+            if not raw_firma_texto.strip():
+                return
+            pdf_obj.set_font('Helvetica', '', 9)
+            for line in raw_firma_texto.splitlines():
+                pdf_obj.set_x(110)
+                pdf_obj.cell(90, 5, safe_text(line), align='C', ln=1)
         
         # 1. Definimos la altura del bloque completo (Bancos + Firma + Ente + Márgenes)
         # 65 mm es una altura segura para que entre todo cómodo.
@@ -2384,7 +2379,7 @@ def descargar_pdf():
         
         # --- B. FIRMA (Derecha) ---
         # Volvemos a la misma altura Y para la columna derecha
-        if firma_texto or firma_path:
+        if firma_path or raw_firma_texto.strip():
             pdf.set_xy(110, y_inicio)
             pdf.set_font('Helvetica', '', 9)
             
@@ -2430,33 +2425,33 @@ def descargar_pdf():
                         y_pos_linea = y_despues_imagen + espacio_firma_manual
                         pdf.line(110, y_pos_linea, 200, y_pos_linea)
                         
-                        # Si hay texto de firma, mostrarlo debajo de la línea
-                        if firma_texto:
+                        # Si hay texto de firma, mostrarlo debajo de la línea (varias líneas con Enter)
+                        if raw_firma_texto.strip():
                             pdf.set_xy(110, y_pos_linea + 3)
-                            pdf.cell(90, 5, firma_texto, align='C', ln=1)
+                            render_firma_lineas(pdf)
                     except Exception as e:
                         logger.warning(f"No se pudo insertar imagen de firma: {e}")
                         # Si falla la imagen, continuar con el texto normal
-                        if firma_texto:
+                        if raw_firma_texto.strip():
                             espacio_firma_manual = 15
                             y_pos_linea = y_inicio + espacio_firma_manual
                             pdf.line(110, y_pos_linea, 200, y_pos_linea)
                             pdf.set_xy(110, y_pos_linea + 3)
-                            pdf.cell(90, 5, firma_texto, align='C', ln=1)
-                elif firma_texto:
+                            render_firma_lineas(pdf)
+                elif raw_firma_texto.strip():
                     # Si la imagen no existe pero hay texto, mostrar solo el texto
                     espacio_firma_manual = 15
                     y_pos_linea = y_inicio + espacio_firma_manual
                     pdf.line(110, y_pos_linea, 200, y_pos_linea)
                     pdf.set_xy(110, y_pos_linea + 3)
-                    pdf.cell(90, 5, firma_texto, align='C', ln=1)
-            elif firma_texto:
+                    render_firma_lineas(pdf)
+            elif raw_firma_texto.strip():
                 # Solo texto de firma, sin imagen
                 espacio_firma_manual = 15
                 y_pos_linea = y_inicio + espacio_firma_manual
                 pdf.line(110, y_pos_linea, 200, y_pos_linea)
                 pdf.set_xy(110, y_pos_linea + 3)
-                pdf.cell(90, 5, firma_texto, align='C', ln=1)
+                render_firma_lineas(pdf)
         
         # --- C. ENTE REGULADOR (Diseño Horizontal Prolijo) ---
         
@@ -2512,8 +2507,12 @@ def descargar_pdf():
             logger.error(f"Error al generar bytes del PDF: {e}", exc_info=True)
             raise
         
-        # Nombre del archivo (sanitizar para evitar caracteres problemáticos)
-        nombre_archivo_base = safe_text(nombre_paciente.replace(' ', '_') if nombre_paciente else 'cliente')
+        # Nombre del archivo: solo ASCII (el PDF sí lleva tildes; el nombre al descargar evita rutas raras)
+        raw_name = (nombre_paciente or 'cliente').replace(' ', '_')
+        nombre_archivo_base = re.sub(
+            r'[^a-zA-Z0-9._-]+', '_',
+            raw_name.encode('ascii', 'ignore').decode('ascii') or 'cliente',
+        ).strip('_') or 'cliente'
         nombre_archivo = f"presupuesto_{nombre_archivo_base}_{datetime.now().strftime('%Y%m%d')}.pdf"
         
         return send_file(

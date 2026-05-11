@@ -111,7 +111,8 @@
                             <h2 class="perfil-section-title">Firma</h2>
                             <div class="admin-form-group">
                                 <label>Texto de firma</label>
-                                <input type="text" name="firma_texto" value="{{ perfil.get('firma_texto', '') }}" placeholder="Ej: Dr. Juan Pérez">
+                                <textarea name="firma_texto" rows="2" placeholder="Ej.: Dr. Juan Pérez — segunda línea: matrícula">{{ perfil.get('firma_texto', '') }}</textarea>
+                                <small>Podés usar dos líneas (Enter); en el PDF se respetan debajo de la rúbrica.</small>
                             </div>
                             <div class="perfil-file-wrap">
                                 <div class="perfil-file-input">
